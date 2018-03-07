@@ -20,21 +20,26 @@ class Innlogging extends React.Component {
   render () {
     return (
       <div>
+        <br />
         <table>
           <tbody>
             <tr>
               <td>Brukernavn: </td>
-              <td><input type="text" ref="unInput" defaultValue="testson@hotmail.com" /></td>
+              <td><input type="text" ref="unInput" defaultValue="peter@test.no" /></td>
+              <td><button ref="newUserButton">Ny bruker</button></td>
             </tr>
             <tr>
               <td>Passord: </td>
-              <td><input type="password" ref="pwInput" defaultValue="passord" /> </td>
+              <td><input type="password" ref="pwInput" defaultValue="12345" /> </td>
+              <td><button ref="newPasswordButton">Glemt passord?</button></td>
+            </tr>
+            <tr>
+              <td></td>
               <td><button ref="innlogginButton">Logg inn</button></td>
+              <td></td>
             </tr>
           </tbody>
         </table>
-        <button ref="newPasswordButton">Glemt Passord</button>
-        <button ref="newUserButton">Ny bruker</button>
       </div>
 
     )
@@ -71,31 +76,39 @@ class NyBruker extends React.Component {
           <tbody>
             <tr>
               <td>Navn: </td>
-              <td><input type="text" ref="navnInput" /></td>
+              <td><input type="text" ref="navnInput" defaultValue="Peter" /></td>
             </tr>
             <tr>
               <td>Epost: </td>
-              <td><input type="text" ref="epostInput" /></td>
+              <td><input type="email" ref="epostInput" defaultValue='peter@test.no' /></td>
             </tr>
             <tr>
               <td>Medlemsnr: </td>
-              <td><input type="number" ref="medlemsnrInput" /></td>
+              <td><input type="number" ref="medlemsnrInput" defaultValue='18124'  /></td>
             </tr>
             <tr>
               <td>Telefonnummer: </td>
-              <td><input type="number" ref="tlfInput" /></td>
+              <td><input type="number" ref="tlfInput" defaultValue='95485648' /></td>
             </tr>
             <tr>
-              <td>Adresse: </td>
-              <td><input type="text" ref="adresseInput" /></td>
+              <td>Gateadresse: </td>
+              <td><input type="text" ref="adresseInput" defaultValue='Brandhaugveita 4' /></td>
+            </tr>
+            <tr>
+              <td>Postnummer: </td>
+              <td><input type="text" ref="postnrInput" defaultValue='7012' /></td>
+            </tr>
+            <tr>
+              <td>Poststed: </td>
+              <td><input type="text" ref="poststedInput" defaultValue='Trondheim' /></td>
             </tr>
             <tr>
               <td>Passord: </td>
-              <td><input type="password" ref="passwordInput1" /></td>
+              <td><input type="password" ref="passwordInput1" defaultValue='12345' /></td>
             </tr>
             <tr>
               <td>Gjenta passord: </td>
-              <td><input type="password" ref="passwordInput2" /> </td>
+              <td><input type="password" ref="passwordInput2" defaultValue='12345' /> </td>
             </tr>
           </tbody>
         </table>
@@ -104,10 +117,16 @@ class NyBruker extends React.Component {
     )
   }
   componentDidMount () {
-    if (this.refs.passwordInput1.value === this.refs.passwordInput2) {
-      userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnr.value, this.refs.tlfInput.value, this.refs.passwordInput1.value, () => {
-        console.log('User added')
-      })
+    this.refs.createuserButton.onclick = () => {
+      console.log('button clicked')
+      if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
+        console.log('passord match')
+        userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value, this.refs.passwordInput1.value, () => {
+          console.log('User added')
+        })
+      } else {
+        alert('Passordene må være like')
+      }
     }
   }
 }
@@ -116,9 +135,13 @@ class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-
+        Epost: <input type='email' ref='nyEpostInput' />
+        <button ref='newPasswordButton'>Be om nytt passord</button>
       </div>
     )
+  }
+  componentDidMount () {
+
   }
 }
 

@@ -5,9 +5,9 @@ let connection
 function connect () {
   connection = mysql.createConnection({
     host: 'mysql.stud.iie.ntnu.no',
-    user: 'robinhs',
-    password: 'GQhfsP11',
-    database: 'robinhs'
+    user: 'g_oops_24',
+    password: 'Y3QgOxYS',
+    database: 'g_oops_24'
   })
 
   // Connect to MySQL-server
@@ -45,8 +45,10 @@ class UserService {
   }
 
   addUser (navn, epost, medlemsnr, tlf, passord, callback) {
-    connection.query('INSERT INTO medlem (brukernavn, epost, medlem_nr, tlf, passord) values (?, ?, ?, ?, ?)', [navn, epost, medlemsnr, tlf, passord], (error, result) => {
+    connection.query('INSERT INTO medlem (brukernavn, epost, id, tlf, passord) values (?, ?, ?, ?, ?)', [navn, epost, medlemsnr, tlf, passord], (error, result) => {
       if (error) throw error
+
+      console.log('test')
 
       callback()
     })
