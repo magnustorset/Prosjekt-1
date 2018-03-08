@@ -48,8 +48,6 @@ class UserService {
     connection.query('INSERT INTO medlem (brukernavn, epost, id, tlf, passord) values (?, ?, ?, ?, ?)', [navn, epost, medlemsnr, tlf, passord], (error, result) => {
       if (error) throw error
 
-      console.log('test')
-
       callback()
     })
   }

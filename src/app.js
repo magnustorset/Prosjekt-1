@@ -118,9 +118,7 @@ class NyBruker extends React.Component {
   }
   componentDidMount () {
     this.refs.createuserButton.onclick = () => {
-      console.log('button clicked')
       if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
-        console.log('passord match')
         userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value, this.refs.passwordInput1.value, () => {
           console.log('User added')
         })
