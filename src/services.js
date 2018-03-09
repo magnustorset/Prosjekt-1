@@ -40,7 +40,7 @@ class UserService {
     connection.query('SELECT * FROM medlem WHERE id=?', [id], (error, result) => {
       if (error) throw error
 
-      callback(result[0])
+      callback(result)
     })
   }
 
@@ -69,7 +69,7 @@ class LoginService {
       let medlemsnr = null
       if (result[0].passord === passord) {
         login = true
-        medlemsnr = result[0].medlem_nr
+        medlemsnr = result[0].id;
       } else {
         login = false
       }
