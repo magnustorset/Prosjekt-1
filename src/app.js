@@ -7,11 +7,21 @@ let brukerid = null
 
 class Menu extends React.Component {
   render () {
+      if(brukerid != null){
     return (
+
       <div>
-        Menu: <Link to='/'>Innlogging</Link> <Link to='/start'>Start</Link>
+        Menu: <Link to='/'>Innlogging</Link>
+              <Link to='/start'>Start</Link>
+              <Link to='/arrangement'>Arrangement</Link>
+              <Link to='/minside'>Minside</Link>
       </div>
-    )
+    );
+  }
+  return(
+    <div>
+    </div>
+  )
   }
 }
 
@@ -144,14 +154,58 @@ class NyttPassord extends React.Component {
 }
 
 class StartSide extends React.Component {
+  constructor() {
+  super(); // Call React.Component constructor
+
+  this.user = [];
+  this.id = brukerid;
+}
   render () {
+
     return (
       <div>
-        <h1>Dette er en startside</h1>
+        <h1>Hei, {this.user.brukernavn}!</h1>
+        Id: {this.id};
+        <button ref='logOut'>Logg ut</button>
       </div>
     )
   }
   componentDidMount () {
+    userService.getUser(this.id,(result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    });
+    this.refs.logOut.onclick = () =>{
+      brukerid = null;
+      this.props.history.push('/');
+    }
+  }
+}
+
+class Arrangement extends React.Component{
+  render(){
+    return(
+      <div>
+      Her vil arrangement vises etterhvert.
+      </div>
+    )
+  }
+  componentDidMount(){
+
+  }
+}
+
+class MineSider extends React.Component {
+  render(){
+    return(
+      <div>
+      Her skal din info vises
+      </div>
+    )
+  }
+  componentDidMount(){
 
   }
 }
@@ -216,7 +270,8 @@ ReactDOM.render((
         <Route exact path='/start' component={StartSide} />
         <Route exact path='/nybruker' component={NyBruker} />
         <Route exact path='/nyttpassord' component={NyttPassord} />
-
+        <Route exact path='/arrangement' component={Arrangement} />
+        <Route exact path='/minside' component={MineSider} />
       </Switch>
     </div>
   </HashRouter>
