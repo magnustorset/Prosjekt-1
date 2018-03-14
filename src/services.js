@@ -88,11 +88,22 @@ class ArrangementService {
       k_id = result[0].id
       console.log(result);
       console.log(k_id);
+
+      connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id])
+
     })
 
-    connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id])
 
     callback()
+  }
+
+  getArrangement(sok, callback){
+    connection.query('SELECT * from arrangement where navn LIKE ?',[sok], (error, result) =>{
+      if(error) throw error
+      console.log(result);
+      callback(result);
+    });
+
   }
 }
 

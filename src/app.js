@@ -185,17 +185,39 @@ class StartSide extends React.Component {
 }
 
 class Arrangement extends React.Component{
+  constructor(){
+    super();
+    this.arrangement = [];
+  }
   render(){
+    let a = 10;
+    let tableItems = [];
+    for(let table of this.arrangement){
+      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td>{table.kontaktperson}</td></tr>)
+      a++;
+    }
     return(
       <div>
+      <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%',(result)=>{this.arrangement= '';this.arrangement = result; this.forceUpdate();});}} />
+      <button ref='searchButton'>Søk arrangement</button>
+      <table>
+      <tbody>
+      {tableItems}
+      </tbody>
+      </table>
         <Link to='/nyttarrangement'>Nytt Arrangement</Link>
       </div>
     )
   }
   componentDidMount(){
-
+  // this.refs.searchButton.onclick = () =>{
+  //   arrangementService.getArrangement(this.refs.searchArrangement.value,(result)=>{
+  //       this.arrangement = result;
+  //       this.forceUpdate();
+  //     });
   }
-}
+  }
+
 
 class NyttArrangement extends React.Component{
   render(){
