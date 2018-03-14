@@ -79,7 +79,25 @@ class LoginService {
   }
 }
 
+class ArrangementService {
+  addArrangement (tlf, navn, meetdate, startdate, enddate, place, desc, callback) {
+    let k_id;
+
+    connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
+      if (error) throw error
+      k_id = result[0].id
+      console.log(result);
+      console.log(k_id);
+    })
+
+    connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id])
+
+    callback()
+  }
+}
+
 let userService = new UserService()
 let loginService = new LoginService()
+let arrangementService = new ArrangementService()
 
-export { userService, loginService }
+export { userService, loginService, arrangementService }

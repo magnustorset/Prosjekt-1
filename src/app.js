@@ -1,9 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Link, HashRouter, Switch, Route } from 'react-router-dom'
-import { userService, loginService } from './services'
+import { userService, loginService, arrangementService } from './services'
 
 let brukerid = null
+
 
 class Menu extends React.Component {
   render () {
@@ -11,8 +12,7 @@ class Menu extends React.Component {
     return (
 
       <div>
-        Menu: <Link to='/'>Innlogging</Link>
-              <Link to='/start'>Start</Link>
+        Menu: <Link to='/start'>Start</Link>
               <Link to='/arrangement'>Arrangement</Link>
               <Link to='/minside'>Minside</Link>
       </div>
@@ -188,11 +188,39 @@ class Arrangement extends React.Component{
   render(){
     return(
       <div>
-      Her vil arrangement vises etterhvert.
+        <Link to='/nyttarrangement'>Nytt Arrangement</Link>
       </div>
     )
   }
   componentDidMount(){
+
+  }
+}
+
+class NyttArrangement extends React.Component{
+  render(){
+    return(
+      <div>
+        Navn: <input type="text" ref="a_name" defaultValue="Test" /> <br />
+        Startdato: <input type="datetime-local" ref="a_startdate" /> <br /> {/*Autofyll med dagens dato*/}
+        Sluttdato: <input type="datetime-local" ref="a_enddate" /> <br />
+        Oppmøtetidspunkt: <input type="datetime-local" ref="a_meetdate" /> <br />
+        Oppmøtested: <input type="text" ref="a_place" defaultValue="Her" /> <br />
+        Beskrivelse: <textarea rows="4" cols="20" ref="a_desc" defaultValue="En tekstlig beskrivelse"/> <br />
+        Kontaktperson: <br />
+        Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
+        Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
+      <button ref="arrangementButton">Lag arrangement</button>
+      </div>
+    )
+  }
+  componentDidMount(){
+    this.refs.arrangementButton.onclick = () => {
+      console.log(this.refs.a_startdate.value);
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value, () => {
+        console.log('Arrangement laget');
+      })
+    }
 
   }
 }
@@ -209,52 +237,6 @@ class MineSider extends React.Component {
 
   }
 }
-/*
-// Detailed view of one customer
-class CustomerDetails extends React.Component {
-  constructor (props) {
-    super(props) // Call React.Component constructor
-
-    this.customer = {}
-
-    // The customer id from path is stored in props.match.params.customerId
-    this.id = props.match.params.customerId
-  }
-
-  render () {
-    return (
-      <div>
-        Customer:
-        <ul>
-          <li>Name: {this.customer.firstName}</li>
-          <li>City: {this.customer.city}</li>
-        </ul>
-        New name: <input type="text" ref='editName' /> <br />
-        New city: <input type="text" ref='editCity' />
-        <button ref='editCustomerButton'>Edit</button>
-      </div>
-    )
-  }
-
-  // Called after render() is called for the first time
-  componentDidMount () {
-    // The customer id from path is stored in props.match.params.customerId
-    customerService.getCustomer(this.id, (result) => {
-      this.customer = result
-      this.forceUpdate() // Rerender component with updated data
-    })
-
-    this.refs.editCustomerButton.onclick = () => {
-      customerService.editCustomer(this.refs.editName.value, this.refs.editCity.value, this.id, () => {
-        customerService.getCustomer(this.id, (result) => {
-          this.customer = result
-          this.forceUpdate()
-        })
-      })
-    }
-  }
-}
-*/
 // The Route-elements define the different pages of the application
 // through a path and which component should be used for the path.
 // The path can include a variable, for instance
@@ -272,6 +254,7 @@ ReactDOM.render((
         <Route exact path='/nyttpassord' component={NyttPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
+        <Route exact path='/nyttarrangement' component={NyttArrangement} />
       </Switch>
     </div>
   </HashRouter>
