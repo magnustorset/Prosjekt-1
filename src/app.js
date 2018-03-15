@@ -210,11 +210,6 @@ class Arrangement extends React.Component{
     )
   }
   componentDidMount(){
-  // this.refs.searchButton.onclick = () =>{
-  //   arrangementService.getArrangement(this.refs.searchArrangement.value,(result)=>{
-  //       this.arrangement = result;
-  //       this.forceUpdate();
-  //     });
   }
   }
 
