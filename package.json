@@ -6,6 +6,7 @@
     "start": "electron -r babel-register ."
   },
   "dependencies": {
+    "bootstrap": "^4.0.0",
     "mysql": "^2.15.0",
     "react": "^16.2.0",
     "react-bootstrap": "^0.32.1",
