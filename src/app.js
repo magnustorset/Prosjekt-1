@@ -5,6 +5,45 @@ import { userService, loginService, arrangementService } from './services'
 
 let brukerid = null
 
+class ErrorMessage extends React.Component {
+  constructor() {
+    super();
+
+    this.message = '';
+  }
+
+  render() {
+    // Only show when this.message is not empty
+    let displayValue;
+    if(this.message=='') displayValue = 'none';
+    else displayValue = 'inline';
+
+    return (
+      <div style={{display: displayValue}}>
+        <b><font color='red'>{this.message}</font></b>
+        <button ref='closeButton'>Close</button>
+      </div>
+    );
+  }
+
+  componentDidMount() {
+    errorMessage = this;
+    this.refs.closeButton.onclick = () => {
+      this.message = '';
+      this.forceUpdate();
+    };
+  }
+
+  componentWillUnmount() {
+    errorMessage = null;
+  }
+
+  set(message) {
+    this.message = message;
+    this.forceUpdate();
+  }
+}
+let errorMessage; // ErrorMessage-instance
 
 class Menu extends React.Component {
   render () {
@@ -58,16 +97,16 @@ class Innlogging extends React.Component {
   // Called after render() is called for the first time
   componentDidMount () {
     this.refs.innlogginButton.onclick = () => {
-      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value, (login, medlemsnr) => {
+      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then(([medlemsnr, login]) => {
         if (login) {
-          console.log('Innlogget')
-          brukerid = medlemsnr
-          console.log(brukerid)
-          this.props.history.push('/start')
-        } else {
-          console.log('Feil brukernavn eller passord')
+          console.log('Innlogget');
+          brukerid = medlemsnr;
+          console.log(brukerid);
+          this.props.history.push('/start');
         }
-      })
+      }).catch((error) => {
+        if(errorMessage) errorMessage.set('Login feilet');
+      });
     }
     this.refs.newPasswordButton.onclick = () => {
       this.props.history.push('/nyttpassord')
@@ -123,17 +162,21 @@ class NyBruker extends React.Component {
           </tbody>
         </table>
         <button ref="createuserButton">Ferdig</button>
+        <button ref='bakcButton'>Tilbake</button>
       </div>
     )
   }
   componentDidMount () {
+    this.refs.bakcButton.onclick = () => {
+      this.props.history.push('/');
+    }
     this.refs.createuserButton.onclick = () => {
       if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
-        userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value, this.refs.passwordInput1.value, () => {
+        userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value, this.refs.passwordInput1.value).then(() => {
           console.log('User added')
-        })
-      } else {
-        alert('Passordene må være like')
+        }).catch((error) => {
+          if(errorMessage) errorMessage.set('Kunne ikke legge til ny bruker');
+        });
       }
     }
   }
@@ -171,12 +214,15 @@ class StartSide extends React.Component {
     )
   }
   componentDidMount () {
-    userService.getUser(this.id,(result) =>{
+    userService.getUser(this.id).then((result) =>{
       console.log(this.id);
       this.user = result[0];
       console.log(this.user);
       this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+
     this.refs.logOut.onclick = () =>{
       brukerid = null;
       this.props.history.push('/');
@@ -198,7 +244,7 @@ class Arrangement extends React.Component{
     }
     return(
       <div>
-      <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%',(result)=>{this.arrangement= '';this.arrangement = result; this.forceUpdate();});}} />
+      <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result)=>{this.arrangement= '';this.arrangement = result; this.forceUpdate();}).catch((error) =>{if(errorMessage) errorMessage.set('Finner ikke arrangement');});}} />
       <button ref='searchButton'>Søk arrangement</button>
       <table>
       <tbody>
@@ -234,9 +280,11 @@ class NyttArrangement extends React.Component{
   componentDidMount(){
     this.refs.arrangementButton.onclick = () => {
       console.log(this.refs.a_startdate.value);
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value, () => {
-        console.log('Arrangement laget');
-      })
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value).then(() => {
+        console.log('Arrangement laget')
+      }).cath((error) =>{
+        if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
+      });
     }
 
   }
@@ -263,6 +311,7 @@ class MineSider extends React.Component {
 ReactDOM.render((
   <HashRouter>
     <div>
+    <ErrorMessage />
       <Menu />
       <Switch>
         <Route exact path='/' component={Innlogging} />
