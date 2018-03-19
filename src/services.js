@@ -88,15 +88,21 @@ class LoginService {
           return;
         }
         let login = false
+        let admin = false
         let medlemsnr = null
-        if (result[0].passord === passord) {
+        if (result[0].passord === passord && result[0].admin === 1) {
+          login = true
+          admin = true
+          medlemsnr = result[0].id;
+          console.log(admin);
+          console.log(medlemsnr);
+        } else if(result[0].passord === passord) {
           login = true
           medlemsnr = result[0].id;
-          console.log(medlemsnr);
-        } else {
+        }else{
           login = false
         }
-        resolve([medlemsnr, login]);
+        resolve([medlemsnr, login, admin]);
     });
   });
   }

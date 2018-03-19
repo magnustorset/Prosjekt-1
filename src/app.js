@@ -2,8 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Link, HashRouter, Switch, Route } from 'react-router-dom'
 import { userService, loginService, arrangementService } from './services'
-
+import './applikasjon.css';
 let brukerid = null
+let administrator = false
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -47,16 +48,73 @@ let errorMessage; // ErrorMessage-instance
 
 class Menu extends React.Component {
   render () {
-      if(brukerid != null){
+      if(brukerid != null && administrator === true){
     return (
-
-      <div>
-        Menu: <Link to='/start'>Start</Link>
-              <Link to='/arrangement'>Arrangement</Link>
-              <Link to='/minside'>Minside</Link>
-      </div>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div className="navbar-brand">
+      <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+      Røde Kors</div>
+      <div className='navbar-header'>
+ <button className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+   <span className="navbar-toggler-icon"></span>
+ </button>
+</div>
+  <div className="navbar-collapse collapse" id="navbarSupportedContent">
+    <ul className="navbar-nav mr-auto">
+      <li className="nav-item active">
+      <Link to='/start' className='nav-link'>Start</Link>
+      </li>
+      <li className="nav-item">
+        <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+      </li>
+      <li className='nav-item'>
+      <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+      </li>
+      <li className='nav-item'>
+      <Link to='/bestemme' className='nav-link'>Admin side</Link>
+      </li>
+    </ul>
+    <ul className="nav navbar-nav navbar-right">
+      <li>
+      <input type='text' className='form-control' />
+      </li>
+    </ul>
+  </div>
+</nav>
     );
   }
+   if(brukerid != null && administrator === false){
+     return(
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div className="navbar-brand">
+    <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+    Røde Kors</div>
+    <div className='navbar-header'>
+<button className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+ <span className="navbar-toggler-icon"></span>
+</button>
+</div>
+<div className="navbar-collapse collapse" id="navbarSupportedContent">
+  <ul className="navbar-nav mr-auto">
+    <li className="nav-item active">
+    <Link to='/start' className='nav-link'>Start</Link>
+    </li>
+    <li className="nav-item">
+      <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+    </li>
+    <li className='nav-item'>
+    <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+    </li>
+  </ul>
+  <ul className="nav navbar-nav navbar-right">
+    <li>
+    <input type='text' className='form-control' />
+    </li>
+  </ul>
+</div>
+</nav>
+);
+}
   return(
     <div>
     </div>
@@ -67,25 +125,36 @@ class Menu extends React.Component {
 // Component that shows a list of all the customers
 class Innlogging extends React.Component {
   render () {
+    // let divStyle = {
+    // padding: '50px',
+    // marginTop: '350px',
+    // marginLeft: '600px',
+    // marginRight: '450px',
+    // backgroundColor: '#ffffcc'
+    //   };
+    // let tableStyle ={
+    //   paddingBottom: '10px',
+    //   paddingLeft: '10px'
+    // }
     return (
       <div>
         <br />
-        <table>
+        <table >
           <tbody>
             <tr>
-              <td>Brukernavn: </td>
-              <td><input type="text" ref="unInput" defaultValue="peter@test.no" /></td>
-              <td><button ref="newUserButton">Ny bruker</button></td>
+              <td >Brukernavn: </td>
+              <td ><input type="text" ref="unInput" defaultValue="peter@test.no" /></td>
+              <td ><button ref="newUserButton">Ny bruker</button></td>
             </tr>
             <tr>
-              <td>Passord: </td>
-              <td><input type="password" ref="pwInput" defaultValue="12345" /> </td>
-              <td><button ref="newPasswordButton">Glemt passord?</button></td>
+              <td >Passord: </td>
+              <td ><input type="password" ref="pwInput" defaultValue="12345" /> </td>
+              <td ><button ref="newPasswordButton">Glemt passord?</button></td>
             </tr>
             <tr>
               <td></td>
-              <td><button ref="innlogginButton">Logg inn</button></td>
-              <td></td>
+              <td ><button className="btn btn-primary" ref="innlogginButton">Logg inn</button></td>
+              <td ></td>
             </tr>
           </tbody>
         </table>
@@ -97,11 +166,16 @@ class Innlogging extends React.Component {
   // Called after render() is called for the first time
   componentDidMount () {
     this.refs.innlogginButton.onclick = () => {
-      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then(([medlemsnr, login]) => {
-        if (login) {
-          console.log('Innlogget');
+      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then(([medlemsnr, login, admin]) => {
+        if (login && admin) {
+          console.log('Innlogget som admin');
+          administrator = admin;
           brukerid = medlemsnr;
-          console.log(brukerid);
+          this.props.history.push('/start');
+        }
+        if(login && !admin){
+          console.log('Innlogget som bruker');
+          brukerid = medlemsnr;
           this.props.history.push('/start');
         }
       }).catch((error) => {
@@ -225,6 +299,7 @@ class StartSide extends React.Component {
 
     this.refs.logOut.onclick = () =>{
       brukerid = null;
+      administrator = false;
       this.props.history.push('/');
     }
   }
@@ -302,6 +377,19 @@ class MineSider extends React.Component {
 
   }
 }
+
+class Administrator extends React.Component {
+  render(){
+    return(
+      <div>
+    Administrator muligheter kommer opp her.
+      </div>
+    )
+  }
+  componentDidMount(){
+
+  }
+}
 // The Route-elements define the different pages of the application
 // through a path and which component should be used for the path.
 // The path can include a variable, for instance
@@ -321,6 +409,7 @@ ReactDOM.render((
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
+        <Route exact path='/bestemme' component={Administrator} />
       </Switch>
     </div>
   </HashRouter>
