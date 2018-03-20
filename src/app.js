@@ -95,7 +95,11 @@ class Menu extends React.Component {
     <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
     Røde Kors</div>
     <div className='navbar-header'>
-<button className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+<button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
+kollaps.style.display ='none';
+if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+if(kollaps.style.display =='none'){klokke=0;}}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
  <span className="navbar-toggler-icon"></span>
 </button>
 </div>
