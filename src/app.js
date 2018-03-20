@@ -229,11 +229,11 @@ class NyBruker extends React.Component {
             </tr>
             <tr>
               <td>Postnummer: </td>
-              <td><input type="text" ref="postnrInput" defaultValue='7012' /></td>
+              <td><input type="text" ref="postnrInput" defaultValue='0000' /></td>
             </tr>
             <tr>
               <td>Poststed: </td>
-              <td><input type="text" ref="poststedInput" defaultValue='Trondheim' /></td>
+              <td><input type="text" ref="poststedInput" defaultValue='Test' /></td>
             </tr>
             <tr>
               <td>Passord: </td>
@@ -256,10 +256,10 @@ class NyBruker extends React.Component {
     }
     this.refs.createuserButton.onclick = () => {
       if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
-        userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value, this.refs.passwordInput1.value).then(() => {
+        userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value,this.refs.adresseInput.value, this.refs.passwordInput1.value,this.refs.postnrInput.value).then(() => {
           console.log('User added')
         }).catch((error) => {
-          if(errorMessage) errorMessage.set('Kunne ikke legge til ny bruker');
+          if(errorMessage) errorMessage.set('Kunne ikke legge til ny bruker' +error);
         });
       }
     }
