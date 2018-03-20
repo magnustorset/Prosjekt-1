@@ -51,24 +51,25 @@ transporter.verify(function(error, success) {
 });
 
 class EmailService {
-  newPassword (clientEmail) {
+  newPassword (clientEmail, emailCheck) {
     return new Promise((resolve, reject) => {
 
       let message = {
         from: 'rodekorsprosjekt@2rz.no',
         to: clientEmail,
         subject: 'Nytt Passord',
-        text: 'Vi har sendt deg et nytt passord, men vet ikke helt hvordan det kommer til å fungere enda.',
-        html: '<h1>Vi har sendt deg et nytt passord, men vet ikke helt hvordan det kommer til å fungere enda.</h1>'
+        text: 'Din kode for å gjenoprette passord er ' + emailCheck,
+        html: '<h1>Din kode or å gjenoprette passord er ' + emailCheck + '</h1>'
       }
 
-      transporter.sendMail(message), (err, info) => {
+      transporter.sendMail(message, (err, info) => {
         if(err){
           reject(err)
           return;
         }
-        resolve(info)
-      }
+
+        resolve(info);
+      });
     })
   }
 
@@ -129,7 +130,7 @@ class UserService {
 
 class LoginService {
   checkLogin (brukernavn, passord, callback) {
-    return new Promise((resolve, reject) =>{
+    return new Promise((resolve, reject) => {
       connection.query('SELECT * from medlem WHERE epost = ?', [brukernavn], (error, result) => {
         if(error){
           reject(error);
@@ -153,6 +154,41 @@ class LoginService {
         resolve([medlemsnr, login, admin]);
     });
   });
+  }
+
+  navn(kode, email) {
+    let m_id
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT id from medlem where epost = ?', [email], (error, result) => {
+        if(error){
+          reject(error);
+          return;
+        }
+
+        console.log(result[0]);
+        let m_id = result[0]
+
+        connection.query('INSERT INTO recovery values (?, ?)', [m_id, kode], (error, result) => {
+          if(error){
+            reject(error);
+            return;
+          }
+          resolve()
+        })
+      })
+    })
+  }
+
+  emailCheck(email, kode) {
+    return new promise((resolve, reject) => {
+      connection.query('SELECT COUNT(*) from recovery inner join medlem on medlem.id=recovery.m_id where epost = ?, kode = ?', [email, kode], (error, result) => {
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result[0]);
+      })
+    })
   }
 }
 

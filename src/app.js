@@ -265,22 +265,55 @@ class NyBruker extends React.Component {
     }
   }
 }
-
+let brukerEpost;
 class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-        Epost: <input type='email' ref='nyEpostInput' />
+        Epost: <input type='email' ref='nyEpostInput' /> <br />
+
         <button ref='newPasswordButton'>Be om nytt passord</button>
+        <button ref='backButton'>Tilbake</button>
       </div>
     )
   }
   componentDidMount () {
     this.refs.newPasswordButton.onclick = () => {
-      emailService.newPassword(this.refs.nyEpostInput.value)
+      let brukerEpost = this.refs.nyEpostInput.value
+      let emailCheck = Math.floor(Math.random() * 100000);
+      loginService.navn(emailCheck, brukerEpost).then(() => {
+        console.log('test');
+      })
+      emailService.newPassword(brukerEpost, emailCheck).then(() => {
+        console.log('Epost sendt');
+        this.props.history.push('/nyttpassord/kode')
+      })
+    }
+    this.refs.backButton.onclick = () => {
+      this.props.history.push('/')
     }
   }
 }
+
+class ResetPassord extends React.Component {
+  constructor() {
+    super()
+  }
+
+  render() {
+    <div>
+      <input type='text' ref='kodeInput' /> <br />
+      <button ref='kodeButton'>Sjekk kode</button>
+    </div>
+  }
+
+  componentDidMount() {
+    this.refs.kodeButton.onclick = () => {
+      loginService.emailCheck(emailCheck, this.refs.kodeInput.value)
+      }
+    }
+  }
+
 
 class StartSide extends React.Component {
   constructor() {
@@ -288,7 +321,7 @@ class StartSide extends React.Component {
 
   this.user = [];
   this.id = brukerid;
-}
+  }
   render () {
 
     return (
@@ -418,6 +451,7 @@ ReactDOM.render((
         <Route exact path='/start' component={StartSide} />
         <Route exact path='/nybruker' component={NyBruker} />
         <Route exact path='/nyttpassord' component={NyttPassord} />
+        <Route exact path='/nyttpassord/kode' component={ResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
