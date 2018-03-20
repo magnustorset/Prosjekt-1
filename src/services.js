@@ -102,9 +102,9 @@ class UserService {
   });
   }
 
-  addUser (navn, epost, medlemsnr, tlf, passord, callback) {
+  addUser (navn, epost, medlemsnr, tlf, adresse, passord, postnr, callback) {
     return new Promise((resolve, reject) =>{
-    connection.query('INSERT INTO medlem (brukernavn, epost, id, tlf, passord) values (?, ?, ?, ?, ?)', [navn, epost, medlemsnr, tlf, passord], (error, result) => {
+    connection.query('INSERT INTO medlem (brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?)', [navn, epost, medlemsnr, tlf, adresse, passord, postnr], (error, result) => {
       if(error){
         reject(error);
         return;
