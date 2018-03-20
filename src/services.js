@@ -166,7 +166,7 @@ class LoginService {
         }
 
         console.log(result[0]);
-        let m_id = result[0]
+        let m_id = result[0].id
 
         connection.query('INSERT INTO recovery values (?, ?)', [m_id, kode], (error, result) => {
           if(error){

@@ -286,7 +286,7 @@ class NyttPassord extends React.Component {
       })
       emailService.newPassword(brukerEpost, emailCheck).then(() => {
         console.log('Epost sendt');
-        this.props.history.push('/nyttpassord/kode')
+        this.props.history.push('/kode')
       })
     }
     this.refs.backButton.onclick = () => {
@@ -451,7 +451,7 @@ ReactDOM.render((
         <Route exact path='/start' component={StartSide} />
         <Route exact path='/nybruker' component={NyBruker} />
         <Route exact path='/nyttpassord' component={NyttPassord} />
-        <Route exact path='/nyttpassord/kode' component={ResetPassord} />
+        <Route exact path='/kode' component={ResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
