@@ -64,13 +64,10 @@ class EmailService {
           return;
         }
         resolve(info)
-
       }
-
     })
-
-
   }
+
 }
 
 // Class that performs database queries related to users
