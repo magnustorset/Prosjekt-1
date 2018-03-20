@@ -30,8 +30,8 @@ connect()
 let transporter = nodemailer.createTransport({
   pool: true,
   host: 'mail.fastname.no',
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
   auth: {
     user: 'rodekorsprosjekt@2rz.no',
     pass: '25JyrJSCfe8h'
