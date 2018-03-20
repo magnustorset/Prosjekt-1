@@ -4,6 +4,7 @@ import { Link, HashRouter, Switch, Route } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService } from './services'
 let brukerid = null
 let administrator = false
+let klokke = 0
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -54,12 +55,17 @@ class Menu extends React.Component {
       <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
       Røde Kors</div>
       <div className='navbar-header'>
- <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" >
+  <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
+  kollaps.style.display ='none';
+  if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+  else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+  if(kollaps.style.display =='none'){klokke=0;}}}
+   className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
    <span className="navbar-toggler-icon"></span>
- </button>
-</div>
-  <div className="navbar-collapse collapse" id="navbarSupportedContent">
-    <ul className="navbar-nav mr-auto">
+  </button>
+  </div>
+  <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
+    <ul className="nav navbar-nav mr-auto">
       <li className="nav-item active">
       <Link to='/start' className='nav-link'>Start</Link>
       </li>
@@ -70,7 +76,7 @@ class Menu extends React.Component {
       <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
       </li>
       <li className='nav-item'>
-      <Link to='/bestemme' className='nav-link'>Admin side</Link>
+      <Link to='/bestemme' className="nav-link">administrator</Link>
       </li>
     </ul>
     <ul className="nav navbar-nav navbar-right">
@@ -79,7 +85,7 @@ class Menu extends React.Component {
       </li>
     </ul>
   </div>
-</nav>
+  </nav>
     );
   }
    if(brukerid != null && administrator === false){
@@ -119,7 +125,8 @@ class Menu extends React.Component {
     </div>
   )
   }
-}
+  }
+
 
 // Component that shows a list of all the customers
 class Innlogging extends React.Component {
@@ -142,12 +149,12 @@ class Innlogging extends React.Component {
           <tbody>
             <tr>
               <td >Brukernavn: </td>
-              <td ><input type="text" ref="unInput" defaultValue="peter@test.no" /></td>
+              <td ><input type="text" ref="unInput" defaultValue="sindre@test.no" /></td>
               <td ><button ref="newUserButton">Ny bruker</button></td>
             </tr>
             <tr>
               <td >Passord: </td>
-              <td ><input type="password" ref="pwInput" defaultValue="12345" /> </td>
+              <td ><input type="password" ref="pwInput" defaultValue="passord" /> </td>
               <td ><button ref="newPasswordButton">Glemt passord?</button></td>
             </tr>
             <tr>
