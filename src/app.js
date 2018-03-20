@@ -369,7 +369,7 @@ class NyttArrangement extends React.Component{
       console.log(this.refs.a_startdate.value);
       arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value).then(() => {
         console.log('Arrangement laget')
-      }).cath((error) =>{
+      }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
     }
