@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Link, HashRouter, Switch, Route } from 'react-router-dom'
 import { userService, loginService, arrangementService } from './services'
-import './applikasjon.css';
 let brukerid = null
 let administrator = false
 
@@ -55,7 +54,7 @@ class Menu extends React.Component {
       <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
       Røde Kors</div>
       <div className='navbar-header'>
- <button className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+ <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" >
    <span className="navbar-toggler-icon"></span>
  </button>
 </div>
@@ -137,7 +136,7 @@ class Innlogging extends React.Component {
     //   paddingLeft: '10px'
     // }
     return (
-      <div>
+      <div className='Rot'>
         <br />
         <table >
           <tbody>
