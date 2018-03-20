@@ -76,7 +76,7 @@ class Menu extends React.Component {
       <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
       </li>
       <li className='nav-item'>
-      <Link to='/bestemme' className="nav-link">administrator</Link>
+      <Link to='/bestemme' className="nav-link">Administrator</Link>
       </li>
     </ul>
     <ul className="nav navbar-nav navbar-right">
@@ -279,15 +279,15 @@ class NyttPassord extends React.Component {
   }
   componentDidMount () {
     this.refs.newPasswordButton.onclick = () => {
-      let brukerEpost = this.refs.nyEpostInput.value
+      brukerEpost = this.refs.nyEpostInput.value
       let emailCheck = Math.floor(Math.random() * 100000);
       loginService.navn(emailCheck, brukerEpost).then(() => {
-        console.log('test');
       })
       emailService.newPassword(brukerEpost, emailCheck).then(() => {
         console.log('Epost sendt');
         this.props.history.push('/kode')
       })
+
     }
     this.refs.backButton.onclick = () => {
       this.props.history.push('/')
@@ -301,15 +301,20 @@ class ResetPassord extends React.Component {
   }
 
   render() {
-    <div>
-      <input type='text' ref='kodeInput' /> <br />
-      <button ref='kodeButton'>Sjekk kode</button>
-    </div>
+    return (
+      <div>
+        <input type='text' ref='kodeInput' /> <br />
+        <button ref='kodeButton'>Sjekk kode</button>
+      </div>
+    )
   }
 
   componentDidMount() {
+    console.log(brukerEpost);
     this.refs.kodeButton.onclick = () => {
-      loginService.emailCheck(emailCheck, this.refs.kodeInput.value)
+      loginService.emailCheck(brukerEpost, this.refs.kodeInput.value).then(() => {
+
+      })
       }
     }
   }

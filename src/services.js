@@ -59,7 +59,7 @@ class EmailService {
         to: clientEmail,
         subject: 'Nytt Passord',
         text: 'Din kode for å gjenoprette passord er ' + emailCheck,
-        html: '<h1>Din kode or å gjenoprette passord er ' + emailCheck + '</h1>'
+        html: '<h1>Din kode for å gjenoprette passord er ' + emailCheck + '</h1>'
       }
 
       transporter.sendMail(message, (err, info) => {
@@ -164,29 +164,33 @@ class LoginService {
           reject(error);
           return;
         }
-
-        console.log(result[0]);
         let m_id = result[0].id
-
         connection.query('INSERT INTO recovery values (?, ?)', [m_id, kode], (error, result) => {
           if(error){
             reject(error);
             return;
           }
-          resolve()
+          resolve();
+
         })
       })
     })
   }
 
   emailCheck(email, kode) {
-    return new promise((resolve, reject) => {
-      connection.query('SELECT COUNT(*) from recovery inner join medlem on medlem.id=recovery.m_id where epost = ?, kode = ?', [email, kode], (error, result) => {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ?', [email, kode], (error, result) => {
         if(error){
           reject(error);
           return;
         }
-        console.log(result[0]);
+
+        if (result[0].count > 0) {
+          resolve()
+        } else{
+          reject('Feil kode')
+          return;
+        }
       })
     })
   }
