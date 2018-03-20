@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Link, HashRouter, Switch, Route } from 'react-router-dom'
-import { userService, loginService, arrangementService } from './services'
+import { userService, loginService, arrangementService, emailService } from './services'
 let brukerid = null
 let administrator = false
 let klokke = 0
@@ -276,7 +276,9 @@ class NyttPassord extends React.Component {
     )
   }
   componentDidMount () {
-
+    this.refs.newPasswordButton.onclick = () => {
+      emailService.newPassword(this.refs.nyEpostInput.value)
+    }
   }
 }
 

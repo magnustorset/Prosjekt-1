@@ -1,4 +1,5 @@
 import mysql from 'mysql'
+import nodemailer from 'nodemailer'
 
 // Setup database server reconnection when server timeouts connection:
 let connection
@@ -25,6 +26,49 @@ function connect () {
   })
 }
 connect()
+
+let transporter = nodemailer.createTransport({
+  pool: true,
+  host: 'mail.fastname.no',
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'rodekorsprosjekt@2rz.no',
+    pass: '25JyrJSCfe8h'
+  }
+});
+
+transporter.verify(function(error, success) {
+   if (error) {
+        console.log(error);
+   } else {
+        console.log('Server is ready to take our messages');
+   }
+});
+
+class EmailService {
+  newPassword (clientEmail) {
+    return new Promise((resolve, reject) => {
+
+      let message = {
+        from: 'rodekorsprosjekt@2rz.no',
+        to: clientEmail,
+        subject: 'Nytt Passord',
+        text: 'Vi har sendt deg et nytt passord, men vet ikke helt hvordan det kommer til å fungere enda.',
+        html: '<h1>Vi har sendt deg et nytt passord, men vet ikke helt hvordan det kommer til å fungere enda.</h1>'
+      }
+
+      transporter.sendMail(message), (err, info) => {
+        if(err){
+          reject(err)
+          return;
+        }
+        resolve(info)
+      }
+    })
+  }
+
+}
 
 // Class that performs database queries related to users
 class UserService {
@@ -148,5 +192,6 @@ class ArrangementService {
 let userService = new UserService()
 let loginService = new LoginService()
 let arrangementService = new ArrangementService()
+let emailService = new EmailService()
 
-export { userService, loginService, arrangementService }
+export { userService, loginService, arrangementService, emailService }
