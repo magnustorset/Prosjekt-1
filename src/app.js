@@ -592,7 +592,7 @@ class ForandrePassord extends React.Component {
           if(this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
 
           userService.editPassword(this.refs.passwordInput1.value, this.id).then(() =>{
-          
+
           this.props.history.push('/minside');
         }).catch((error) =>{
           if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
@@ -761,14 +761,14 @@ ReactDOM.render((
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
         <Route exact path='/bestemme' component={Administrator} />
-<<<<<<< HEAD
+
         <Route exact path='/forandreinfo' component={ForandreBrukerInfo} />
         <Route exact path='/forandrepassord' component={ForandrePassord} />
-=======
+
         <Route exact path='/bruker/:id' component={BrukerSide} />
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
 
->>>>>>> 94712bac3195e5565bd8094b337d80ebf5fd70a9
+
       </Switch>
     </div>
   </HashRouter>

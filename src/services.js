@@ -92,11 +92,8 @@ class UserService {
 
   getUser (id) {
     return new Promise((resolve, reject) => {
-<<<<<<< HEAD
-    connection.query('SELECT * FROM medlem, poststed WHERE medlem.id = ? AND medlem.poststed_postnr = poststed.postnr', [id], (error, result) => {
-=======
     connection.query('SELECT * FROM medlem INNER JOIN poststed ON poststed_postnr = postnr WHERE id=?', [id], (error, result) => {
->>>>>>> 94712bac3195e5565bd8094b337d80ebf5fd70a9
+
       if(error){
         reject(error);
         return;
@@ -107,7 +104,7 @@ class UserService {
   });
   }
 
-  addUser (navn, epost, medlemsnr, tlf, adresse, passord, postnr, callback) {
+  addUser (navn, epost, medlemsnr, tlf, adresse, passord, postnr) {
     return new Promise((resolve, reject) =>{
     connection.query('INSERT INTO medlem (brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?)', [navn, epost, medlemsnr, tlf, adresse, passord, postnr], (error, result) => {
       if(error){
@@ -120,9 +117,9 @@ class UserService {
   });
   }
 
-<<<<<<< HEAD
-  editUser (email, adress, tlf, zip, id, callback) {
-=======
+
+
+
   newPassword(passord, epost) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE medlem SET passord = ? WHERE epost = ?', [passord, epost], (error, result) => {
@@ -137,7 +134,6 @@ class UserService {
   }
 
   editUser (firstName, city, id, callback) {
->>>>>>> 94712bac3195e5565bd8094b337d80ebf5fd70a9
     return new Promise((resolve, reject) => {
     connection.query('UPDATE medlem SET epost = ?, adresse = ?, tlf = ?, poststed_postnr = ? WHERE id = ?', [email, adress, tlf, zip, id], (error, result) => {
       if(error){
@@ -160,7 +156,7 @@ class UserService {
     });
   });
   }
-  
+
 }
 
 class LoginService {
