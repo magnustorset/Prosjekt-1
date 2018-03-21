@@ -158,7 +158,7 @@ class Innlogging extends React.Component {
           <tbody>
             <tr>
               <td >Brukernavn: </td>
-              <td ><input type="text" ref="unInput" defaultValue="sindre@test.no" /></td>
+              <td ><input type="text" ref="unInput" defaultValue="sindersopp@hotmail.com" /></td>
               <td ><button ref="newUserButton">Ny bruker</button></td>
             </tr>
             <tr>
