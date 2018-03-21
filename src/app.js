@@ -48,88 +48,88 @@ let errorMessage; // ErrorMessage-instance
 
 class Menu extends React.Component {
   render () {
-      if(brukerid != null && administrator === true){
-    return (
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div className="navbar-brand">
-      <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
-      Røde Kors</div>
-      <div className='navbar-header'>
-  <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
-  kollaps.style.display ='none';
-  if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
-  else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
-  if(kollaps.style.display =='none'){klokke=0;}}}
-   className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
-   <span className="navbar-toggler-icon"></span>
-  </button>
-  </div>
-  <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
-    <ul className="nav navbar-nav mr-auto">
-      <li className="nav-item active">
-      <Link to='/start' className='nav-link'>Start</Link>
-      </li>
-      <li className="nav-item">
-        <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-      </li>
-      <li className='nav-item'>
-      <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-      </li>
-      <li className='nav-item'>
-      <Link to='/bestemme' className="nav-link">Administrator</Link>
-      </li>
-    </ul>
-    <ul className="nav navbar-nav navbar-right">
-      <li>
-      <input type='text' className='form-control' />
-      </li>
-    </ul>
-  </div>
-  </nav>
-    );
+    if(brukerid != null && administrator === true){
+      return (
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+          <div className="navbar-brand">
+            <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />Røde Kors
+          </div>
+          <div className='navbar-header'>
+            <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
+            kollaps.style.display ='none';
+            if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+            else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+            if(kollaps.style.display =='none'){klokke=0;}}}
+            className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+            <span className="navbar-toggler-icon"></span>
+            </button>
+          </div>
+          <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
+            <ul className="nav navbar-nav mr-auto">
+              <li className="nav-item active">
+                <Link to='/start' className='nav-link'>Start</Link>
+              </li>
+              <li className="nav-item">
+                <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+              </li>
+              <li className='nav-item'>
+                <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+              </li>
+              <li className='nav-item'>
+                <Link to='/bestemme' className="nav-link">Administrator</Link>
+              </li>
+            </ul>
+            <ul className="nav navbar-nav navbar-right">
+              <li>
+                <input type='text' className='form-control' />
+              </li>
+            </ul>
+          </div>
+        </nav>
+      );
+    }
+    if(brukerid != null && administrator === false){
+      return(
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+          <div className="navbar-brand">
+            <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />Røde Kors
+          </div>
+          <div className='navbar-header'>
+            <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
+            kollaps.style.display ='none';
+            if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+            else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+            if(kollaps.style.display =='none'){klokke=0;}}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+              <span className="navbar-toggler-icon"></span>
+            </button>
+          </div>
+          <div className="navbar-collapse collapse" id="navbarSupportedContent">
+            <ul className="navbar-nav mr-auto">
+              <li className="nav-item active">
+                <Link to='/start' className='nav-link'>Start</Link>
+              </li>
+              <li className="nav-item">
+                <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+              </li>
+              <li className='nav-item'>
+                <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+              </li>
+            </ul>
+            <ul className="nav navbar-nav navbar-right">
+              <li>
+                <input type='text' className='form-control' />
+              </li>
+            </ul>
+          </div>
+        </nav>
+      );
+    }
+    return(
+      <div>
+      </div>
+    )
   }
-   if(brukerid != null && administrator === false){
-     return(
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div className="navbar-brand">
-    <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
-    Røde Kors</div>
-    <div className='navbar-header'>
-<button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
-kollaps.style.display ='none';
-if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
-else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
-if(kollaps.style.display =='none'){klokke=0;}}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
- <span className="navbar-toggler-icon"></span>
-</button>
-</div>
-<div className="navbar-collapse collapse" id="navbarSupportedContent">
-  <ul className="navbar-nav mr-auto">
-    <li className="nav-item active">
-    <Link to='/start' className='nav-link'>Start</Link>
-    </li>
-    <li className="nav-item">
-      <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-    </li>
-    <li className='nav-item'>
-    <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-    </li>
-  </ul>
-  <ul className="nav navbar-nav navbar-right">
-    <li>
-    <input type='text' className='form-control' />
-    </li>
-  </ul>
-</div>
-</nav>
-);
 }
-  return(
-    <div>
-    </div>
-  )
-  }
-  }
 
 
 // Component that shows a list of all the customers
@@ -169,7 +169,6 @@ class Innlogging extends React.Component {
           </tbody>
         </table>
       </div>
-
     )
   }
 
@@ -322,10 +321,10 @@ class ResetPassord extends React.Component {
 
 class StartSide extends React.Component {
   constructor() {
-  super(); // Call React.Component constructor
+    super(); // Call React.Component constructor
 
-  this.user = [];
-  this.id = brukerid;
+    this.user = [];
+    this.id = brukerid;
   }
   render () {
 
@@ -382,7 +381,7 @@ class Arrangement extends React.Component{
   }
   componentDidMount(){
   }
-  }
+}
 
 
 class NyttArrangement extends React.Component{
@@ -398,7 +397,7 @@ class NyttArrangement extends React.Component{
         Kontaktperson: <br />
         Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
         Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
-      <button ref="arrangementButton">Lag arrangement</button>
+        <button ref="arrangementButton">Lag arrangement</button>
       </div>
     )
   }
@@ -419,7 +418,7 @@ class MineSider extends React.Component {
   render(){
     return(
       <div>
-      Her skal din info vises
+        Her skal din info vises
       </div>
     )
   }
@@ -432,7 +431,7 @@ class Administrator extends React.Component {
   render(){
     return(
       <div>
-    Administrator muligheter kommer opp her.
+        Administrator muligheter kommer opp her.
       </div>
     )
   }
