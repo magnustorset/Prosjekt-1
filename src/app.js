@@ -6,9 +6,14 @@ let brukerid = null
 let administrator = false
 let klokke = 0
 let emailCode = false
+
 let gjøremål = [{name: 'Godkjennebruker',
                 id: 'godkjenn'}
                 ];
+
+let brukerEpost;
+
+
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -272,7 +277,7 @@ class NyBruker extends React.Component {
     }
   }
 }
-let brukerEpost;
+
 class NyttPassord extends React.Component {
   render () {
     return (
@@ -396,27 +401,27 @@ class Arrangement extends React.Component{
     this.arrangement = [];
   }
   render(){
-    let a = 10;
+    let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td>{table.kontaktperson}</td></tr>)
+      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td><Link to={'/bruker/'+table.kontaktperson}>{table.kontaktperson}</Link></td></tr>)
       a++;
     }
     return(
       <div>
-      <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result)=>{this.arrangement= '';this.arrangement = result; this.forceUpdate();}).catch((error) =>{if(errorMessage) errorMessage.set('Finner ikke arrangement');});}} />
-      <button ref='searchButton'>Søk arrangement</button>
-      <table>
-      <tbody>
-      {tableItems}
-      </tbody>
-      </table>
+        <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {this.arrangement= ''; this.arrangement = result; this.forceUpdate(); }).catch((error) => {if(errorMessage) errorMessage.set('Finner ikke arrangement'); }); }} />
+        <button ref='searchButton'>Søk arrangement</button>
+        <table>
+          <tbody>
+            {tableItems}
+          </tbody>
+        </table>
         <Link to='/nyttarrangement'>Nytt Arrangement</Link>
       </div>
     )
   }
   componentDidMount(){
-  }
+    }
   }
 
 
@@ -462,7 +467,15 @@ class MineSider extends React.Component {
 
   }
 }
-
+class Administrator extends React.Component{
+  render(){
+    return(
+      <div>
+      <Egenskaper />
+      </div>
+    )
+  }
+}
 class Egenskaper extends React.Component <{}>{
   constructor(){
     super();
@@ -502,7 +515,7 @@ class GodkjennBruker extends React.Component {
       </div>
     );
   }
-  godkjenneBruker(id){
+  godkjenneBruker(id) {
     administratorFunctions.aktiverBruker(id).then(()=>{
       console.log('Bruker er aktivert')
       administratorFunctions.ikkeAktiveBrukere().then((result)=>{
@@ -515,7 +528,7 @@ class GodkjennBruker extends React.Component {
       if(errorMessage){errorMessage.set('Kunne ikke aktivere bruker' +error)};
     });
   }
-  componentDidMount(){
+  componentDidMount() {
 
     administratorFunctions.ikkeAktiveBrukere().then((result)=>{
       this.ikkeAktive = result;
@@ -527,24 +540,63 @@ class GodkjennBruker extends React.Component {
   }
 }
 
-class Administrator extends React.Component {
+class BrukerSide extends React.Component {
+  constructor(props) {
+    super(props)
+    this.id = props.match.params.id;
+    this.user = {}
+  }
+  render() {
+    if (administrator) {
+      return(
+        <div>
+          <div className="table-responsive">
+          <table className='table'>
+            <thead>
+              <tr>
+                <th>{this.user.brukernavn}</th>
+                <th>{this.user.id}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Telefon: </td>
+                <td>{this.user.tlf}</td>
+                <td>E-post:</td>
+                <td>{this.user.epost}</td>
+                <td>Vaktpoeng: </td>
+                <td>{this.user.vaktpoeng}</td>
+              </tr>
+              <tr>
+                <td>Adresse: </td>
+                <td>{this.user.adresse}</td>
+                <td>Postnr:</td>
+                <td>{this.user.postnr}</td>
+                <td>Poststed:</td>
+                <td>{this.user.poststed}</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      )
+    }else{
+      return(
+        <div>
 
-  render(){
-    return(
-
-      <table style={{width: '100%'}}><tbody>
-      <tr>
-        <td valign='top' style={{width: '30%'}}>
-          <Egenskaper />
-        </td>
-        <td valign='top'>
-
-        </td>
-      </tr>
-    </tbody></table>
-  );
+        </div>
+      )
+    }
   }
 
+  componentDidMount() {
+    userService.getUser(this.id).then((result) => {
+      this.user = result[0];
+      console.log(this.user);
+      console.log(this.user.tlf);
+      this.forceUpdate();
+    })
+  }
 }
 // The Route-elements define the different pages of the application
 // through a path and which component should be used for the path.
@@ -567,8 +619,10 @@ ReactDOM.render((
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
-        <Route path='/bestemme' component={Administrator} />
+        <Route exact path='/bestemme' component={Administrator} />
+        <Route exact path='/bruker/:id' component={BrukerSide} />
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
+
       </Switch>
     </div>
   </HashRouter>
