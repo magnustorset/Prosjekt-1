@@ -1,10 +1,19 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Link, HashRouter, Switch, Route } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService } from './services'
+import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
+import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
 let brukerid = null
 let administrator = false
 let klokke = 0
+let emailCode = false
+
+let gjøremål = [{name: 'Godkjennebruker',
+                id: 'godkjenn'}
+                ];
+
+let brukerEpost;
+
+
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -51,40 +60,42 @@ class Menu extends React.Component {
       if(brukerid != null && administrator === true){
     return (
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div className="navbar-brand">
-      <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
-      Røde Kors</div>
+        <div className="navbar-brand">
+          <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+        Røde Kors</div>
+
       <div className='navbar-header'>
-  <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
-  kollaps.style.display ='none';
-  if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
-  else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
-  if(kollaps.style.display =='none'){klokke=0;}}}
-   className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
-   <span className="navbar-toggler-icon"></span>
-  </button>
-  </div>
-  <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
-    <ul className="nav navbar-nav mr-auto">
-      <li className="nav-item active">
-      <Link to='/start' className='nav-link'>Start</Link>
-      </li>
-      <li className="nav-item">
-        <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-      </li>
-      <li className='nav-item'>
-      <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-      </li>
-      <li className='nav-item'>
-      <Link to='/bestemme' className="nav-link">Administrator</Link>
-      </li>
-    </ul>
-    <ul className="nav navbar-nav navbar-right">
-      <li>
-      <input type='text' className='form-control' />
-      </li>
-    </ul>
-  </div>
+        <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
+        kollaps.style.display ='none';
+        if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+        else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+        if(kollaps.style.display =='none'){klokke=0;}}}
+        className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+        <span className="navbar-toggler-icon"></span>
+        </button>
+      </div>
+
+      <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
+        <ul className="nav navbar-nav mr-auto">
+          <li className="nav-item active">
+            <Link to='/start' className='nav-link'>Start</Link>
+          </li>
+          <li className="nav-item">
+            <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/bestemme' className="nav-link">Administrator</Link>
+          </li>
+        </ul>
+        <ul className="nav navbar-nav navbar-right">
+          <li>
+            <input type='text' className='form-control' />
+          </li>
+        </ul>
+      </div>
   </nav>
     );
   }
@@ -95,15 +106,15 @@ class Menu extends React.Component {
     <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
     Røde Kors</div>
     <div className='navbar-header'>
-<button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
-kollaps.style.display ='none';
-if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
-else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
-if(kollaps.style.display =='none'){klokke=0;}}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
- <span className="navbar-toggler-icon"></span>
-</button>
-</div>
-<div className="navbar-collapse collapse" id="navbarSupportedContent">
+    <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
+    kollaps.style.display ='none';
+    if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+    else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+    if(kollaps.style.display =='none'){klokke=0;}}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+    <span className="navbar-toggler-icon"></span>
+    </button>
+    </div>
+    <div className="navbar-collapse collapse" id="navbarSupportedContent">
   <ul className="navbar-nav mr-auto">
     <li className="nav-item active">
     <Link to='/start' className='nav-link'>Start</Link>
@@ -153,7 +164,7 @@ class Innlogging extends React.Component {
           <tbody>
             <tr>
               <td >Brukernavn: </td>
-              <td ><input type="text" ref="unInput" defaultValue="sindre@test.no" /></td>
+              <td ><input type="text" ref="unInput" defaultValue="sindersopp@hotmail.com" /></td>
               <td ><button ref="newUserButton">Ny bruker</button></td>
             </tr>
             <tr>
@@ -249,18 +260,16 @@ class NyBruker extends React.Component {
           </tbody>
         </table>
         <button ref="createuserButton">Ferdig</button>
-        <button ref='bakcButton'>Tilbake</button>
       </div>
     )
   }
   componentDidMount () {
-    this.refs.bakcButton.onclick = () => {
-      this.props.history.push('/');
-    }
+
     this.refs.createuserButton.onclick = () => {
       if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
         userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value,this.refs.adresseInput.value, this.refs.passwordInput1.value,this.refs.postnrInput.value).then(() => {
           console.log('User added')
+          this.props.history.push('/');
         }).catch((error) => {
           if(errorMessage) errorMessage.set('Kunne ikke legge til ny bruker' +error);
         });
@@ -268,12 +277,12 @@ class NyBruker extends React.Component {
     }
   }
 }
-let brukerEpost;
+
 class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-        Epost: <input type='email' ref='nyEpostInput' /> <br />
+        Epost: <input type='email' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
 
         <button ref='newPasswordButton'>Be om nytt passord</button>
         <button ref='backButton'>Tilbake</button>
@@ -316,12 +325,40 @@ class ResetPassord extends React.Component {
     console.log(brukerEpost);
     this.refs.kodeButton.onclick = () => {
       loginService.emailCheck(brukerEpost, this.refs.kodeInput.value).then(() => {
-
+        console.log('Riktig kode');
+        emailCode = true
+        this.props.history.push('/resetpassord')
       })
       }
     }
   }
 
+  class NyttResetPassord extends React.Component {
+    constructor() {
+      super()
+    }
+
+    render() {
+      return (
+        <div>
+          Passord: <input type='password' ref='passordInput1' /> <br />
+          Gjenta passord: <input type='password' ref='passordInput2' /> <br />
+          <button ref='byttPassordButton'>Bytt passord</button>
+        </div>
+      )
+    }
+
+    componentDidMount() {
+      this.refs.byttPassordButton.onclick = () => {
+        if (emailCode && this.refs.passordInput1.value === this.refs.passordInput2.value) {
+          userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
+            console.log('Passord byttet');
+            this.props.history.push('/')
+          })
+        }
+      }
+    }
+  }
 
 class StartSide extends React.Component {
   constructor() {
@@ -364,27 +401,27 @@ class Arrangement extends React.Component{
     this.arrangement = [];
   }
   render(){
-    let a = 10;
+    let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td>{table.kontaktperson}</td></tr>)
+      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td><Link to={'/bruker/'+table.kontaktperson}>{table.kontaktperson}</Link></td></tr>)
       a++;
     }
     return(
       <div>
-      <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result)=>{this.arrangement= '';this.arrangement = result; this.forceUpdate();}).catch((error) =>{if(errorMessage) errorMessage.set('Finner ikke arrangement');});}} />
-      <button ref='searchButton'>Søk arrangement</button>
-      <table>
-      <tbody>
-      {tableItems}
-      </tbody>
-      </table>
+        <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {this.arrangement= ''; this.arrangement = result; this.forceUpdate(); }).catch((error) => {if(errorMessage) errorMessage.set('Finner ikke arrangement'); }); }} />
+        <button ref='searchButton'>Søk arrangement</button>
+        <table>
+          <tbody>
+            {tableItems}
+          </tbody>
+        </table>
         <Link to='/nyttarrangement'>Nytt Arrangement</Link>
       </div>
     )
   }
   componentDidMount(){
-  }
+    }
   }
 
 
@@ -571,17 +608,135 @@ class ForandrePassord extends React.Component {
       }
     }
 }
-
-class Administrator extends React.Component {
+class Administrator extends React.Component{
   render(){
     return(
       <div>
-    Administrator muligheter kommer opp her.
+      <Egenskaper />
       </div>
     )
   }
-  componentDidMount(){
+}
+class Egenskaper extends React.Component <{}>{
+  constructor(){
+    super();
+  }
+  render(){
 
+    return(
+    <div>
+    <h1>Hva vil du gjøre?</h1>
+    <ul>
+
+      <li>
+      <Link to={'/godkjennebruker'}>Godkjenne bruker</Link>
+      </li>
+
+    </ul>
+    </div>
+    );
+  }
+}
+
+class GodkjennBruker extends React.Component {
+  constructor(){
+    super();
+    this.ikkeAktive = [];
+  }
+  render(){
+    let brukerListe = [];
+    for(let bruker of this.ikkeAktive){
+      brukerListe.push(<li key={bruker.id}>{bruker.brukernavn}, <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+    }
+    return(
+      <div>
+    <ul>
+    {brukerListe}
+    </ul>
+      </div>
+    );
+  }
+  godkjenneBruker(id) {
+    administratorFunctions.aktiverBruker(id).then(()=>{
+      console.log('Bruker er aktivert')
+      administratorFunctions.ikkeAktiveBrukere().then((result)=>{
+        this.ikkeAktive = result;
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage){errorMessage.set('Kunne ikke hente brukere' +error)};
+      });
+    }).catch((error)=>{
+      if(errorMessage){errorMessage.set('Kunne ikke aktivere bruker' +error)};
+    });
+  }
+  componentDidMount() {
+
+    administratorFunctions.ikkeAktiveBrukere().then((result)=>{
+      this.ikkeAktive = result;
+      console.log(this.ikkeAktive);
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Kunne ikke laste ikke aktiv brukere' + error);
+    });
+  }
+}
+
+class BrukerSide extends React.Component {
+  constructor(props) {
+    super(props)
+    this.id = props.match.params.id;
+    this.user = {}
+  }
+  render() {
+    if (administrator) {
+      return(
+        <div>
+          <div className="table-responsive">
+          <table className='table'>
+            <thead>
+              <tr>
+                <th>{this.user.brukernavn}</th>
+                <th>{this.user.id}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Telefon: </td>
+                <td>{this.user.tlf}</td>
+                <td>E-post:</td>
+                <td>{this.user.epost}</td>
+                <td>Vaktpoeng: </td>
+                <td>{this.user.vaktpoeng}</td>
+              </tr>
+              <tr>
+                <td>Adresse: </td>
+                <td>{this.user.adresse}</td>
+                <td>Postnr:</td>
+                <td>{this.user.postnr}</td>
+                <td>Poststed:</td>
+                <td>{this.user.poststed}</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      )
+    }else{
+      return(
+        <div>
+
+        </div>
+      )
+    }
+  }
+
+  componentDidMount() {
+    userService.getUser(this.id).then((result) => {
+      this.user = result[0];
+      console.log(this.user);
+      console.log(this.user.tlf);
+      this.forceUpdate();
+    })
   }
 }
 // The Route-elements define the different pages of the application
@@ -601,12 +756,19 @@ ReactDOM.render((
         <Route exact path='/nybruker' component={NyBruker} />
         <Route exact path='/nyttpassord' component={NyttPassord} />
         <Route exact path='/kode' component={ResetPassord} />
+        <Route exact path='/resetpassord' component={NyttResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
         <Route exact path='/bestemme' component={Administrator} />
+<<<<<<< HEAD
         <Route exact path='/forandreinfo' component={ForandreBrukerInfo} />
         <Route exact path='/forandrepassord' component={ForandrePassord} />
+=======
+        <Route exact path='/bruker/:id' component={BrukerSide} />
+        <Route exact path='/godkjennebruker' component={GodkjennBruker} />
+
+>>>>>>> 94712bac3195e5565bd8094b337d80ebf5fd70a9
       </Switch>
     </div>
   </HashRouter>

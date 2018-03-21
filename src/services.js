@@ -92,11 +92,16 @@ class UserService {
 
   getUser (id) {
     return new Promise((resolve, reject) => {
+<<<<<<< HEAD
     connection.query('SELECT * FROM medlem, poststed WHERE medlem.id = ? AND medlem.poststed_postnr = poststed.postnr', [id], (error, result) => {
+=======
+    connection.query('SELECT * FROM medlem INNER JOIN poststed ON poststed_postnr = postnr WHERE id=?', [id], (error, result) => {
+>>>>>>> 94712bac3195e5565bd8094b337d80ebf5fd70a9
       if(error){
         reject(error);
         return;
       }
+      console.log(result[0]);
       resolve(result);
     });
   });
@@ -115,7 +120,24 @@ class UserService {
   });
   }
 
+<<<<<<< HEAD
   editUser (email, adress, tlf, zip, id, callback) {
+=======
+  newPassword(passord, epost) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE medlem SET passord = ? WHERE epost = ?', [passord, epost], (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve()
+      })
+    })
+  }
+
+  editUser (firstName, city, id, callback) {
+>>>>>>> 94712bac3195e5565bd8094b337d80ebf5fd70a9
     return new Promise((resolve, reject) => {
     connection.query('UPDATE medlem SET epost = ?, adresse = ?, tlf = ?, poststed_postnr = ? WHERE id = ?', [email, adress, tlf, zip, id], (error, result) => {
       if(error){
@@ -183,8 +205,12 @@ class LoginService {
           reject(error);
           return;
         }
+
         let m_id = result[0].id
-        connection.query('INSERT INTO recovery values (?, ?)', [m_id, kode], (error, result) => {
+        let date = new Date()
+        date.setMinutes(date.getMinutes() + 30)
+
+        connection.query('INSERT INTO recovery values (?, ?, ?)', [m_id, date, kode], (error, result) => {
           if(error){
             reject(error);
             return;
@@ -198,7 +224,7 @@ class LoginService {
 
   emailCheck(email, kode) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ?', [email, kode], (error, result) => {
+      connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ? and forbruksdato > NOW()', [email, kode], (error, result) => {
         if(error){
           reject(error);
           return;
@@ -225,8 +251,6 @@ class ArrangementService {
           return;
         }
         k_id = result[0].id
-        console.log(result);
-        console.log(k_id);
 
         connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id])
 
@@ -244,7 +268,6 @@ class ArrangementService {
             reject(error);
             return;
           }
-          console.log(result);
           resolve(result);
     });
   });
@@ -252,9 +275,38 @@ class ArrangementService {
   }
 }
 
+class AdministratorFunctions{
+  ikkeAktiveBrukere(){
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * from medlem where aktiv = ?',[false], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve(result);
+      });
+    });
+  }
+
+  aktiverBruker(id){
+    return new Promise((resolve, reject) =>{
+      connection.query('update medlem set aktiv = ? where id = ?', [true,id], (error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log('Brukeren er nå aktiv');
+        resolve();
+      });
+    });
+  }
+}
+
 let userService = new UserService()
 let loginService = new LoginService()
 let arrangementService = new ArrangementService()
 let emailService = new EmailService()
+let administratorFunctions = new AdministratorFunctions()
 
-export { userService, loginService, arrangementService, emailService }
+export { userService, loginService, arrangementService, emailService, administratorFunctions }
