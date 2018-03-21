@@ -137,6 +137,7 @@ class Menu extends React.Component {
 }
   return(
     <div>
+    <Link to='/'>Innlogging</Link>
     </div>
   )
   }

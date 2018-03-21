@@ -133,7 +133,7 @@ class UserService {
     })
   }
 
-  editUser (firstName, city, id, callback) {
+  editUser (email, adress, tlf, zip, id,) {
     return new Promise((resolve, reject) => {
     connection.query('UPDATE medlem SET epost = ?, adresse = ?, tlf = ?, poststed_postnr = ? WHERE id = ?', [email, adress, tlf, zip, id], (error, result) => {
       if(error){
