@@ -115,6 +115,19 @@ class UserService {
   });
   }
 
+  newPassword(passord, epost) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE medlem SET passord = ? WHERE epost = ?', [passord, epost], (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve()
+      })
+    })
+  }
+
   editUser (firstName, city, id, callback) {
     return new Promise((resolve, reject) => {
     connection.query('UPDATE medlem SET firstName = ?, city = ? WHERE id = ?', [firstName, city, id], (error, result) => {
@@ -164,8 +177,12 @@ class LoginService {
           reject(error);
           return;
         }
+
         let m_id = result[0].id
-        connection.query('INSERT INTO recovery values (?, ?)', [m_id, kode], (error, result) => {
+        let date = new Date()
+        date.setMinutes(date.getMinutes() + 30)
+
+        connection.query('INSERT INTO recovery values (?, ?, ?)', [m_id, date, kode], (error, result) => {
           if(error){
             reject(error);
             return;
@@ -179,7 +196,7 @@ class LoginService {
 
   emailCheck(email, kode) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ?', [email, kode], (error, result) => {
+      connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ? and forbruksdato > NOW()', [email, kode], (error, result) => {
         if(error){
           reject(error);
           return;

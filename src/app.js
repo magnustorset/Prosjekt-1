@@ -5,6 +5,7 @@ import { userService, loginService, arrangementService, emailService } from './s
 let brukerid = null
 let administrator = false
 let klokke = 0
+let emailCode = false
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -51,40 +52,42 @@ class Menu extends React.Component {
       if(brukerid != null && administrator === true){
     return (
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div className="navbar-brand">
-      <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
-      Røde Kors</div>
+        <div className="navbar-brand">
+          <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+        Røde Kors</div>
+
       <div className='navbar-header'>
-  <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
-  kollaps.style.display ='none';
-  if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
-  else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
-  if(kollaps.style.display =='none'){klokke=0;}}}
-   className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
-   <span className="navbar-toggler-icon"></span>
-  </button>
-  </div>
-  <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
-    <ul className="nav navbar-nav mr-auto">
-      <li className="nav-item active">
-      <Link to='/start' className='nav-link'>Start</Link>
-      </li>
-      <li className="nav-item">
-        <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-      </li>
-      <li className='nav-item'>
-      <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-      </li>
-      <li className='nav-item'>
-      <Link to='/bestemme' className="nav-link">Administrator</Link>
-      </li>
-    </ul>
-    <ul className="nav navbar-nav navbar-right">
-      <li>
-      <input type='text' className='form-control' />
-      </li>
-    </ul>
-  </div>
+        <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
+        kollaps.style.display ='none';
+        if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+        else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+        if(kollaps.style.display =='none'){klokke=0;}}}
+        className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+        <span className="navbar-toggler-icon"></span>
+        </button>
+      </div>
+
+      <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
+        <ul className="nav navbar-nav mr-auto">
+          <li className="nav-item active">
+            <Link to='/start' className='nav-link'>Start</Link>
+          </li>
+          <li className="nav-item">
+            <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/bestemme' className="nav-link">Administrator</Link>
+          </li>
+        </ul>
+        <ul className="nav navbar-nav navbar-right">
+          <li>
+            <input type='text' className='form-control' />
+          </li>
+        </ul>
+      </div>
   </nav>
     );
   }
@@ -95,15 +98,15 @@ class Menu extends React.Component {
     <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
     Røde Kors</div>
     <div className='navbar-header'>
-<button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
-kollaps.style.display ='none';
-if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
-else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
-if(kollaps.style.display =='none'){klokke=0;}}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
- <span className="navbar-toggler-icon"></span>
-</button>
-</div>
-<div className="navbar-collapse collapse" id="navbarSupportedContent">
+    <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
+    kollaps.style.display ='none';
+    if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+    else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+    if(kollaps.style.display =='none'){klokke=0;}}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+    <span className="navbar-toggler-icon"></span>
+    </button>
+    </div>
+    <div className="navbar-collapse collapse" id="navbarSupportedContent">
   <ul className="navbar-nav mr-auto">
     <li className="nav-item active">
     <Link to='/start' className='nav-link'>Start</Link>
@@ -270,7 +273,7 @@ class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-        Epost: <input type='email' ref='nyEpostInput' /> <br />
+        Epost: <input type='email' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
 
         <button ref='newPasswordButton'>Be om nytt passord</button>
         <button ref='backButton'>Tilbake</button>
@@ -313,12 +316,40 @@ class ResetPassord extends React.Component {
     console.log(brukerEpost);
     this.refs.kodeButton.onclick = () => {
       loginService.emailCheck(brukerEpost, this.refs.kodeInput.value).then(() => {
-
+        console.log('Riktig kode');
+        emailCode = true
+        this.props.history.push('/resetpassord')
       })
       }
     }
   }
 
+  class NyttResetPassord extends React.Component {
+    constructor() {
+      super()
+    }
+
+    render() {
+      return (
+        <div>
+          Passord: <input type='password' ref='passordInput1' /> <br />
+          Gjenta passord: <input type='password' ref='passordInput2' /> <br />
+          <button ref='byttPassordButton'>Bytt passord</button>
+        </div>
+      )
+    }
+
+    componentDidMount() {
+      this.refs.byttPassordButton.onclick = () => {
+        if (emailCode && this.refs.passordInput1.value === this.refs.passordInput2.value) {
+          userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
+            console.log('Passord byttet');
+            this.props.history.push('/')
+          })
+        }
+      }
+    }
+  }
 
 class StartSide extends React.Component {
   constructor() {
@@ -457,6 +488,7 @@ ReactDOM.render((
         <Route exact path='/nybruker' component={NyBruker} />
         <Route exact path='/nyttpassord' component={NyttPassord} />
         <Route exact path='/kode' component={ResetPassord} />
+        <Route exact path='/resetpassord' component={NyttResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
