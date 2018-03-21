@@ -51,24 +51,25 @@ transporter.verify(function(error, success) {
 });
 
 class EmailService {
-  newPassword (clientEmail) {
+  newPassword (clientEmail, emailCheck) {
     return new Promise((resolve, reject) => {
 
       let message = {
         from: 'rodekorsprosjekt@2rz.no',
         to: clientEmail,
         subject: 'Nytt Passord',
-        text: 'Vi har sendt deg et nytt passord, men vet ikke helt hvordan det kommer til å fungere enda.',
-        html: '<h1>Vi har sendt deg et nytt passord, men vet ikke helt hvordan det kommer til å fungere enda.</h1>'
+        text: 'Din kode for å gjenoprette passord er ' + emailCheck,
+        html: '<h1>Din kode for å gjenoprette passord er ' + emailCheck + '</h1>'
       }
 
-      transporter.sendMail(message), (err, info) => {
+      transporter.sendMail(message, (err, info) => {
         if(err){
           reject(err)
           return;
         }
-        resolve(info)
-      }
+
+        resolve(info);
+      });
     })
   }
 
@@ -91,7 +92,7 @@ class UserService {
 
   getUser (id) {
     return new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM medlem WHERE id=?', [id], (error, result) => {
+    connection.query('SELECT * FROM medlem, poststed WHERE medlem.id = ? AND medlem.poststed_postnr = poststed.postnr', [id], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -114,9 +115,9 @@ class UserService {
   });
   }
 
-  editUser (firstName, city, id, callback) {
+  editUser (email, adress, tlf, zip, id, callback) {
     return new Promise((resolve, reject) => {
-    connection.query('UPDATE medlem SET firstName = ?, city = ? WHERE id = ?', [firstName, city, id], (error, result) => {
+    connection.query('UPDATE medlem SET epost = ?, adresse = ?, tlf = ?, poststed_postnr = ? WHERE id = ?', [email, adress, tlf, zip, id], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -125,11 +126,24 @@ class UserService {
     });
   });
   }
+
+  editPassword(password, id, callback) {
+    return new Promise((resolve, reject) => {
+    connection.query('UPDATE medlem SET passord = ? WHERE id = ?', [password, id], (error, result) => {
+      if(error){
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+  }
+  
 }
 
 class LoginService {
   checkLogin (brukernavn, passord, callback) {
-    return new Promise((resolve, reject) =>{
+    return new Promise((resolve, reject) => {
       connection.query('SELECT * from medlem WHERE epost = ?', [brukernavn], (error, result) => {
         if(error){
           reject(error);
@@ -159,6 +173,45 @@ class LoginService {
         resolve([medlemsnr, login, admin, aktiv]);
     });
   });
+  }
+
+  navn(kode, email) {
+    let m_id
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT id from medlem where epost = ?', [email], (error, result) => {
+        if(error){
+          reject(error);
+          return;
+        }
+        let m_id = result[0].id
+        connection.query('INSERT INTO recovery values (?, ?)', [m_id, kode], (error, result) => {
+          if(error){
+            reject(error);
+            return;
+          }
+          resolve();
+
+        })
+      })
+    })
+  }
+
+  emailCheck(email, kode) {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ?', [email, kode], (error, result) => {
+        if(error){
+          reject(error);
+          return;
+        }
+
+        if (result[0].count > 0) {
+          resolve()
+        } else{
+          reject('Feil kode')
+          return;
+        }
+      })
+    })
   }
 }
 

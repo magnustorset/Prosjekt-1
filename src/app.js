@@ -76,7 +76,7 @@ class Menu extends React.Component {
       <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
       </li>
       <li className='nav-item'>
-      <Link to='/bestemme' className="nav-link">administrator</Link>
+      <Link to='/bestemme' className="nav-link">Administrator</Link>
       </li>
     </ul>
     <ul className="nav navbar-nav navbar-right">
@@ -268,22 +268,60 @@ class NyBruker extends React.Component {
     }
   }
 }
-
+let brukerEpost;
 class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-        Epost: <input type='email' ref='nyEpostInput' />
+        Epost: <input type='email' ref='nyEpostInput' /> <br />
+
         <button ref='newPasswordButton'>Be om nytt passord</button>
+        <button ref='backButton'>Tilbake</button>
       </div>
     )
   }
   componentDidMount () {
     this.refs.newPasswordButton.onclick = () => {
-      emailService.newPassword(this.refs.nyEpostInput.value)
+      brukerEpost = this.refs.nyEpostInput.value
+      let emailCheck = Math.floor(Math.random() * 100000);
+      loginService.navn(emailCheck, brukerEpost).then(() => {
+      })
+      emailService.newPassword(brukerEpost, emailCheck).then(() => {
+        console.log('Epost sendt');
+        this.props.history.push('/kode')
+      })
+
+    }
+    this.refs.backButton.onclick = () => {
+      this.props.history.push('/')
     }
   }
 }
+
+class ResetPassord extends React.Component {
+  constructor() {
+    super()
+  }
+
+  render() {
+    return (
+      <div>
+        <input type='text' ref='kodeInput' /> <br />
+        <button ref='kodeButton'>Sjekk kode</button>
+      </div>
+    )
+  }
+
+  componentDidMount() {
+    console.log(brukerEpost);
+    this.refs.kodeButton.onclick = () => {
+      loginService.emailCheck(brukerEpost, this.refs.kodeInput.value).then(() => {
+
+      })
+      }
+    }
+  }
+
 
 class StartSide extends React.Component {
   constructor() {
@@ -291,7 +329,7 @@ class StartSide extends React.Component {
 
   this.user = [];
   this.id = brukerid;
-}
+  }
   render () {
 
     return (
@@ -381,16 +419,157 @@ class NyttArrangement extends React.Component{
 }
 
 class MineSider extends React.Component {
+  constructor() {
+    super();
+
+    this.user = [];
+    this.id = brukerid;
+  }
   render(){
     return(
       <div>
-      Her skal din info vises
+        <h1>Min Side</h1>
+
+        <table>
+          <tbody>
+            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
+            <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
+            <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
+          </tbody>
+        </table>
+        <button ref='setPassive'>Meld deg passiv</button>
+        <button ref='seeQualifications'>Se kvalifikasjoner</button>
+        <button ref='changeInfo'>Endre personalia</button>
+        <button ref='changePassword'>Endre passord</button>
+        <button ref='makeAdmin'>Gjør bruker til admin '(for admin)'</button>
       </div>
     )
   }
   componentDidMount(){
+    userService.getUser(this.id).then((result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
+    this.refs.changeInfo.onclick = () =>{
+      this.props.history.push('/forandreinfo');
+    }
+    this.refs.changePassword.onclick = () =>{
+      this.props.history.push('/forandrepassord');
+    }
+  }
+}
+class ForandreBrukerInfo extends React.Component {
+  constructor() {
+    super();
+
+    this.user = [];
+    this.id = brukerid;
 
   }
+  render(){
+    return(
+      <div>
+        <h1>Min Side {this.user.id}</h1>
+
+        <table>
+          <tbody>
+            <tr><td>Medlemmsnummer:</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
+            <tr><td>Epost: <input ref='emailInput' /></td><td>Poststed:</td></tr>
+            <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
+          </tbody>
+        </table>
+        <button ref='saveButton'>Lagre forandringer</button>
+        <button ref='cancelButton'>Forkast forandringer</button>
+      </div>
+    )
+  }
+  update() {
+    userService.getUser(this.id).then((result) =>{
+      this.refs.emailInput.value = result[0].epost;
+      this.refs.tlfInput.value = result[0].tlf;
+      this.refs.adressInput.value = result[0].adresse;
+      this.refs.zipInput.value = result[0].poststed_postnr;
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
+  }
+  componentDidMount(){
+    userService.getUser(this.id).then((result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
+    this.refs.cancelButton.onclick = () =>{
+      this.props.history.push('/minside');
+    }
+    this.refs.saveButton.onclick = () =>{
+      userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
+      this.props.history.push('/minside');
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+    });
+    }
+  this.update();
+  }
+}
+
+class ForandrePassord extends React.Component {
+  constructor() {
+    super();
+
+    this.user = [];
+    this.id = brukerid;
+  }
+  render(){
+    return(
+      <div>
+      <h2>Lag nytt passord</h2>
+      Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
+
+      Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
+
+      <button ref='saveButton'>Lagre nytt passord</button>
+      <button ref='cancelButton'>Ikke lagre</button>
+      </div>
+    )
+  }
+    componentDidMount() {
+      userService.getUser(this.id).then((result) =>{
+        console.log(this.id);
+        this.user = result[0];
+        console.log(this.user);
+        this.forceUpdate();
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Finner ikke bruker');
+      });
+
+      this.refs.saveButton.onclick = () =>{
+          if(this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
+
+          userService.editPassword(this.refs.passwordInput1.value, this.id).then(() =>{
+          
+          this.props.history.push('/minside');
+        }).catch((error) =>{
+          if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
+        });
+        }
+        else {
+          alert('Passordfeltene må være like')
+        }
+    }
+
+      this.refs.cancelButton.onclick = () =>{
+        this.props.history.push('/minside');
+      }
+    }
 }
 
 class Administrator extends React.Component {
@@ -421,10 +600,13 @@ ReactDOM.render((
         <Route exact path='/start' component={StartSide} />
         <Route exact path='/nybruker' component={NyBruker} />
         <Route exact path='/nyttpassord' component={NyttPassord} />
+        <Route exact path='/kode' component={ResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
         <Route exact path='/bestemme' component={Administrator} />
+        <Route exact path='/forandreinfo' component={ForandreBrukerInfo} />
+        <Route exact path='/forandrepassord' component={ForandrePassord} />
       </Switch>
     </div>
   </HashRouter>
