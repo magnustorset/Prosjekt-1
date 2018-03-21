@@ -426,7 +426,19 @@ class Arrangement extends React.Component{
 
 
 class NyttArrangement extends React.Component{
+  constructor() {
+    super();
+    this.linjer = 1
+  }
   render(){
+    let table = [];
+    for (let i = 0; i < this.linjer; i++) {
+      table.push(<tr>
+        <td>Rolle id: <input type="number" step="1"/></td>
+        <td>Antall: <input type="number" step="1"/></td>
+      </tr>);
+    }
+    console.log(table);
     return(
       <div>
         Navn: <input type="text" ref="a_name" defaultValue="Test" /> <br />
@@ -438,19 +450,57 @@ class NyttArrangement extends React.Component{
         Kontaktperson: <br />
         Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
         Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
-      <button ref="arrangementButton">Lag arrangement</button>
+        <table>
+          <tbody id="rolleTable">
+            {table}
+          </tbody>
+        </table>
+        <button ref="tableTest">Tabell test</button>
+        <button ref="tableAdd">Tabell add</button><br />
+        <button ref="arrangementButton">Lag arrangement</button>
       </div>
     )
+  }
+  tabelGreie() { //Må endre navn senere
+    let table = document.getElementById("rolleTable").children;
+    console.log(table);
+    let id;
+    let count;
+    let arr = [];
+    for (let tab of table) {
+      id = (tab.children[0].children[0].value === "") ? -1 : +tab.children[0].children[0].value;
+      count = (tab.children[1].children[0].value === "") ? -1 : +tab.children[1].children[0].value;
+      console.log(id + " - " + count);
+      if(id >= 0 && count >= 0){
+        console.log(tab.children[0].children[0].value);
+        console.log(tab.children[1].children[0].value);
+        arr.push({id: id, antall: count});
+      }
+    }
+    console.log(arr);
+    return arr;
   }
   componentDidMount(){
     this.refs.arrangementButton.onclick = () => {
       console.log(this.refs.a_startdate.value);
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value).then(() => {
+      let roller = this.tabelGreie();
+      console.log(roller);
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value, roller).then(() => {
         console.log('Arrangement laget')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
     }
+    //document.getElementById("rolleTable").children
+
+    this.refs.tableTest.onclick = () => {
+      this.tabelGreie();
+    };
+
+    this.refs.tableAdd.onclick = () => {
+      this.linjer++;
+      this.forceUpdate();
+    };
 
   }
 }

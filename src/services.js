@@ -238,24 +238,44 @@ class LoginService {
 }
 
 class ArrangementService {
-  addArrangement (tlf, navn, meetdate, startdate, enddate, place, desc, callback) {
-    let k_id;
-    return new Promise((resolve, reject) =>{
-      connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
-        if(error){
-          reject(error);
-          return;
-        }
-        k_id = result[0].id
+  addArrangement (tlf, navn, meetdate, startdate, enddate, place, desc, roller) {
+      let k_id;
+      return new Promise((resolve, reject) =>{
+        connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
+          if(error){
+            reject(error);
+            return;
+          }
+          k_id = result[0].id
+          // console.log(result);
+          // console.log(k_id);
 
-        connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id])
+          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id], (error, result) => {
+            if(error){
+              console.log(error);
+              return;
+            }
+            // console.log(roller);
+            // console.log(result);
+            // console.log(result.insertId);
+            for (var i = 0; i < roller.length; i++) {
+              for (var o = 0; o < roller[i].antall; o++) {
+                // console.log(roller[i].id);
+                connection.query('INSERT INTO vakt (a_id, r_id) values (?, ?)', [result.insertId, roller[i].id], (error, result) => {
+                  // console.log(roller);
+                  // console.log(result);
+                  // console.log(result.insertId);
 
+                });
+              }
+            }
+          });
+      });
     });
-  });
 
 
-    resolve();
-  }
+      resolve();
+    }
 
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
