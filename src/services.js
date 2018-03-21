@@ -239,9 +239,38 @@ class ArrangementService {
   }
 }
 
+class AdministratorFunctions{
+  ikkeAktiveBrukere(){
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * from medlem where aktiv = ?',[false], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve(result);
+      });
+    });
+  }
+
+  aktiverBruker(id){
+    return new Promise((resolve, reject) =>{
+      connection.query('update medlem set aktiv = ? where id = ?', [true,id], (error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log('Brukeren er nå aktiv');
+        resolve();
+      });
+    });
+  }
+}
+
 let userService = new UserService()
 let loginService = new LoginService()
 let arrangementService = new ArrangementService()
 let emailService = new EmailService()
+let administratorFunctions = new AdministratorFunctions()
 
-export { userService, loginService, arrangementService, emailService }
+export { userService, loginService, arrangementService, emailService, administratorFunctions }

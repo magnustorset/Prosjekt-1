@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Link, HashRouter, Switch, Route } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
 let brukerid = null
 let administrator = false
 let klokke = 0
@@ -432,15 +432,46 @@ class MineSider extends React.Component {
 }
 
 class Administrator extends React.Component {
+  constructor(){
+    super();
+    this.ikkeAktive = [];
+  }
   render(){
+    let brukerListe = [];
+    for(let bruker of this.ikkeAktive){
+      brukerListe.push(<li key={bruker.id}>{bruker.brukernavn}, <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+    }
     return(
       <div>
     Administrator muligheter kommer opp her.
+    <ul>
+    {brukerListe}
+    </ul>
       </div>
     )
   }
+  godkjenneBruker(id){
+    administratorFunctions.aktiverBruker(id).then(()=>{
+      console.log('Bruker er aktivert')
+      administratorFunctions.ikkeAktiveBrukere().then((result)=>{
+        this.ikkeAktive = result;
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage){errorMessage.set('Kunne ikke hente brukere' +error)};
+      });
+    }).catch((error)=>{
+      if(errorMessage){errorMessage.set('Kunne ikke aktivere bruker' +error)};
+    });
+  }
   componentDidMount(){
 
+    administratorFunctions.ikkeAktiveBrukere().then((result)=>{
+      this.ikkeAktive = result;
+      console.log(this.ikkeAktive);
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Kunne ikke laste ikke aktiv brukere' + error);
+    });
   }
 }
 // The Route-elements define the different pages of the application
