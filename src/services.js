@@ -92,11 +92,12 @@ class UserService {
 
   getUser (id) {
     return new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM medlem WHERE id=?', [id], (error, result) => {
+    connection.query('SELECT * FROM medlem INNER JOIN poststed ON poststed_postnr = postnr WHERE id=?', [id], (error, result) => {
       if(error){
         reject(error);
         return;
       }
+      console.log(result[0]);
       resolve(result);
     });
   });
@@ -229,8 +230,6 @@ class ArrangementService {
           return;
         }
         k_id = result[0].id
-        console.log(result);
-        console.log(k_id);
 
         connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id])
 
@@ -248,7 +247,6 @@ class ArrangementService {
             reject(error);
             return;
           }
-          console.log(result);
           resolve(result);
     });
   });
