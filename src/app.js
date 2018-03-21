@@ -76,7 +76,7 @@ class Menu extends React.Component {
       <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
       </li>
       <li className='nav-item'>
-      <Link to='/bestemme' className="nav-link">administrator</Link>
+      <Link to='/bestemme' className="nav-link">Administrator</Link>
       </li>
     </ul>
     <ul className="nav navbar-nav navbar-right">
@@ -268,22 +268,60 @@ class NyBruker extends React.Component {
     }
   }
 }
-
+let brukerEpost;
 class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-        Epost: <input type='email' ref='nyEpostInput' />
+        Epost: <input type='email' ref='nyEpostInput' /> <br />
+
         <button ref='newPasswordButton'>Be om nytt passord</button>
+        <button ref='backButton'>Tilbake</button>
       </div>
     )
   }
   componentDidMount () {
     this.refs.newPasswordButton.onclick = () => {
-      emailService.newPassword(this.refs.nyEpostInput.value)
+      brukerEpost = this.refs.nyEpostInput.value
+      let emailCheck = Math.floor(Math.random() * 100000);
+      loginService.navn(emailCheck, brukerEpost).then(() => {
+      })
+      emailService.newPassword(brukerEpost, emailCheck).then(() => {
+        console.log('Epost sendt');
+        this.props.history.push('/kode')
+      })
+
+    }
+    this.refs.backButton.onclick = () => {
+      this.props.history.push('/')
     }
   }
 }
+
+class ResetPassord extends React.Component {
+  constructor() {
+    super()
+  }
+
+  render() {
+    return (
+      <div>
+        <input type='text' ref='kodeInput' /> <br />
+        <button ref='kodeButton'>Sjekk kode</button>
+      </div>
+    )
+  }
+
+  componentDidMount() {
+    console.log(brukerEpost);
+    this.refs.kodeButton.onclick = () => {
+      loginService.emailCheck(brukerEpost, this.refs.kodeInput.value).then(() => {
+
+      })
+      }
+    }
+  }
+
 
 class StartSide extends React.Component {
   constructor() {
@@ -291,7 +329,7 @@ class StartSide extends React.Component {
 
   this.user = [];
   this.id = brukerid;
-}
+  }
   render () {
 
     return (
@@ -421,6 +459,7 @@ ReactDOM.render((
         <Route exact path='/start' component={StartSide} />
         <Route exact path='/nybruker' component={NyBruker} />
         <Route exact path='/nyttpassord' component={NyttPassord} />
+        <Route exact path='/kode' component={ResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
