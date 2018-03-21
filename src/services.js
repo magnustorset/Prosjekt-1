@@ -149,6 +149,7 @@ class LoginService {
           reject(error);
           return;
         }
+        let aktiv = false
         let login = false
         let admin = false
         let medlemsnr = null
@@ -164,7 +165,12 @@ class LoginService {
         }else{
           login = false
         }
-        resolve([medlemsnr, login, admin]);
+        if(result[0].aktiv === 1){
+          aktiv = true
+        }else{
+          aktiv = false
+        }
+        resolve([medlemsnr, login, admin, aktiv]);
     });
   });
   }

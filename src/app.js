@@ -179,17 +179,20 @@ class Innlogging extends React.Component {
   // Called after render() is called for the first time
   componentDidMount () {
     this.refs.innlogginButton.onclick = () => {
-      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then(([medlemsnr, login, admin]) => {
-        if (login && admin) {
+      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then(([medlemsnr, login, admin, aktiv]) => {
+        if (login && admin && aktiv) {
           console.log('Innlogget som admin');
           administrator = admin;
           brukerid = medlemsnr;
           this.props.history.push('/start');
         }
-        if(login && !admin){
+        if(login && !admin && aktiv){
           console.log('Innlogget som bruker');
           brukerid = medlemsnr;
           this.props.history.push('/start');
+        }
+        if(!aktiv){
+          alert('Administrator har ikke godkjent brukeren din enda.');
         }
       }).catch((error) => {
         if(errorMessage) errorMessage.set('Login feilet');
