@@ -1,11 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Link, HashRouter, Switch, Route } from 'react-router-dom'
+import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
 let brukerid = null
 let administrator = false
 let klokke = 0
 let emailCode = false
+let gjøremål = [{name: 'Godkjennebruker',
+                id: 'godkjenn'}
+                ];
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -252,18 +255,16 @@ class NyBruker extends React.Component {
           </tbody>
         </table>
         <button ref="createuserButton">Ferdig</button>
-        <button ref='bakcButton'>Tilbake</button>
       </div>
     )
   }
   componentDidMount () {
-    this.refs.bakcButton.onclick = () => {
-      this.props.history.push('/');
-    }
+
     this.refs.createuserButton.onclick = () => {
       if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
         userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value,this.refs.adresseInput.value, this.refs.passwordInput1.value,this.refs.postnrInput.value).then(() => {
           console.log('User added')
+          this.props.history.push('/');
         }).catch((error) => {
           if(errorMessage) errorMessage.set('Kunne ikke legge til ny bruker' +error);
         });
@@ -462,7 +463,28 @@ class MineSider extends React.Component {
   }
 }
 
-class Administrator extends React.Component {
+class Egenskaper extends React.Component <{}>{
+  constructor(){
+    super();
+  }
+  render(){
+
+    return(
+    <div>
+    <h1>Hva vil du gjøre?</h1>
+    <ul>
+
+      <li>
+      <Link to={'/godkjennebruker'}>Godkjenne bruker</Link>
+      </li>
+
+    </ul>
+    </div>
+    );
+  }
+}
+
+class GodkjennBruker extends React.Component {
   constructor(){
     super();
     this.ikkeAktive = [];
@@ -474,12 +496,11 @@ class Administrator extends React.Component {
     }
     return(
       <div>
-    Administrator muligheter kommer opp her.
     <ul>
     {brukerListe}
     </ul>
       </div>
-    )
+    );
   }
   godkjenneBruker(id){
     administratorFunctions.aktiverBruker(id).then(()=>{
@@ -505,6 +526,26 @@ class Administrator extends React.Component {
     });
   }
 }
+
+class Administrator extends React.Component {
+
+  render(){
+    return(
+
+      <table style={{width: '100%'}}><tbody>
+      <tr>
+        <td valign='top' style={{width: '30%'}}>
+          <Egenskaper />
+        </td>
+        <td valign='top'>
+
+        </td>
+      </tr>
+    </tbody></table>
+  );
+  }
+
+}
 // The Route-elements define the different pages of the application
 // through a path and which component should be used for the path.
 // The path can include a variable, for instance
@@ -526,7 +567,8 @@ ReactDOM.render((
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
-        <Route exact path='/bestemme' component={Administrator} />
+        <Route path='/bestemme' component={Administrator} />
+        <Route exact path='/godkjennebruker' component={GodkjennBruker} />
       </Switch>
     </div>
   </HashRouter>
