@@ -28,7 +28,6 @@ function connect () {
 connect()
 
 let transporter = nodemailer.createTransport({
-  pool: true,
   host: 'mail.fastname.no',
   port: 465,
   secure: true,
@@ -40,14 +39,6 @@ let transporter = nodemailer.createTransport({
         // do not fail on invalid certs
         rejectUnauthorized: false
       }
-});
-
-transporter.verify(function(error, success) {
-   if (error) {
-        console.log(error);
-   } else {
-        console.log('Server is ready to take our messages');
-   }
 });
 
 class EmailService {
@@ -74,7 +65,6 @@ class EmailService {
   }
 
 }
-
 // Class that performs database queries related to users
 class UserService {
   getUsers () {
@@ -117,7 +107,19 @@ class UserService {
   });
   }
 
+  getUserQualifications (id, callback) {
+    return new Promise((resolve, reject) => {
+    connection.query('SELECT navn, `gyldig til` FROM kvalifikasjon, medlem_kvalifikasjon WHERE m_id = 18124 AND k_id = kvalifikasjon.id ', [id], (error, result) => {
 
+      if(error){
+        reject(error);
+        return;
+      }
+
+      resolve(result);
+    });
+  });
+  }
 
 
   newPassword(passord, epost) {

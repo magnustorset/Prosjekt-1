@@ -2,18 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
+
 let brukerid = null
 let administrator = false
 let klokke = 0
 let emailCode = false
-
 let gjøremål = [{name: 'Godkjennebruker',
                 id: 'godkjenn'}
                 ];
-
 let brukerEpost;
-
-
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -53,6 +50,7 @@ class ErrorMessage extends React.Component {
     this.forceUpdate();
   }
 }
+
 let errorMessage; // ErrorMessage-instance
 
 class Menu extends React.Component {
@@ -126,15 +124,15 @@ class Menu extends React.Component {
     <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
     </li>
   </ul>
-  <ul className="nav navbar-nav navbar-right">
-    <li>
-    <input type='text' className='form-control' />
-    </li>
-  </ul>
-</div>
-</nav>
-);
-}
+    <ul className="nav navbar-nav navbar-right">
+      <li>
+        <input type='text' className='form-control' />
+      </li>
+    </ul>
+  </div>
+  </nav>
+  );
+  }
   return(
     <div>
     <Link to='/'>Innlogging</Link>
@@ -143,8 +141,6 @@ class Menu extends React.Component {
   }
   }
 
-
-// Component that shows a list of all the customers
 class Innlogging extends React.Component {
   render () {
     // let divStyle = {
@@ -438,7 +434,6 @@ class Arrangement extends React.Component{
     }
   }
 
-
 class NyttArrangement extends React.Component{
   constructor() {
     super();
@@ -580,8 +575,12 @@ class MineSider extends React.Component {
     this.refs.changePassword.onclick = () =>{
       this.props.history.push('/forandrepassord');
     }
+    this.refs.seeQualifications.onclick = () =>{
+      this.props.history.push('/sekvalifikasjoner');
+    }
   }
 }
+
 class ForandreBrukerInfo extends React.Component {
   constructor() {
     super();
@@ -702,14 +701,33 @@ class SeKvalifikasjoner extends React.Component {
 
   }
   render(){
-
+    let counter = 0;
     let kvalList = [];
     for(let kval of this.kvalifikasjoner){
-      kvalList.push(<li>{kval.navn}</li>);
+      console.log(kval);
+      kvalList.push(<li key={counter}>{kval.navn}</li>);
+      counter++;
     }
     return(
-      <h2>Kvalifikasjoner</h2>
+      <div>
+        <h2>Kvalifikasjoner</h2>
+        <ul>{kvalList}</ul>
+        <button ref='tilbakeKnapp'>Gå tilbake</button>
+      </div>
     )
+  }
+  componentDidMount() {
+    userService.getUserQualifications(this.id).then((qualifications) => {
+      this.kvalifikasjoner = qualifications;
+
+      this.forceUpdate();
+    }).catch((error: Error) => {
+      if(errorMessage) errorMessage.set("Failed getting qualifications");
+    });
+    this.refs.tilbakeKnapp.onclick = () =>{
+      this.props.history.push('/minside');
+    }
+
   }
 }
 
@@ -729,6 +747,7 @@ class Administrator extends React.Component{
     )
   }
 }
+
 class Egenskaper extends React.Component <{}>{
   constructor(){
     super();
@@ -851,12 +870,7 @@ class BrukerSide extends React.Component {
     })
   }
 }
-// The Route-elements define the different pages of the application
-// through a path and which component should be used for the path.
-// The path can include a variable, for instance
-// path='/customer/:customerId' component={CustomerDetails}
-// means that the path /customer/5 will show the CustomerDetails
-// with props.match.params.customerId set to 5.
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -879,7 +893,7 @@ ReactDOM.render((
 
         <Route exact path='/bruker/:id' component={BrukerSide} />
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
-
+        <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
 
       </Switch>
     </div>
