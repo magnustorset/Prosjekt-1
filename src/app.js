@@ -408,6 +408,20 @@ class Arrangement extends React.Component{
       tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td><Link to={'/bruker/'+table.kontaktperson}>{table.kontaktperson}</Link></td></tr>)
       a++;
     }
+    if(administrator){
+      return(
+        <div>
+          <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {this.arrangement= ''; this.arrangement = result; this.forceUpdate(); }).catch((error) => {if(errorMessage) errorMessage.set('Finner ikke arrangement'); }); }} />
+          <button ref='searchButton'>Søk arrangement</button>
+          <table>
+            <tbody>
+              {tableItems}
+            </tbody>
+          </table>
+          <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+        </div>
+      )
+    }
     return(
       <div>
         <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {this.arrangement= ''; this.arrangement = result; this.forceUpdate(); }).catch((error) => {if(errorMessage) errorMessage.set('Finner ikke arrangement'); }); }} />
@@ -417,7 +431,6 @@ class Arrangement extends React.Component{
             {tableItems}
           </tbody>
         </table>
-        <Link to='/nyttarrangement'>Nytt Arrangement</Link>
       </div>
     )
   }
