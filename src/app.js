@@ -514,6 +514,26 @@ class MineSider extends React.Component {
     this.id = brukerid;
   }
   render(){
+    if(administrator){
+      return(
+        <div>
+          <h1>Min Side</h1>
+
+          <table>
+            <tbody>
+              <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
+              <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
+              <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
+            </tbody>
+          </table>
+          <button ref='setPassive'>Meld deg passiv</button>
+          <button ref='seeQualifications'>Se kvalifikasjoner</button>
+          <button ref='changeInfo'>Endre personalia</button>
+          <button ref='changePassword'>Endre passord</button>
+          <button ref='makeAdmin'>Gjør bruker til admin '(for admin)'</button>
+        </div>
+      )
+    }
     return(
       <div>
         <h1>Min Side</h1>
@@ -529,7 +549,6 @@ class MineSider extends React.Component {
         <button ref='seeQualifications'>Se kvalifikasjoner</button>
         <button ref='changeInfo'>Endre personalia</button>
         <button ref='changePassword'>Endre passord</button>
-        <button ref='makeAdmin'>Gjør bruker til admin '(for admin)'</button>
       </div>
     )
   }
@@ -662,9 +681,16 @@ class ForandrePassord extends React.Component {
 class Administrator extends React.Component{
   render(){
     return(
-      <div>
-      <Egenskaper />
-      </div>
+      <table style={{width: '100%'}}><tbody>
+        <tr>
+          <td valign='top' style={{width: '30%'}}>
+            <Egenskaper />
+          </td>
+          <td valign='top'>
+            <GodkjennBruker />
+          </td>
+        </tr>
+      </tbody></table>
     )
   }
 }
