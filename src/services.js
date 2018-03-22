@@ -28,7 +28,6 @@ function connect () {
 connect()
 
 let transporter = nodemailer.createTransport({
-  pool: true,
   host: 'mail.fastname.no',
   port: 465,
   secure: true,
