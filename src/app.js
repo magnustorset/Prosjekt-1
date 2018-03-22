@@ -543,7 +543,7 @@ class MineSider extends React.Component {
           <button ref='seeQualifications'>Se kvalifikasjoner</button>
           <button ref='changeInfo'>Endre personalia</button>
           <button ref='changePassword'>Endre passord</button>
-          <button ref='makeAdmin'>Gjør bruker til admin '(for admin)'</button>
+
         </div>
       )
     }
@@ -691,6 +691,28 @@ class ForandrePassord extends React.Component {
       }
     }
 }
+
+class SeKvalifikasjoner extends React.Component {
+  constructor() {
+    super();
+
+    this.user = [];
+    this.kvalifikasjoner = [];
+    this.id = brukerid;
+
+  }
+  render(){
+
+    let kvalList = [];
+    for(let kval of this.kvalifikasjoner){
+      kvalList.push(<li>{kval.navn}</li>);
+    }
+    return(
+      <h2>Kvalifikasjoner</h2>
+    )
+  }
+}
+
 class Administrator extends React.Component{
   render(){
     return(
