@@ -406,7 +406,7 @@ class Arrangement extends React.Component{
     if(administrator){
       return(
         <div>
-          <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {this.arrangement= ''; this.arrangement = result; this.forceUpdate(); }).catch((error) => {if(errorMessage) errorMessage.set('Finner ikke arrangement'); }); }} />
+          <input type='text' ref='searchArrangement' onChange={ () =>{this.hentArrangement()}} />
           <button ref='searchButton'>Søk arrangement</button>
           <table>
             <tbody>
@@ -429,8 +429,15 @@ class Arrangement extends React.Component{
       </div>
     )
   }
-  componentDidMount(){
-    }
+  hentArrangement(){
+    arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {
+      this.arrangement= '';
+      this.arrangement = result;
+      this.forceUpdate();
+    }).catch((error) => {
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
+    });
+  }
   }
 
 class NyttArrangement extends React.Component{
