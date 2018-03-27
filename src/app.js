@@ -855,7 +855,7 @@ class BrukerSide extends React.Component {
     }else{
       return(
         <div>
-
+        Du må være administrator for å få opp denne siden.
         </div>
       )
     }
