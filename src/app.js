@@ -55,7 +55,8 @@ let errorMessage; // ErrorMessage-instance
 
 class Menu extends React.Component {
   render () {
-      if(brukerid != null && administrator === true){
+      let signedInUser = loginService.getSignedInUser();
+      if(signedInUser && signedInUser.admin === 1){
     return (
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="navbar-brand">
@@ -93,7 +94,7 @@ class Menu extends React.Component {
   </nav>
     );
   }
-   if(brukerid != null && administrator === false){
+   if(signedInUser){
      return(
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
     <div className="navbar-brand">
@@ -142,17 +143,7 @@ class Menu extends React.Component {
 
 class Innlogging extends React.Component {
   render () {
-    // let divStyle = {
-    // padding: '50px',
-    // marginTop: '350px',
-    // marginLeft: '600px',
-    // marginRight: '450px',
-    // backgroundColor: '#ffffcc'
-    //   };
-    // let tableStyle ={
-    //   paddingBottom: '10px',
-    //   paddingLeft: '10px'
-    // }
+
     return (
       <div className='Rot'>
         <br />
@@ -183,19 +174,21 @@ class Innlogging extends React.Component {
   // Called after render() is called for the first time
   componentDidMount () {
     this.refs.innlogginButton.onclick = () => {
-      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then(([medlemsnr, login, admin, aktiv]) => {
-        if (login && admin && aktiv) {
+      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then((login) => {
+        let signedInUser = loginService.getSignedInUser();
+        if (login && signedInUser.admin === 1 && signedInUser.aktiv === 1) {
           console.log('Innlogget som admin');
-          administrator = admin;
-          brukerid = medlemsnr;
+          brukerid = signedInUser.id;
+          administrator = true;
           this.props.history.push('/start');
         }
-        if(login && !admin && aktiv){
+        if(login && signedInUser.admin !=1 && signedInUser.aktiv === 1){
           console.log('Innlogget som bruker');
-          brukerid = medlemsnr;
+          brukerid = signedInUser.id;
           this.props.history.push('/start');
         }
-        if(!aktiv){
+        if(signedInUser.aktiv != 1){
+          localStorage.removeItem('signedInUser');
           alert('Administrator har ikke godkjent brukeren din enda.');
         }
       }).catch((error) => {
@@ -364,11 +357,11 @@ class StartSide extends React.Component {
   this.id = brukerid;
   }
   render () {
-
+  let signedInUser = loginService.getSignedInUser();
     return (
       <div>
-        <h1>Hei, {this.user.brukernavn}!</h1>
-        Id: {this.id};
+        <h1>Hei, {signedInUser.brukernavn}!</h1>
+        Id: {signedInUser.id};
         <button ref='logOut'>Logg ut</button>
       </div>
     )
@@ -386,6 +379,7 @@ class StartSide extends React.Component {
     this.refs.logOut.onclick = () =>{
       brukerid = null;
       administrator = false;
+      loginService.signOut();
       this.props.history.push('/');
     }
   }
@@ -406,7 +400,7 @@ class Arrangement extends React.Component{
     if(administrator){
       return(
         <div>
-          <input type='text' ref='searchArrangement' onChange={ () =>{this.hentArrangement()}} />
+          <input type='text' ref='searchArrangement' onChange={ () =>{this.hentArrangement( )}} />
           <button ref='searchButton'>Søk arrangement</button>
           <table>
             <tbody>

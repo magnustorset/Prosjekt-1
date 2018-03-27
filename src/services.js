@@ -169,31 +169,26 @@ class LoginService {
           reject(error);
           return;
         }
-        let aktiv = false
         let login = false
-        let admin = false
-        let medlemsnr = null
-        if (result[0].passord === passord && result[0].admin === 1) {
+        if (result[0].passord === passord) {
           login = true
-          admin = true
-          medlemsnr = result[0].id;
-          console.log(admin);
-          console.log(medlemsnr);
-        } else if(result[0].passord === passord) {
-          login = true
-          medlemsnr = result[0].id;
-        }else{
+      }else{
           login = false
         }
-        if(result[0].aktiv === 1){
-          aktiv = true
-        }else{
-          aktiv = false
-        }
-        resolve([medlemsnr, login, admin, aktiv]);
+        localStorage.setItem('signedInUser', JSON.stringify(result[0])); // Store User-object in browser
+        resolve(login);
     });
   });
   }
+  getSignedInUser(): ?User {
+  let item: ?string = localStorage.getItem('signedInUser'); // Get User-object from browser
+  if(!item) return null;
+
+  return JSON.parse(item);
+}
+signOut(): ?User {
+  localStorage.removeItem('signedInUser');
+}
 
   navn(kode, email) {
     let m_id
