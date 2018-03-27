@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
 
+
 let brukerid = null
 let administrator = false
 let klokke = 0
@@ -352,16 +353,15 @@ class ResetPassord extends React.Component {
 class StartSide extends React.Component {
   constructor() {
   super(); // Call React.Component constructor
-
+  let signedInUser = loginService.getSignedInUser();
   this.user = [];
-  this.id = brukerid;
+  this.id = signedInUser.id;
   }
   render () {
-  let signedInUser = loginService.getSignedInUser();
     return (
       <div>
-        <h1>Hei, {signedInUser.brukernavn}!</h1>
-        Id: {signedInUser.id};
+        <h1>Hei, {this.user.brukernavn}!</h1>
+        Id: {this.user.id};
         <button ref='logOut'>Logg ut</button>
       </div>
     )
@@ -397,6 +397,8 @@ class Arrangement extends React.Component{
       tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td><Link to={'/bruker/'+table.kontaktperson}>{table.kontaktperson}</Link></td></tr>)
       a++;
     }
+    let signedInUser = loginService.getSignedInUser();
+    if(signedInUser.admin === 1)
     if(administrator){
       return(
         <div>
@@ -517,9 +519,9 @@ class NyttArrangement extends React.Component{
 class MineSider extends React.Component {
   constructor() {
     super();
-
+    let signedInUser = loginService.getSignedInUser();
     this.user = [];
-    this.id = brukerid;
+    this.id = signedInUser.id;
   }
   render(){
     if(administrator){
