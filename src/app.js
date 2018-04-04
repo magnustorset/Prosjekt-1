@@ -88,7 +88,10 @@ class Menu extends React.Component {
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li>
-            <input type='text' className='form-control' />
+            <input  ref='serachFieldUser' type='text' className='form-control' />
+          </li>
+          <li>
+          <button  ref='serachUsersButton' className='form-control'>Søk</button>
           </li>
         </ul>
       </div>
@@ -118,18 +121,20 @@ class Menu extends React.Component {
     <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
     </li>
   </ul>
-    <ul className="nav navbar-nav navbar-right">
-      <li>
-        <input type='text' className='form-control' />
-      </li>
-    </ul>
+  <ul className="nav navbar-nav navbar-right">
+    <li>
+      <input  ref='serachFieldUser' type='text' className='form-control' />
+    </li>
+    <li>
+    <button  ref='serachUsersButton' className='form-control' >Søk</button>
+    </li>
+  </ul>
   </div>
   </nav>
   );
   }
   return(
     <div>
-    <Link to='/'>Innlogging</Link>
     </div>
   )
   }
@@ -363,9 +368,27 @@ class StartSide extends React.Component {
         <h1>Hei, {this.user.brukernavn}!</h1>
         Id: {this.user.id};
         <button ref='logOut'>Logg ut</button>
+        <ul className="nav navbar-nav navbar-right">
+          <li>
+            <input  ref='serachFieldUser' type='text' className='form-control' />
+          </li>
+          <li>
+          <button  ref='serachUsersButton' className='form-control' onClick={() =>{this.searchUsers()}}>Søk</button>
+          </li>
+        </ul>
+
       </div>
     )
   }
+  searchUsers(){
+      userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
+        console.log(result);
+        this.props.history.push('/sokeResultat');
+          sokeResultat.set(result);
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
+      });
+    }
   componentDidMount () {
     userService.getUser(this.id).then((result) =>{
       console.log(this.id);
@@ -399,7 +422,7 @@ class Arrangement extends React.Component{
     }
     let signedInUser = loginService.getSignedInUser();
     if(signedInUser.admin === 1)
-    if(administrator){
+    {
       return(
         <div>
           <input type='text' ref='searchArrangement' onChange={ () =>{this.hentArrangement( )}} />
@@ -806,13 +829,44 @@ class GodkjennBruker extends React.Component {
 
     administratorFunctions.ikkeAktiveBrukere().then((result)=>{
       this.ikkeAktive = result;
-      console.log(this.ikkeAktive);
       this.forceUpdate();
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Kunne ikke laste ikke aktiv brukere' + error);
     });
   }
 }
+
+class VisSøkeResultat extends React.Component {
+  constructor(){
+    super();
+    this.sokeResultat = [];
+  }
+  render(){
+   let resultat = [];
+   for(let result of this.sokeResultat){
+     resultat.push(<li key={result.id}><Link to={'/bruker/'+result.id}>{result.brukernavn}</Link></li>);
+   }
+    return(
+      <div>
+      <ul>
+      {resultat}
+      </ul>
+      <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+      </div>
+    );
+  }
+  componentWillUnmount(){
+    sokeResultat = null;
+  }
+  componentDidMount(){
+    sokeResultat = this;
+  }
+  set(innhold){
+   this.sokeResultat = innhold;
+   this.forceUpdate();
+ }
+}
+let sokeResultat;
 
 class BrukerSide extends React.Component {
   constructor(props) {
@@ -821,7 +875,8 @@ class BrukerSide extends React.Component {
     this.user = {}
   }
   render() {
-    if (administrator) {
+    let signedInUser = loginService.getSignedInUser();
+    if (signedInUser.admin === 1) {
       return(
         <div>
           <div className="table-responsive">
@@ -851,6 +906,7 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
+            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -896,6 +952,7 @@ ReactDOM.render((
         <Route exact path='/bruker/:id' component={BrukerSide} />
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
         <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
+        <Route exact path='/sokeResultat' component={VisSøkeResultat} />
 
       </Switch>
     </div>

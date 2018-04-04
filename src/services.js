@@ -67,6 +67,20 @@ class EmailService {
 }
 // Class that performs database queries related to users
 class UserService {
+
+  searchUser(input){
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT * FROM medlem where tlf = ? or epost = ? or brukernavn = ?', [input, input, input], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+
+        }
+        resolve(result);
+      });
+    });
+  }
+
   getUsers () {
     return new Promise((resolve, reject) =>{
     connection.query('SELECT * FROM medlem', (error, result) => {
