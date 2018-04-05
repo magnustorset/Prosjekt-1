@@ -68,6 +68,7 @@ class EmailService {
 // Class that performs database queries related to users
 class UserService {
 
+
   searchUser(input){
     return new Promise((resolve, reject) =>{
       connection.query('SELECT * FROM medlem where tlf = ? or epost = ? or brukernavn = ?', [input, input, input], (error, result)=>{
@@ -303,6 +304,32 @@ class ArrangementService {
 }
 
 class AdministratorFunctions{
+  makeUserAdmin(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('UPDATE medlem set admin = ? where id = ? ',[true, id], (error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        console.log('Brukeren er nå admin');
+        resolve();
+      });
+    });
+  }
+  deleteAdmin(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('UPDATE medlem set admin = ? where id = ? ',[false, id], (error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        console.log('Brukeren er ikke admin lengre');
+        resolve();
+      });
+    });
+  }
   ikkeAktiveBrukere(){
     return new Promise((resolve, reject) => {
       connection.query('SELECT * from medlem where aktiv = ?',[false], (error, result) =>{

@@ -126,7 +126,7 @@ class Menu extends React.Component {
       <input  ref='serachFieldUser' type='text' className='form-control' />
     </li>
     <li>
-    <button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button>
+  <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
     </li>
   </ul>
   </div>
@@ -868,7 +868,7 @@ class BrukerSide extends React.Component {
   }
   render() {
     let signedInUser = loginService.getSignedInUser();
-    if (signedInUser.admin === 1) {
+    if (signedInUser.admin === 1 && this.user.admin === 0) {
       return(
         <div>
           <div className="table-responsive">
@@ -896,21 +896,84 @@ class BrukerSide extends React.Component {
                 <td>Poststed:</td>
                 <td>{this.user.poststed}</td>
               </tr>
+              <tr>
+              <td><button onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
+              </tr>
             </tbody>
           </table>
             <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
           </div>
         </div>
       )
+    }
+      if(signedInUser.admin === 1 && this.user.admin === 1){
+        return(
+          <div>
+            <div className="table-responsive">
+            <table className='table'>
+              <thead>
+                <tr>
+                  <th>{this.user.brukernavn}</th>
+                  <th>{this.user.id}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Telefon: </td>
+                  <td>{this.user.tlf}</td>
+                  <td>E-post:</td>
+                  <td>{this.user.epost}</td>
+                  <td>Vaktpoeng: </td>
+                  <td>{this.user.vaktpoeng}</td>
+                </tr>
+                <tr>
+                  <td>Adresse: </td>
+                  <td>{this.user.adresse}</td>
+                  <td>Postnr:</td>
+                  <td>{this.user.postnr}</td>
+                  <td>Poststed:</td>
+                  <td>{this.user.poststed}</td>
+                </tr>
+                <tr>
+                <td><button onClick={() =>{this.deleteAdmin()}}>Fjern bruker som admin</button></td>
+                </tr>
+              </tbody>
+            </table>
+              <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+            </div>
+          </div>
+        )
     }else{
       return(
         <div>
-        Du må være administrator for å få opp denne siden.
+          <div className="table-responsive">
+          <table className='table'>
+            <thead>
+              <tr>
+                <th>{this.user.brukernavn}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Telefon: </td>
+                <td>{this.user.tlf}</td>
+                <td>E-post:</td>
+                <td>{this.user.epost}</td>
+              </tr>
+            </tbody>
+          </table>
+            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+          </div>
         </div>
       )
     }
   }
-
+  deleteAdmin(){
+    administratorFunctions.deleteAdmin(this.user.id);
+  }
+ makeAdmin(){
+   administratorFunctions.makeUserAdmin(this.user.id);
+ }
   componentDidMount() {
     userService.getUser(this.id).then((result) => {
       this.user = result[0];
