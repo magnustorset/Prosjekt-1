@@ -126,7 +126,7 @@ class Menu extends React.Component {
       <input  ref='serachFieldUser' type='text' className='form-control' />
     </li>
     <li>
-    <button  ref='serachUsersButton' className='form-control' >Søk</button>
+    <button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button>
     </li>
   </ul>
   </div>
