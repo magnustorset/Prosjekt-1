@@ -91,7 +91,7 @@ class Menu extends React.Component {
             <input  ref='serachFieldUser' type='text' className='form-control' />
           </li>
           <li>
-          <button  ref='serachUsersButton' className='form-control'>Søk</button>
+          <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
           </li>
         </ul>
       </div>
@@ -145,6 +145,15 @@ class Menu extends React.Component {
     else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
     if(kollaps.style.display =='none'){klokke=0;}
   }
+  searchUsers(){
+      userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
+        console.log(result);
+          sokeResultat.set(result);
+          this.refs.serachFieldUser.value = '';
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
+      });
+    }
   }
 
 class Innlogging extends React.Component {
@@ -368,27 +377,10 @@ class StartSide extends React.Component {
         <h1>Hei, {this.user.brukernavn}!</h1>
         Id: {this.user.id};
         <button ref='logOut'>Logg ut</button>
-        <ul className="nav navbar-nav navbar-right">
-          <li>
-            <input  ref='serachFieldUser' type='text' className='form-control' />
-          </li>
-          <li>
-          <button  ref='serachUsersButton' className='form-control' onClick={() =>{this.searchUsers()}}>Søk</button>
-          </li>
-        </ul>
 
       </div>
     )
   }
-  searchUsers(){
-      userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
-        console.log(result);
-        this.props.history.push('/sokeResultat');
-          sokeResultat.set(result);
-      }).catch((error)=>{
-        if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
-      });
-    }
   componentDidMount () {
     userService.getUser(this.id).then((result) =>{
       console.log(this.id);
