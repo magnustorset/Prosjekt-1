@@ -109,9 +109,9 @@ class UserService {
   });
   }
 
-  addUser (navn, epost, medlemsnr, tlf, adresse, passord, postnr) {
+  addUser (fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr) {
     return new Promise((resolve, reject) =>{
-    connection.query('INSERT INTO medlem (brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?)', [navn, epost, medlemsnr, tlf, adresse, passord, postnr], (error, result) => {
+    connection.query('INSERT INTO medlem (fornavn, etternavn, brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -195,15 +195,16 @@ class LoginService {
     });
   });
   }
+
   getSignedInUser(): ?User {
   let item: ?string = localStorage.getItem('signedInUser'); // Get User-object from browser
   if(!item) return null;
 
   return JSON.parse(item);
 }
-signOut(): ?User {
+  signOut(): ?User {
   localStorage.removeItem('signedInUser');
-}
+  }
 
   navn(kode, email) {
     let m_id
@@ -304,6 +305,19 @@ class ArrangementService {
 }
 
 class AdministratorFunctions{
+  deaktiverBruker(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('UPDATE medlem set aktiv = ? where id = ?', [false, id], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        console.log('Brukerene er deaktivert');
+        resolve();
+      });
+    });
+  }
   makeUserAdmin(id){
     return new Promise((resolve, reject)=>{
       connection.query('UPDATE medlem set admin = ? where id = ? ',[true, id], (error,result)=>{

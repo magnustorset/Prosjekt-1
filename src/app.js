@@ -225,9 +225,17 @@ class NyBruker extends React.Component {
       <div>
         <table>
           <tbody>
+          <tr>
+            <td>Fornavn: </td>
+            <td><input type="text" ref="fornavnInput" defaultValue="Peter" /></td>
+          </tr>
+          <tr>
+            <td>Etternavn: </td>
+            <td><input type="text" ref="etternavnInput" defaultValue="Peter" /></td>
+          </tr>
             <tr>
-              <td>Navn: </td>
-              <td><input type="text" ref="navnInput" defaultValue="Peter" /></td>
+              <td>Brukernavn: </td>
+              <td><input type="text" ref="brukernavnInput" defaultValue="Peter" /></td>
             </tr>
             <tr>
               <td>Epost: </td>
@@ -250,10 +258,6 @@ class NyBruker extends React.Component {
               <td><input type="text" ref="postnrInput" defaultValue='0000' /></td>
             </tr>
             <tr>
-              <td>Poststed: </td>
-              <td><input type="text" ref="poststedInput" defaultValue='Test' /></td>
-            </tr>
-            <tr>
               <td>Passord: </td>
               <td><input type="password" ref="passwordInput1" defaultValue='12345' /></td>
             </tr>
@@ -271,7 +275,7 @@ class NyBruker extends React.Component {
 
     this.refs.createuserButton.onclick = () => {
       if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
-        userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value,this.refs.adresseInput.value, this.refs.passwordInput1.value,this.refs.postnrInput.value).then(() => {
+        userService.addUser(this.refs.fornavnInput.value, this.refs.etternavnInput.value, this.refs.brukernavnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value,this.refs.adresseInput.value, this.refs.passwordInput1.value,this.refs.postnrInput.value).then(() => {
           console.log('User added')
           this.props.history.push('/');
         }).catch((error) => {
@@ -417,14 +421,14 @@ class Arrangement extends React.Component{
     {
       return(
         <div>
-          <input type='text' ref='searchArrangement' onChange={ () =>{this.hentArrangement( )}} />
-          <button ref='searchButton'>Søk arrangement</button>
+          <input type='text' ref='searchArrangement' />
+          <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
+          <Link to='/nyttarrangement'>Nytt Arrangement</Link>
           <table>
             <tbody>
               {tableItems}
             </tbody>
           </table>
-          <Link to='/nyttarrangement'>Nytt Arrangement</Link>
         </div>
       )
     }
@@ -794,7 +798,7 @@ class GodkjennBruker extends React.Component {
   render(){
     let brukerListe = [];
     for(let bruker of this.ikkeAktive){
-      brukerListe.push(<li key={bruker.id}>{bruker.brukernavn}, <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+      brukerListe.push(<li key={bruker.id}>{bruker.fornavn},{bruker.etternavn} <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
     }
     return(
       <div>
@@ -836,7 +840,7 @@ class VisSøkeResultat extends React.Component {
   render(){
    let resultat = [];
    for(let result of this.sokeResultat){
-     resultat.push(<li key={result.id}><Link to={'/bruker/'+result.id}>{result.brukernavn}</Link></li>);
+     resultat.push(<li key={result.id}><Link to={'/bruker/'+result.id}>{result.fornavn}, {result.etternavn}</Link></li>);
    }
     return(
       <div>
@@ -875,7 +879,7 @@ class BrukerSide extends React.Component {
           <table className='table'>
             <thead>
               <tr>
-                <th>{this.user.brukernavn}</th>
+                <th>{this.user.fornavn}, {this.user.etternavn}</th>
                 <th>{this.user.id}</th>
               </tr>
             </thead>
@@ -898,6 +902,7 @@ class BrukerSide extends React.Component {
               </tr>
               <tr>
               <td><button onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
+              <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
               </tr>
             </tbody>
           </table>
@@ -913,7 +918,7 @@ class BrukerSide extends React.Component {
             <table className='table'>
               <thead>
                 <tr>
-                  <th>{this.user.brukernavn}</th>
+                  <th>{this.user.fornavn}, {this.user.etternavn}</th>
                   <th>{this.user.id}</th>
                 </tr>
               </thead>
@@ -950,7 +955,7 @@ class BrukerSide extends React.Component {
           <table className='table'>
             <thead>
               <tr>
-                <th>{this.user.brukernavn}</th>
+                <th>{this.user.fornavn}, {this.user.etternavn}</th>
               </tr>
             </thead>
             <tbody>
@@ -967,6 +972,9 @@ class BrukerSide extends React.Component {
         </div>
       )
     }
+  }
+  deaktiverBruker(){
+    administratorFunctions.deaktiverBruker(this.user.id);
   }
   deleteAdmin(){
     administratorFunctions.deleteAdmin(this.user.id);
