@@ -941,6 +941,7 @@ class BrukerSide extends React.Component {
                 </tr>
                 <tr>
                 <td><button onClick={() =>{this.deleteAdmin()}}>Fjern bruker som admin</button></td>
+                <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
                 </tr>
               </tbody>
             </table>
