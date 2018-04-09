@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
 
-
 let brukerid = null
 let administrator = false
 let klokke = 0
@@ -413,7 +412,7 @@ class Arrangement extends React.Component{
     let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td><Link to={'/bruker/'+table.kontaktperson}>{table.kontaktperson}</Link></td></tr>)
+      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td><Link to={'/visArrangement/'+table.id}>{table.navn}</Link></td><td><Link to={'/bruker/'+table.kontaktperson}>{table.kontaktperson}</Link></td></tr>)
       a++;
     }
     let signedInUser = loginService.getSignedInUser();
@@ -434,8 +433,8 @@ class Arrangement extends React.Component{
     }
     return(
       <div>
-        <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {this.arrangement= ''; this.arrangement = result; this.forceUpdate(); }).catch((error) => {if(errorMessage) errorMessage.set('Finner ikke arrangement'); }); }} />
-        <button ref='searchButton'>Søk arrangement</button>
+        <input type='text' ref='searchArrangement'  />
+        <button ref='searchButton'onClick={ () => {this.hentArrangement()}}>Søk arrangement</button>
         <table>
           <tbody>
             {tableItems}
@@ -543,26 +542,6 @@ class MineSider extends React.Component {
     this.id = signedInUser.id;
   }
   render(){
-    if(administrator){
-      return(
-        <div>
-          <h1>Min Side</h1>
-
-          <table>
-            <tbody>
-              <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
-              <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
-              <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
-            </tbody>
-          </table>
-          <button ref='setPassive'>Meld deg passiv</button>
-          <button ref='seeQualifications'>Se kvalifikasjoner</button>
-          <button ref='changeInfo'>Endre personalia</button>
-          <button ref='changePassword'>Endre passord</button>
-
-        </div>
-      )
-    }
     return(
       <div>
         <h1>Min Side</h1>
@@ -986,10 +965,80 @@ class BrukerSide extends React.Component {
   componentDidMount() {
     userService.getUser(this.id).then((result) => {
       this.user = result[0];
-      console.log(this.user);
-      console.log(this.user.tlf);
       this.forceUpdate();
     })
+  }
+}
+
+class VisArrangement extends React.Component {
+  constructor(props) {
+    super(props)
+    this.id = props.match.params.id;
+    this.arrangement = [];
+    this.user = [];
+  }
+  render(){
+
+
+    return(
+      <div>
+      <table>
+      <tbody>
+      <tr>
+      <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+      </tr>
+      <tr>
+      <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
+      </tr>
+      <tr>
+      <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+      </tr>
+      <tr>
+      <td>Oppmøtetidspunkt:</td><td>
+      {this.changeDate(this.arrangement.oppmootetidspunkt)}
+      </td>
+      </tr>
+      <tr>
+      <td>Starttidspunkt:</td><td>
+      {this.changeDate(this.arrangement.starttidspunkt)}
+      </td>
+      </tr>
+      <tr>
+      <td>Sluttidspunkt:</td><td>
+      {this.changeDate(this.arrangement.sluttidspunkt)}
+      </td>
+      </tr>
+      <tr>
+      <td>Oppmøtested:</td><td>{this.arrangement.kordinater}</td>
+      </tr>
+      </tbody>
+      </table>
+      </div>
+    )
+  }
+  changeDate(variabel){
+    return(
+    new Intl.DateTimeFormat('en-GB', {
+      year: '2-digit',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(variabel))
+  }
+  componentDidMount(){
+    arrangementService.showArrangement(this.id).then((result)=>{
+      this.arrangement = result[0];
+      this.forceUpdate();
+      userService.getUser(result[0].kontaktperson).then((result)=>{
+        this.user = result[0];
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke bruker');
+      });
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
+    });
   }
 }
 
@@ -1017,6 +1066,7 @@ ReactDOM.render((
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
         <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
         <Route exact path='/sokeResultat' component={VisSøkeResultat} />
+        <Route exact path='/visArrangement/:id' component={VisArrangement} />
 
       </Switch>
     </div>

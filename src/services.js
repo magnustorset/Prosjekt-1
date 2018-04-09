@@ -302,6 +302,19 @@ class ArrangementService {
   });
 
   }
+
+  showArrangement(id){
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT * from arrangement where id = ?', [id], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      });
+    });
+  }
 }
 
 class AdministratorFunctions{
