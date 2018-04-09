@@ -592,11 +592,11 @@ class ForandreBrukerInfo extends React.Component {
   render(){
     return(
       <div>
-        <h1>Min Side {this.user.id}</h1>
+        <h1>Min Side </h1>
 
         <table>
           <tbody>
-            <tr><td>Medlemmsnummer:</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
+            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
             <tr><td>Epost: <input ref='emailInput' /></td><td>Poststed:</td></tr>
             <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
           </tbody>
@@ -1011,6 +1011,9 @@ class VisArrangement extends React.Component {
       <tr>
       <td>Oppmøtested:</td><td>{this.arrangement.kordinater}</td>
       </tr>
+      <tr>
+      <td><button ref='endreArrangement'>Endre arrangementet</button></td>
+      </tr>
       </tbody>
       </table>
       </div>
@@ -1039,9 +1042,107 @@ class VisArrangement extends React.Component {
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
     });
+    this.refs.endreArrangement.onclick = () =>{
+      this.props.history.push('/endreArrangement/'+this.arrangement.id);
+    }
   }
 }
 
+class EndreArrangement extends React.Component {
+  constructor(props){
+    super(props);
+    this.arrangement = [];
+    this.id = props.match.params.id;
+    this.user = [];
+    this.state = {beskrivelse: '',
+                  oppmootetidspunkt: '',
+                  starttidspunkt: '',
+                  sluttidspunkt: '',
+                  kordinater: ''};
+
+    this.handleChange = this.handleChange.bind(this);
+  }
+  handleChange(event){
+    const target = event.target;
+    const value = event.target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+  render(){
+    return(
+      <div>
+      <table>
+      <tbody>
+      <tr>
+      <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+      </tr>
+      <tr>
+      <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
+      </tr>
+      <tr>
+      <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+      </tr>
+      <tr>
+      <td>Oppmøtetidspunkt:</td><td>
+      <input name='oppmootetidspunkt' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/>
+      </td>
+      </tr>
+      <tr>
+      <td>Starttidspunkt:</td><td>
+      <input name='starttidspunkt' value={this.state.starttidspunkt} onChange={this.handleChange} />
+      </td>
+      </tr>
+      <tr>
+      <td>Sluttidspunkt:</td><td>
+      <input name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} />
+      </td>
+      </tr>
+      <tr>
+      <td>Oppmøtested:</td><td><input name='kordinater' value={this.state.kordinater} onChange={this.handleChange} /></td>
+      </tr>
+      <tr>
+      <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
+      </tr>
+      </tbody>
+      </table>
+      </div>
+    )
+  }
+  changeDate(variabel){
+    return(
+    new Intl.DateTimeFormat('en-GB', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(variabel))
+  }
+  componentDidMount(){
+    arrangementService.showArrangement(this.id).then((result)=>{
+      this.arrangement = result[0];
+      console.log(this.arrangement);
+      this.state.beskrivelse = this.arrangement.beskrivelse;
+      this.state.kordinater = this.arrangement.kordinater;
+      this.state.oppmootetidspunkt = this.changeDate(this.arrangement.oppmootetidspunkt);
+      this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
+      this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
+      console.log(this.state.beksrivelse);
+      this.forceUpdate();
+      userService.getUser(result[0].kontaktperson).then((result)=>{
+        this.user = result[0];
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke bruker');
+      });
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
+    });
+  }
+}
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -1067,6 +1168,7 @@ ReactDOM.render((
         <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
         <Route exact path='/sokeResultat' component={VisSøkeResultat} />
         <Route exact path='/visArrangement/:id' component={VisArrangement} />
+        <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
 
       </Switch>
     </div>
