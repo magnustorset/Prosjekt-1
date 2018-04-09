@@ -1,10 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Link, HashRouter, Switch, Route } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService } from './services'
+import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
+import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
+
+
 let brukerid = null
 let administrator = false
 let klokke = 0
+let emailCode = false
+let gjøremål = [{name: 'Godkjennebruker',
+                id: 'godkjenn'}
+                ];
+let brukerEpost;
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -44,108 +51,114 @@ class ErrorMessage extends React.Component {
     this.forceUpdate();
   }
 }
+
 let errorMessage; // ErrorMessage-instance
 
 class Menu extends React.Component {
   render () {
-    if(brukerid != null && administrator === true){
-      return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-          <div className="navbar-brand">
-            <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />Røde Kors
-          </div>
-          <div className='navbar-header'>
-            <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
-            kollaps.style.display ='none';
-            if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
-            else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
-            if(kollaps.style.display =='none'){klokke=0;}}}
-            className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
-            <span className="navbar-toggler-icon"></span>
-            </button>
-          </div>
-          <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
-            <ul className="nav navbar-nav mr-auto">
-              <li className="nav-item active">
-                <Link to='/start' className='nav-link'>Start</Link>
-              </li>
-              <li className="nav-item">
-                <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-              </li>
-              <li className='nav-item'>
-                <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-              </li>
-              <li className='nav-item'>
-                <Link to='/bestemme' className="nav-link">Administrator</Link>
-              </li>
-            </ul>
-            <ul className="nav navbar-nav navbar-right">
-              <li>
-                <input type='text' className='form-control' />
-              </li>
-            </ul>
-          </div>
-        </nav>
-      );
-    }
-    if(brukerid != null && administrator === false){
-      return(
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-          <div className="navbar-brand">
-            <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />Røde Kors
-          </div>
-          <div className='navbar-header'>
-            <button onClick={()=>{let kollaps = document.getElementById('navbarSupportedContent');
-            kollaps.style.display ='none';
-            if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
-            else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
-            if(kollaps.style.display =='none'){klokke=0;}}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
-              <span className="navbar-toggler-icon"></span>
-            </button>
-          </div>
-          <div className="navbar-collapse collapse" id="navbarSupportedContent">
-            <ul className="navbar-nav mr-auto">
-              <li className="nav-item active">
-                <Link to='/start' className='nav-link'>Start</Link>
-              </li>
-              <li className="nav-item">
-                <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-              </li>
-              <li className='nav-item'>
-                <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-              </li>
-            </ul>
-            <ul className="nav navbar-nav navbar-right">
-              <li>
-                <input type='text' className='form-control' />
-              </li>
-            </ul>
-          </div>
-        </nav>
-      );
-    }
-    return(
-      <div>
+      let signedInUser = loginService.getSignedInUser();
+      if(signedInUser && signedInUser.admin === 1){
+    return (
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div className="navbar-brand">
+          <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+        Røde Kors</div>
+
+      <div className='navbar-header'>
+        <button onClick={()=>{this.collapseNavbar()}}
+        className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+        <span className="navbar-toggler-icon"></span>
+        </button>
       </div>
-    )
+
+      <div className="navbar-collapse collapse" id="navbarSupportedContent" aria-expanded="false" aria-controls="navbarSupportedContent">
+        <ul className="nav navbar-nav mr-auto">
+          <li className="nav-item active">
+            <Link to='/start' className='nav-link'>Start</Link>
+          </li>
+          <li className="nav-item">
+            <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/bestemme' className="nav-link">Administrator</Link>
+          </li>
+        </ul>
+        <ul className="nav navbar-nav navbar-right">
+          <li>
+            <input  ref='serachFieldUser' type='text' className='form-control' />
+          </li>
+          <li>
+          <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+          </li>
+        </ul>
+      </div>
+  </nav>
+    );
   }
-}
+   if(signedInUser){
+     return(
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div className="navbar-brand">
+    <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+    Røde Kors</div>
+    <div className='navbar-header'>
+    <button onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+    <span className="navbar-toggler-icon"></span>
+    </button>
+    </div>
+    <div className="navbar-collapse collapse" id="navbarSupportedContent">
+  <ul className="navbar-nav mr-auto">
+    <li className="nav-item active">
+    <Link to='/start' className='nav-link'>Start</Link>
+    </li>
+    <li className="nav-item">
+      <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+    </li>
+    <li className='nav-item'>
+    <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+    </li>
+  </ul>
+  <ul className="nav navbar-nav navbar-right">
+    <li>
+      <input  ref='serachFieldUser' type='text' className='form-control' />
+    </li>
+    <li>
+  <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+    </li>
+  </ul>
+  </div>
+  </nav>
+  );
+  }
+  return(
+    <div>
+    </div>
+  )
+  }
+  collapseNavbar(){
+    let kollaps = document.getElementById('navbarSupportedContent');
+    kollaps.style.display ='none';
+    if(klokke == 0){kollaps.style.display = 'inline'; klokke++}
+    else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
+    if(kollaps.style.display =='none'){klokke=0;}
+  }
+  searchUsers(){
+      userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
+        console.log(result);
+          sokeResultat.set(result);
+          this.refs.serachFieldUser.value = '';
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
+      });
+    }
+  }
 
-
-// Component that shows a list of all the customers
 class Innlogging extends React.Component {
   render () {
-    // let divStyle = {
-    // padding: '50px',
-    // marginTop: '350px',
-    // marginLeft: '600px',
-    // marginRight: '450px',
-    // backgroundColor: '#ffffcc'
-    //   };
-    // let tableStyle ={
-    //   paddingBottom: '10px',
-    //   paddingLeft: '10px'
-    // }
+
     return (
       <div className='Rot'>
         <br />
@@ -153,7 +166,7 @@ class Innlogging extends React.Component {
           <tbody>
             <tr>
               <td >Brukernavn: </td>
-              <td ><input type="text" ref="unInput" defaultValue="sindre@test.no" /></td>
+              <td ><input type="text" ref="unInput" defaultValue="sindersopp@hotmail.com" /></td>
               <td ><button ref="newUserButton">Ny bruker</button></td>
             </tr>
             <tr>
@@ -169,23 +182,29 @@ class Innlogging extends React.Component {
           </tbody>
         </table>
       </div>
+
     )
   }
 
   // Called after render() is called for the first time
   componentDidMount () {
     this.refs.innlogginButton.onclick = () => {
-      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then(([medlemsnr, login, admin]) => {
-        if (login && admin) {
+      loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then((login) => {
+        let signedInUser = loginService.getSignedInUser();
+        if (login && signedInUser.admin === 1 && signedInUser.aktiv === 1) {
           console.log('Innlogget som admin');
-          administrator = admin;
-          brukerid = medlemsnr;
+          brukerid = signedInUser.id;
+          administrator = true;
           this.props.history.push('/start');
         }
-        if(login && !admin){
+        if(login && signedInUser.admin !=1 && signedInUser.aktiv === 1){
           console.log('Innlogget som bruker');
-          brukerid = medlemsnr;
+          brukerid = signedInUser.id;
           this.props.history.push('/start');
+        }
+        if(signedInUser.aktiv != 1){
+          localStorage.removeItem('signedInUser');
+          alert('Administrator har ikke godkjent brukeren din enda.');
         }
       }).catch((error) => {
         if(errorMessage) errorMessage.set('Login feilet');
@@ -206,9 +225,17 @@ class NyBruker extends React.Component {
       <div>
         <table>
           <tbody>
+          <tr>
+            <td>Fornavn: </td>
+            <td><input type="text" ref="fornavnInput" defaultValue="Peter" /></td>
+          </tr>
+          <tr>
+            <td>Etternavn: </td>
+            <td><input type="text" ref="etternavnInput" defaultValue="Peter" /></td>
+          </tr>
             <tr>
-              <td>Navn: </td>
-              <td><input type="text" ref="navnInput" defaultValue="Peter" /></td>
+              <td>Brukernavn: </td>
+              <td><input type="text" ref="brukernavnInput" defaultValue="Peter" /></td>
             </tr>
             <tr>
               <td>Epost: </td>
@@ -231,10 +258,6 @@ class NyBruker extends React.Component {
               <td><input type="text" ref="postnrInput" defaultValue='0000' /></td>
             </tr>
             <tr>
-              <td>Poststed: </td>
-              <td><input type="text" ref="poststedInput" defaultValue='Test' /></td>
-            </tr>
-            <tr>
               <td>Passord: </td>
               <td><input type="password" ref="passwordInput1" defaultValue='12345' /></td>
             </tr>
@@ -245,18 +268,16 @@ class NyBruker extends React.Component {
           </tbody>
         </table>
         <button ref="createuserButton">Ferdig</button>
-        <button ref='bakcButton'>Tilbake</button>
       </div>
     )
   }
   componentDidMount () {
-    this.refs.bakcButton.onclick = () => {
-      this.props.history.push('/');
-    }
+
     this.refs.createuserButton.onclick = () => {
       if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
-        userService.addUser(this.refs.navnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value,this.refs.adresseInput.value, this.refs.passwordInput1.value,this.refs.postnrInput.value).then(() => {
+        userService.addUser(this.refs.fornavnInput.value, this.refs.etternavnInput.value, this.refs.brukernavnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value,this.refs.adresseInput.value, this.refs.passwordInput1.value,this.refs.postnrInput.value).then(() => {
           console.log('User added')
+          this.props.history.push('/');
         }).catch((error) => {
           if(errorMessage) errorMessage.set('Kunne ikke legge til ny bruker' +error);
         });
@@ -264,12 +285,12 @@ class NyBruker extends React.Component {
     }
   }
 }
-let brukerEpost;
+
 class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-        Epost: <input type='email' ref='nyEpostInput' /> <br />
+        Epost: <input type='email' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
 
         <button ref='newPasswordButton'>Be om nytt passord</button>
         <button ref='backButton'>Tilbake</button>
@@ -312,27 +333,55 @@ class ResetPassord extends React.Component {
     console.log(brukerEpost);
     this.refs.kodeButton.onclick = () => {
       loginService.emailCheck(brukerEpost, this.refs.kodeInput.value).then(() => {
-
+        console.log('Riktig kode');
+        emailCode = true
+        this.props.history.push('/resetpassord')
       })
       }
     }
   }
 
+  class NyttResetPassord extends React.Component {
+    constructor() {
+      super()
+    }
+
+    render() {
+      return (
+        <div>
+          Passord: <input type='password' ref='passordInput1' /> <br />
+          Gjenta passord: <input type='password' ref='passordInput2' /> <br />
+          <button ref='byttPassordButton'>Bytt passord</button>
+        </div>
+      )
+    }
+
+    componentDidMount() {
+      this.refs.byttPassordButton.onclick = () => {
+        if (emailCode && this.refs.passordInput1.value === this.refs.passordInput2.value) {
+          userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
+            console.log('Passord byttet');
+            this.props.history.push('/')
+          })
+        }
+      }
+    }
+  }
 
 class StartSide extends React.Component {
   constructor() {
-    super(); // Call React.Component constructor
-
-    this.user = [];
-    this.id = brukerid;
+  super(); // Call React.Component constructor
+  let signedInUser = loginService.getSignedInUser();
+  this.user = [];
+  this.id = signedInUser.id;
   }
   render () {
-
     return (
       <div>
         <h1>Hei, {this.user.brukernavn}!</h1>
-        Id: {this.id};
+        Id: {this.user.id};
         <button ref='logOut'>Logg ut</button>
+
       </div>
     )
   }
@@ -349,6 +398,7 @@ class StartSide extends React.Component {
     this.refs.logOut.onclick = () =>{
       brukerid = null;
       administrator = false;
+      loginService.signOut();
       this.props.history.push('/');
     }
   }
@@ -360,32 +410,65 @@ class Arrangement extends React.Component{
     this.arrangement = [];
   }
   render(){
-    let a = 10;
+    let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td>{table.kontaktperson}</td></tr>)
+      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td><Link to={'/bruker/'+table.kontaktperson}>{table.kontaktperson}</Link></td></tr>)
       a++;
+    }
+    let signedInUser = loginService.getSignedInUser();
+    if(signedInUser.admin === 1)
+    {
+      return(
+        <div>
+          <input type='text' ref='searchArrangement' />
+          <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
+          <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+          <table>
+            <tbody>
+              {tableItems}
+            </tbody>
+          </table>
+        </div>
+      )
     }
     return(
       <div>
-      <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result)=>{this.arrangement= '';this.arrangement = result; this.forceUpdate();}).catch((error) =>{if(errorMessage) errorMessage.set('Finner ikke arrangement');});}} />
-      <button ref='searchButton'>Søk arrangement</button>
-      <table>
-      <tbody>
-      {tableItems}
-      </tbody>
-      </table>
-        <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+        <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {this.arrangement= ''; this.arrangement = result; this.forceUpdate(); }).catch((error) => {if(errorMessage) errorMessage.set('Finner ikke arrangement'); }); }} />
+        <button ref='searchButton'>Søk arrangement</button>
+        <table>
+          <tbody>
+            {tableItems}
+          </tbody>
+        </table>
       </div>
     )
   }
-  componentDidMount(){
+  hentArrangement(){
+    arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {
+      this.arrangement= '';
+      this.arrangement = result;
+      this.forceUpdate();
+    }).catch((error) => {
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
+    });
   }
-}
-
+  }
 
 class NyttArrangement extends React.Component{
+  constructor() {
+    super();
+    this.linjer = 1
+  }
   render(){
+    let table = [];
+    for (let i = 0; i < this.linjer; i++) {
+      table.push(<tr>
+        <td>Rolle id: <input type="number" step="1"/></td>
+        <td>Antall: <input type="number" step="1"/></td>
+      </tr>);
+    }
+    console.log(table);
     return(
       <div>
         Navn: <input type="text" ref="a_name" defaultValue="Test" /> <br />
@@ -397,54 +480,519 @@ class NyttArrangement extends React.Component{
         Kontaktperson: <br />
         Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
         Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
+        <table>
+          <tbody id="rolleTable">
+            {table}
+          </tbody>
+        </table>
+        <button ref="tableTest">Tabell test</button>
+        <button ref="tableAdd">Tabell add</button><br />
         <button ref="arrangementButton">Lag arrangement</button>
       </div>
     )
   }
+  tabelGreie() { //Må endre navn senere
+    let table = document.getElementById("rolleTable").children;
+    console.log(table);
+    let id;
+    let count;
+    let arr = [];
+    for (let tab of table) {
+      id = (tab.children[0].children[0].value === "") ? -1 : +tab.children[0].children[0].value;
+      count = (tab.children[1].children[0].value === "") ? -1 : +tab.children[1].children[0].value;
+      console.log(id + " - " + count);
+      if(id >= 0 && count >= 0){
+        console.log(tab.children[0].children[0].value);
+        console.log(tab.children[1].children[0].value);
+        arr.push({id: id, antall: count});
+      }
+    }
+    console.log(arr);
+    return arr;
+  }
   componentDidMount(){
     this.refs.arrangementButton.onclick = () => {
       console.log(this.refs.a_startdate.value);
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value).then(() => {
+      let roller = this.tabelGreie();
+      console.log(roller);
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value, roller).then(() => {
         console.log('Arrangement laget')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
     }
+    //document.getElementById("rolleTable").children
+
+    this.refs.tableTest.onclick = () => {
+      this.tabelGreie();
+    };
+
+    this.refs.tableAdd.onclick = () => {
+      this.linjer++;
+      this.forceUpdate();
+    };
 
   }
 }
 
 class MineSider extends React.Component {
+  constructor() {
+    super();
+    let signedInUser = loginService.getSignedInUser();
+    this.user = [];
+    this.id = signedInUser.id;
+  }
   render(){
+    if(administrator){
+      return(
+        <div>
+          <h1>Min Side</h1>
+
+          <table>
+            <tbody>
+              <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
+              <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
+              <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
+            </tbody>
+          </table>
+          <button ref='setPassive'>Meld deg passiv</button>
+          <button ref='seeQualifications'>Se kvalifikasjoner</button>
+          <button ref='changeInfo'>Endre personalia</button>
+          <button ref='changePassword'>Endre passord</button>
+
+        </div>
+      )
+    }
     return(
       <div>
-        Her skal din info vises
+        <h1>Min Side</h1>
+
+        <table>
+          <tbody>
+            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
+            <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
+            <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
+          </tbody>
+        </table>
+        <button ref='setPassive'>Meld deg passiv</button>
+        <button ref='seeQualifications'>Se kvalifikasjoner</button>
+        <button ref='changeInfo'>Endre personalia</button>
+        <button ref='changePassword'>Endre passord</button>
       </div>
     )
   }
   componentDidMount(){
-
+    userService.getUser(this.id).then((result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
+    this.refs.changeInfo.onclick = () =>{
+      this.props.history.push('/forandreinfo');
+    }
+    this.refs.changePassword.onclick = () =>{
+      this.props.history.push('/forandrepassord');
+    }
+    this.refs.seeQualifications.onclick = () =>{
+      this.props.history.push('/sekvalifikasjoner');
+    }
   }
 }
 
-class Administrator extends React.Component {
+class ForandreBrukerInfo extends React.Component {
+  constructor() {
+    super();
+
+    this.user = [];
+    this.id = brukerid;
+
+  }
   render(){
     return(
       <div>
-        Administrator muligheter kommer opp her.
+        <h1>Min Side {this.user.id}</h1>
+
+        <table>
+          <tbody>
+            <tr><td>Medlemmsnummer:</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
+            <tr><td>Epost: <input ref='emailInput' /></td><td>Poststed:</td></tr>
+            <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
+          </tbody>
+        </table>
+        <button ref='saveButton'>Lagre forandringer</button>
+        <button ref='cancelButton'>Forkast forandringer</button>
       </div>
     )
   }
+  update() {
+    userService.getUser(this.id).then((result) =>{
+      this.refs.emailInput.value = result[0].epost;
+      this.refs.tlfInput.value = result[0].tlf;
+      this.refs.adressInput.value = result[0].adresse;
+      this.refs.zipInput.value = result[0].poststed_postnr;
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
+  }
   componentDidMount(){
+    userService.getUser(this.id).then((result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
+    this.refs.cancelButton.onclick = () =>{
+      this.props.history.push('/minside');
+    }
+    this.refs.saveButton.onclick = () =>{
+      userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
+      this.props.history.push('/minside');
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+    });
+    }
+  this.update();
+  }
+}
+
+class ForandrePassord extends React.Component {
+  constructor() {
+    super();
+
+    this.user = [];
+    this.id = brukerid;
+  }
+  render(){
+    return(
+      <div>
+      <h2>Lag nytt passord</h2>
+      Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
+
+      Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
+
+      <button ref='saveButton'>Lagre nytt passord</button>
+      <button ref='cancelButton'>Ikke lagre</button>
+      </div>
+    )
+  }
+    componentDidMount() {
+      userService.getUser(this.id).then((result) =>{
+        console.log(this.id);
+        this.user = result[0];
+        console.log(this.user);
+        this.forceUpdate();
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Finner ikke bruker');
+      });
+
+      this.refs.saveButton.onclick = () =>{
+          if(this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
+
+          userService.editPassword(this.refs.passwordInput1.value, this.id).then(() =>{
+
+          this.props.history.push('/minside');
+        }).catch((error) =>{
+          if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
+        });
+        }
+        else {
+          alert('Passordfeltene må være like')
+        }
+    }
+
+      this.refs.cancelButton.onclick = () =>{
+        this.props.history.push('/minside');
+      }
+    }
+}
+
+class SeKvalifikasjoner extends React.Component {
+  constructor() {
+    super();
+
+    this.user = [];
+    this.kvalifikasjoner = [];
+    this.id = brukerid;
+
+  }
+  render(){
+    let counter = 0;
+    let kvalList = [];
+    for(let kval of this.kvalifikasjoner){
+      console.log(kval);
+      kvalList.push(<li key={counter}>{kval.navn}</li>);
+      counter++;
+    }
+    return(
+      <div>
+        <h2>Kvalifikasjoner</h2>
+        <ul>{kvalList}</ul>
+        <button ref='tilbakeKnapp'>Gå tilbake</button>
+      </div>
+    )
+  }
+  componentDidMount() {
+    userService.getUserQualifications(this.id).then((qualifications) => {
+      this.kvalifikasjoner = qualifications;
+
+      this.forceUpdate();
+    }).catch((error: Error) => {
+      if(errorMessage) errorMessage.set("Failed getting qualifications");
+    });
+    this.refs.tilbakeKnapp.onclick = () =>{
+      this.props.history.push('/minside');
+    }
 
   }
 }
-// The Route-elements define the different pages of the application
-// through a path and which component should be used for the path.
-// The path can include a variable, for instance
-// path='/customer/:customerId' component={CustomerDetails}
-// means that the path /customer/5 will show the CustomerDetails
-// with props.match.params.customerId set to 5.
+
+class Administrator extends React.Component{
+  render(){
+    return(
+      <table style={{width: '100%'}}><tbody>
+        <tr>
+          <td valign='top' style={{width: '30%'}}>
+            <Egenskaper />
+          </td>
+          <td valign='top'>
+            <GodkjennBruker />
+          </td>
+        </tr>
+      </tbody></table>
+    )
+  }
+}
+
+class Egenskaper extends React.Component <{}>{
+  constructor(){
+    super();
+  }
+  render(){
+
+    return(
+    <div>
+    <h1>Hva vil du gjøre?</h1>
+    <ul>
+
+      <li>
+      <Link to={'/godkjennebruker'}>Godkjenne bruker</Link>
+      </li>
+
+    </ul>
+    </div>
+    );
+  }
+}
+
+class GodkjennBruker extends React.Component {
+  constructor(){
+    super();
+    this.ikkeAktive = [];
+  }
+  render(){
+    let brukerListe = [];
+    for(let bruker of this.ikkeAktive){
+      brukerListe.push(<li key={bruker.id}>{bruker.fornavn},{bruker.etternavn} <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+    }
+    return(
+      <div>
+    <ul>
+    {brukerListe}
+    </ul>
+      </div>
+    );
+  }
+  godkjenneBruker(id) {
+    administratorFunctions.aktiverBruker(id).then(()=>{
+      console.log('Bruker er aktivert')
+      administratorFunctions.ikkeAktiveBrukere().then((result)=>{
+        this.ikkeAktive = result;
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage){errorMessage.set('Kunne ikke hente brukere' +error)};
+      });
+    }).catch((error)=>{
+      if(errorMessage){errorMessage.set('Kunne ikke aktivere bruker' +error)};
+    });
+  }
+  componentDidMount() {
+
+    administratorFunctions.ikkeAktiveBrukere().then((result)=>{
+      this.ikkeAktive = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Kunne ikke laste ikke aktiv brukere' + error);
+    });
+  }
+}
+
+class VisSøkeResultat extends React.Component {
+  constructor(){
+    super();
+    this.sokeResultat = [];
+  }
+  render(){
+   let resultat = [];
+   for(let result of this.sokeResultat){
+     resultat.push(<li key={result.id}><Link to={'/bruker/'+result.id}>{result.fornavn}, {result.etternavn}</Link></li>);
+   }
+    return(
+      <div>
+      <ul>
+      {resultat}
+      </ul>
+      <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+      </div>
+    );
+  }
+  componentWillUnmount(){
+    sokeResultat = null;
+  }
+  componentDidMount(){
+    sokeResultat = this;
+  }
+  set(innhold){
+   this.sokeResultat = innhold;
+   this.forceUpdate();
+ }
+}
+let sokeResultat;
+
+class BrukerSide extends React.Component {
+  constructor(props) {
+    super(props)
+    this.id = props.match.params.id;
+    this.user = {}
+  }
+  render() {
+    let signedInUser = loginService.getSignedInUser();
+    if (signedInUser.admin === 1 && this.user.admin === 0) {
+      return(
+        <div>
+          <div className="table-responsive">
+          <table className='table'>
+            <thead>
+              <tr>
+                <th>{this.user.fornavn}, {this.user.etternavn}</th>
+                <th>{this.user.id}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Telefon: </td>
+                <td>{this.user.tlf}</td>
+                <td>E-post:</td>
+                <td>{this.user.epost}</td>
+                <td>Vaktpoeng: </td>
+                <td>{this.user.vaktpoeng}</td>
+              </tr>
+              <tr>
+                <td>Adresse: </td>
+                <td>{this.user.adresse}</td>
+                <td>Postnr:</td>
+                <td>{this.user.postnr}</td>
+                <td>Poststed:</td>
+                <td>{this.user.poststed}</td>
+              </tr>
+              <tr>
+              <td><button onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
+              <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+              </tr>
+            </tbody>
+          </table>
+            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+          </div>
+        </div>
+      )
+    }
+      if(signedInUser.admin === 1 && this.user.admin === 1){
+        return(
+          <div>
+            <div className="table-responsive">
+            <table className='table'>
+              <thead>
+                <tr>
+                  <th>{this.user.fornavn}, {this.user.etternavn}</th>
+                  <th>{this.user.id}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Telefon: </td>
+                  <td>{this.user.tlf}</td>
+                  <td>E-post:</td>
+                  <td>{this.user.epost}</td>
+                  <td>Vaktpoeng: </td>
+                  <td>{this.user.vaktpoeng}</td>
+                </tr>
+                <tr>
+                  <td>Adresse: </td>
+                  <td>{this.user.adresse}</td>
+                  <td>Postnr:</td>
+                  <td>{this.user.postnr}</td>
+                  <td>Poststed:</td>
+                  <td>{this.user.poststed}</td>
+                </tr>
+                <tr>
+                <td><button onClick={() =>{this.deleteAdmin()}}>Fjern bruker som admin</button></td>
+                <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+                </tr>
+              </tbody>
+            </table>
+              <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+            </div>
+          </div>
+        )
+    }else{
+      return(
+        <div>
+          <div className="table-responsive">
+          <table className='table'>
+            <thead>
+              <tr>
+                <th>{this.user.fornavn}, {this.user.etternavn}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Telefon: </td>
+                <td>{this.user.tlf}</td>
+                <td>E-post:</td>
+                <td>{this.user.epost}</td>
+              </tr>
+            </tbody>
+          </table>
+            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+          </div>
+        </div>
+      )
+    }
+  }
+  deaktiverBruker(){
+    administratorFunctions.deaktiverBruker(this.user.id);
+  }
+  deleteAdmin(){
+    administratorFunctions.deleteAdmin(this.user.id);
+  }
+ makeAdmin(){
+   administratorFunctions.makeUserAdmin(this.user.id);
+ }
+  componentDidMount() {
+    userService.getUser(this.id).then((result) => {
+      this.user = result[0];
+      console.log(this.user);
+      console.log(this.user.tlf);
+      this.forceUpdate();
+    })
+  }
+}
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -456,10 +1004,20 @@ ReactDOM.render((
         <Route exact path='/nybruker' component={NyBruker} />
         <Route exact path='/nyttpassord' component={NyttPassord} />
         <Route exact path='/kode' component={ResetPassord} />
+        <Route exact path='/resetpassord' component={NyttResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
         <Route exact path='/bestemme' component={Administrator} />
+
+        <Route exact path='/forandreinfo' component={ForandreBrukerInfo} />
+        <Route exact path='/forandrepassord' component={ForandrePassord} />
+
+        <Route exact path='/bruker/:id' component={BrukerSide} />
+        <Route exact path='/godkjennebruker' component={GodkjennBruker} />
+        <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
+        <Route exact path='/sokeResultat' component={VisSøkeResultat} />
+
       </Switch>
     </div>
   </HashRouter>

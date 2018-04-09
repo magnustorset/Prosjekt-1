@@ -28,7 +28,6 @@ function connect () {
 connect()
 
 let transporter = nodemailer.createTransport({
-  pool: true,
   host: 'mail.fastname.no',
   port: 465,
   secure: true,
@@ -40,14 +39,6 @@ let transporter = nodemailer.createTransport({
         // do not fail on invalid certs
         rejectUnauthorized: false
       }
-});
-
-transporter.verify(function(error, success) {
-   if (error) {
-        console.log(error);
-   } else {
-        console.log('Server is ready to take our messages');
-   }
 });
 
 class EmailService {
@@ -74,9 +65,23 @@ class EmailService {
   }
 
 }
-
 // Class that performs database queries related to users
 class UserService {
+
+
+  searchUser(input){
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT * FROM medlem where tlf = ? or epost = ? or brukernavn = ?', [input, input, input], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+
+        }
+        resolve(result);
+      });
+    });
+  }
+
   getUsers () {
     return new Promise((resolve, reject) =>{
     connection.query('SELECT * FROM medlem', (error, result) => {
@@ -92,19 +97,21 @@ class UserService {
 
   getUser (id) {
     return new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM medlem WHERE id=?', [id], (error, result) => {
+    connection.query('SELECT * FROM medlem INNER JOIN poststed ON poststed_postnr = postnr WHERE id=?', [id], (error, result) => {
+
       if(error){
         reject(error);
         return;
       }
+      console.log(result[0]);
       resolve(result);
     });
   });
   }
 
-  addUser (navn, epost, medlemsnr, tlf, adresse, passord, postnr, callback) {
+  addUser (fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr) {
     return new Promise((resolve, reject) =>{
-    connection.query('INSERT INTO medlem (brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?)', [navn, epost, medlemsnr, tlf, adresse, passord, postnr], (error, result) => {
+    connection.query('INSERT INTO medlem (fornavn, etternavn, brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -115,9 +122,37 @@ class UserService {
   });
   }
 
-  editUser (firstName, city, id, callback) {
+  getUserQualifications (id, callback) {
     return new Promise((resolve, reject) => {
-    connection.query('UPDATE medlem SET firstName = ?, city = ? WHERE id = ?', [firstName, city, id], (error, result) => {
+    connection.query('SELECT navn, `gyldig til` FROM kvalifikasjon, medlem_kvalifikasjon WHERE m_id = 18124 AND k_id = kvalifikasjon.id ', [id], (error, result) => {
+
+      if(error){
+        reject(error);
+        return;
+      }
+
+      resolve(result);
+    });
+  });
+  }
+
+
+  newPassword(passord, epost) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE medlem SET passord = ? WHERE epost = ?', [passord, epost], (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve()
+      })
+    })
+  }
+
+  editUser (email, adress, tlf, zip, id,) {
+    return new Promise((resolve, reject) => {
+    connection.query('UPDATE medlem SET epost = ?, adresse = ?, tlf = ?, poststed_postnr = ? WHERE id = ?', [email, adress, tlf, zip, id], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -126,6 +161,19 @@ class UserService {
     });
   });
   }
+
+  editPassword(password, id, callback) {
+    return new Promise((resolve, reject) => {
+    connection.query('UPDATE medlem SET passord = ? WHERE id = ?', [password, id], (error, result) => {
+      if(error){
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+  }
+
 }
 
 class LoginService {
@@ -137,23 +185,25 @@ class LoginService {
           return;
         }
         let login = false
-        let admin = false
-        let medlemsnr = null
-        if (result[0].passord === passord && result[0].admin === 1) {
+        if (result[0].passord === passord) {
           login = true
-          admin = true
-          medlemsnr = result[0].id;
-          console.log(admin);
-          console.log(medlemsnr);
-        } else if(result[0].passord === passord) {
-          login = true
-          medlemsnr = result[0].id;
-        }else{
+      }else{
           login = false
         }
-        resolve([medlemsnr, login, admin]);
+        localStorage.setItem('signedInUser', JSON.stringify(result[0])); // Store User-object in browser
+        resolve(login);
     });
   });
+  }
+
+  getSignedInUser(): ?User {
+  let item: ?string = localStorage.getItem('signedInUser'); // Get User-object from browser
+  if(!item) return null;
+
+  return JSON.parse(item);
+}
+  signOut(): ?User {
+  localStorage.removeItem('signedInUser');
   }
 
   navn(kode, email) {
@@ -164,8 +214,12 @@ class LoginService {
           reject(error);
           return;
         }
+
         let m_id = result[0].id
-        connection.query('INSERT INTO recovery values (?, ?)', [m_id, kode], (error, result) => {
+        let date = new Date()
+        date.setMinutes(date.getMinutes() + 30)
+
+        connection.query('INSERT INTO recovery values (?, ?, ?)', [m_id, date, kode], (error, result) => {
           if(error){
             reject(error);
             return;
@@ -179,7 +233,7 @@ class LoginService {
 
   emailCheck(email, kode) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ?', [email, kode], (error, result) => {
+      connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ? and forbruksdato > NOW()', [email, kode], (error, result) => {
         if(error){
           reject(error);
           return;
@@ -197,26 +251,44 @@ class LoginService {
 }
 
 class ArrangementService {
-  addArrangement (tlf, navn, meetdate, startdate, enddate, place, desc, callback) {
-    let k_id;
-    return new Promise((resolve, reject) =>{
-      connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
-        if(error){
-          reject(error);
-          return;
-        }
-        k_id = result[0].id
-        console.log(result);
-        console.log(k_id);
+  addArrangement (tlf, navn, meetdate, startdate, enddate, place, desc, roller) {
+      let k_id;
+      return new Promise((resolve, reject) =>{
+        connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
+          if(error){
+            reject(error);
+            return;
+          }
+          k_id = result[0].id
+          // console.log(result);
+          // console.log(k_id);
 
-        connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id])
+          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id], (error, result) => {
+            if(error){
+              console.log(error);
+              return;
+            }
+            // console.log(roller);
+            // console.log(result);
+            // console.log(result.insertId);
+            for (var i = 0; i < roller.length; i++) {
+              for (var o = 0; o < roller[i].antall; o++) {
+                // console.log(roller[i].id);
+                connection.query('INSERT INTO vakt (a_id, r_id) values (?, ?)', [result.insertId, roller[i].id], (error, result) => {
+                  // console.log(roller);
+                  // console.log(result);
+                  // console.log(result.insertId);
 
+                });
+              }
+            }
+          });
+      });
     });
-  });
 
 
-    resolve();
-  }
+      resolve();
+    }
 
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
@@ -225,7 +297,6 @@ class ArrangementService {
             reject(error);
             return;
           }
-          console.log(result);
           resolve(result);
     });
   });
@@ -233,9 +304,77 @@ class ArrangementService {
   }
 }
 
+class AdministratorFunctions{
+  deaktiverBruker(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('UPDATE medlem set aktiv = ? where id = ?', [false, id], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        console.log('Brukerene er deaktivert');
+        resolve();
+      });
+    });
+  }
+  makeUserAdmin(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('UPDATE medlem set admin = ? where id = ? ',[true, id], (error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        console.log('Brukeren er nå admin');
+        resolve();
+      });
+    });
+  }
+  deleteAdmin(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('UPDATE medlem set admin = ? where id = ? ',[false, id], (error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        console.log('Brukeren er ikke admin lengre');
+        resolve();
+      });
+    });
+  }
+  ikkeAktiveBrukere(){
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * from medlem where aktiv = ?',[false], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve(result);
+      });
+    });
+  }
+
+  aktiverBruker(id){
+    return new Promise((resolve, reject) =>{
+      connection.query('update medlem set aktiv = ? where id = ?', [true,id], (error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log('Brukeren er nå aktiv');
+        resolve();
+      });
+    });
+  }
+}
+
 let userService = new UserService()
 let loginService = new LoginService()
 let arrangementService = new ArrangementService()
 let emailService = new EmailService()
+let administratorFunctions = new AdministratorFunctions()
 
-export { userService, loginService, arrangementService, emailService }
+export { userService, loginService, arrangementService, emailService, administratorFunctions }
