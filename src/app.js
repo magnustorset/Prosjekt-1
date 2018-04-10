@@ -2,6 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
+const _ = require('lodash');
+const { compose, withProps, lifecycle } = require('recompose')
+const {
+  withScriptjs,
+  withGoogleMap,
+  GoogleMap,
+  Marker,
+} = require('react-google-maps');
+const { SearchBox } = require('react-google-maps/lib/components/places/SearchBox');
 
 let brukerid = null
 let administrator = false
@@ -11,6 +20,101 @@ let gjøremål = [{name: 'Godkjennebruker',
                 id: 'godkjenn'}
                 ];
 let brukerEpost;
+
+const MapWithASearchBox = compose(
+  withProps({
+    googleMapURL: "https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places",
+    loadingElement: <div style={{ height: `100%` }} />,
+    containerElement: <div style={{ height: `400px`, width: '400px'}} />,
+    mapElement: <div style={{ height: `100%` }} />,
+  }),
+  lifecycle({
+    componentWillMount() {
+      const refs = {}
+
+      this.setState({
+        bounds: null,
+        center: {
+          lat: 63.426387, lng: 10.392680
+
+        },
+        markers: [],
+        onMapMounted: ref => {
+          refs.map = ref;
+        },
+        onBoundsChanged: () => {
+          this.setState({
+            bounds: refs.map.getBounds(),
+            center: refs.map.getCenter(),
+          })
+        },
+        onSearchBoxMounted: ref => {
+          refs.searchBox = ref;
+        },
+        onPlacesChanged: () => {
+          const places = refs.searchBox.getPlaces();
+          const bounds = new google.maps.LatLngBounds();
+
+          places.forEach(place => {
+            if (place.geometry.viewport) {
+              bounds.union(place.geometry.viewport)
+            } else {
+              bounds.extend(place.geometry.location)
+            }
+          });
+          const nextMarkers = places.map(place => ({
+            position: place.geometry.location,
+          }));
+          const nextCenter = _.get(nextMarkers, '0.position', this.state.center);
+
+          this.setState({
+            center: nextCenter,
+            markers: nextMarkers,
+          });
+          // refs.map.fitBounds(bounds);
+        },
+      })
+    },
+  }),
+  withScriptjs,
+  withGoogleMap
+)(props =>
+  <GoogleMap
+    ref={props.onMapMounted}
+    defaultZoom={15}
+    center={props.center}
+    onBoundsChanged={props.onBoundsChanged}
+  >
+    <SearchBox
+      ref={props.onSearchBoxMounted}
+      bounds={props.bounds}
+      controlPosition={google.maps.ControlPosition.TOP_LEFT}
+      onPlacesChanged={props.onPlacesChanged}
+    >
+      <input
+        type="text"
+        placeholder="Søk etter plass"
+        style={{
+          boxSizing: `border-box`,
+          border: `1px solid transparent`,
+          width: `240px`,
+          height: `32px`,
+          marginTop: `27px`,
+          padding: `0 12px`,
+          borderRadius: `3px`,
+          boxShadow: `0 2px 6px rgba(0, 0, 0, 0.3)`,
+          fontSize: `14px`,
+          outline: `none`,
+          textOverflow: `ellipses`,
+        }}
+      />
+    </SearchBox>
+    {props.markers.map((marker, index) =>
+      <Marker key={index} position={marker.position} />
+    )}
+  </GoogleMap>
+);
+
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -380,7 +484,7 @@ class StartSide extends React.Component {
         <h1>Hei, {this.user.brukernavn}!</h1>
         Id: {this.user.id};
         <button ref='logOut'>Logg ut</button>
-
+        <MapWithASearchBox />
       </div>
     )
   }
@@ -601,6 +705,7 @@ class ForandreBrukerInfo extends React.Component {
             <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
           </tbody>
         </table>
+        Du må skrive inn passordet ditt for å endre informasjonen din:<input type='password' ref='thePassword' />
         <button ref='saveButton'>Lagre forandringer</button>
         <button ref='cancelButton'>Forkast forandringer</button>
       </div>
@@ -630,11 +735,16 @@ class ForandreBrukerInfo extends React.Component {
       this.props.history.push('/minside');
     }
     this.refs.saveButton.onclick = () =>{
-      userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
-      this.props.history.push('/minside');
-    }).catch((error) =>{
-      if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
-    });
+      if(this.refs.thePassword.value === this.user.passord){
+        userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
+        this.props.history.push('/minside');
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+      });
+     }
+     else{
+       alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
+     }
     }
   this.update();
   }
@@ -651,6 +761,9 @@ class ForandrePassord extends React.Component {
     return(
       <div>
       <h2>Lag nytt passord</h2>
+
+      Skriv inn det gamle passordet:<input type ='password' ref='oldPassword' />
+
       Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
 
       Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
@@ -671,6 +784,7 @@ class ForandrePassord extends React.Component {
       });
 
       this.refs.saveButton.onclick = () =>{
+        if(this.refs.oldPassword.value === this.user.passord) {
           if(this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
 
           userService.editPassword(this.refs.passwordInput1.value, this.id).then(() =>{
@@ -681,9 +795,14 @@ class ForandrePassord extends React.Component {
         });
         }
         else {
-          alert('Passordfeltene må være like')
+          alert('Passordfeltene må være like!')
         }
     }
+    else{
+      alert('Det gamle passordet stemmer ikke!')
+    }
+  }
+
 
       this.refs.cancelButton.onclick = () =>{
         this.props.history.push('/minside');
@@ -1087,17 +1206,17 @@ class EndreArrangement extends React.Component {
       </tr>
       <tr>
       <td>Oppmøtetidspunkt:</td><td>
-      <input name='oppmootetidspunkt' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/>
+      <input type='datetime-local'name='oppmootetidspunkt' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/>
       </td>
       </tr>
       <tr>
       <td>Starttidspunkt:</td><td>
-      <input name='starttidspunkt' value={this.state.starttidspunkt} onChange={this.handleChange} />
+      <input type='datetime-local' name='starttidspunkt' value={this.state.starttidspunkt} onChange={this.handleChange} />
       </td>
       </tr>
       <tr>
       <td>Sluttidspunkt:</td><td>
-      <input name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} />
+      <input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} />
       </td>
       </tr>
       <tr>
@@ -1108,29 +1227,23 @@ class EndreArrangement extends React.Component {
       </tr>
       </tbody>
       </table>
+
       </div>
     )
   }
   changeDate(variabel){
-    return(
-    new Intl.DateTimeFormat('en-GB', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(variabel))
+  let a = moment(variabel).format('YYYY-MM-DDTHH:mm');
+  return a;
   }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
-      console.log(this.arrangement);
+
       this.state.beskrivelse = this.arrangement.beskrivelse;
       this.state.kordinater = this.arrangement.kordinater;
       this.state.oppmootetidspunkt = this.changeDate(this.arrangement.oppmootetidspunkt);
       this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
       this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
-      console.log(this.state.beksrivelse);
       this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
