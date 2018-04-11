@@ -73,6 +73,15 @@ class EmailService {
         text: 'Du har blitt kalt inn til ' + arrNavn + ' som ' + rolle + ' den ' + arrDato + '. Gå inn på appen for å godta vakten.',
         html: 'Du har blitt kalt inn til ' + arrNavn + ' som ' + rolle + ' den ' + arrDato + '. Gå inn på appen for å godta vakten.'
       }
+
+      transporter.sendMail(message, (err, info) => {
+        if (err) {
+          reject(err)
+          return;
+        }
+
+        resolve(info);
+      });
     })
   }
 
@@ -327,6 +336,7 @@ class ArrangementService {
       });
     });
   }
+
 }
 
 class AdministratorFunctions{
