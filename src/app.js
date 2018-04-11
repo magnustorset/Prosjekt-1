@@ -705,6 +705,7 @@ class ForandreBrukerInfo extends React.Component {
             <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
           </tbody>
         </table>
+        Du må skrive inn passordet ditt for å endre informasjonen din:<input type='password' ref='thePassword' />
         <button ref='saveButton'>Lagre forandringer</button>
         <button ref='cancelButton'>Forkast forandringer</button>
       </div>
@@ -734,11 +735,16 @@ class ForandreBrukerInfo extends React.Component {
       this.props.history.push('/minside');
     }
     this.refs.saveButton.onclick = () =>{
-      userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
-      this.props.history.push('/minside');
-    }).catch((error) =>{
-      if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
-    });
+      if(this.refs.thePassword.value === this.user.passord){
+        userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
+        this.props.history.push('/minside');
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+      });
+     }
+     else{
+       alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
+     }
     }
   this.update();
   }
@@ -755,6 +761,9 @@ class ForandrePassord extends React.Component {
     return(
       <div>
       <h2>Lag nytt passord</h2>
+
+      Skriv inn det gamle passordet:<input type ='password' ref='oldPassword' />
+
       Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
 
       Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
@@ -775,6 +784,7 @@ class ForandrePassord extends React.Component {
       });
 
       this.refs.saveButton.onclick = () =>{
+        if(this.refs.oldPassword.value === this.user.passord) {
           if(this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
 
           userService.editPassword(this.refs.passwordInput1.value, this.id).then(() =>{
@@ -785,9 +795,14 @@ class ForandrePassord extends React.Component {
         });
         }
         else {
-          alert('Passordfeltene må være like')
+          alert('Passordfeltene må være like!')
         }
     }
+    else{
+      alert('Det gamle passordet stemmer ikke!')
+    }
+  }
+
 
       this.refs.cancelButton.onclick = () =>{
         this.props.history.push('/minside');
