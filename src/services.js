@@ -64,18 +64,6 @@ class EmailService {
     })
   }
 
-  innkalling (clientEmail, rolle, arrNavn, arrDato) {
-    return new Primise((resolve, reject) => {
-      let message = {
-        from: 'rodekorsprosjekt@2rz.no',
-        to:  clientEmail,
-        subject: 'Innkalling til vakt',
-        text: 'Du har blitt kalt inn til ' + arrnavn + ' som ' + rolle + ' den ' + arrdato + '. Gå inn på appen for å godta vakten.',
-        html: 'Du har blitt kalt inn til ' + arrnavn + ' som ' + rolle + ' den ' + arrdato + '. Gå inn på appen for å godta vakten.'
-      }
-    })
-  }
-
 }
 // Class that performs database queries related to users
 class UserService {
@@ -213,7 +201,7 @@ class LoginService {
   if(!item) return null;
 
   return JSON.parse(item);
-  }
+}
   signOut(): ?User {
   localStorage.removeItem('signedInUser');
   }
@@ -304,7 +292,7 @@ class ArrangementService {
 
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
-        connection.query('SELECT arrangement.id as id, kontaktperson, fornavn, etternavn, navn from arrangement INNER JOIN medlem on kontaktperson = medlem.id where navn LIKE ?',[sok], (error, result) =>{
+        connection.query('SELECT *, arrangement.id as a_id from arrangement INNER JOIN medlem on kontaktperson = medlem.id where navn LIKE ?',[sok], (error, result) =>{
           if(error){
             reject(error);
             return;
