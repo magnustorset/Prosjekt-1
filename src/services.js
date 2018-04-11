@@ -292,7 +292,7 @@ class ArrangementService {
 
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
-        connection.query('SELECT * from arrangement where navn LIKE ?',[sok], (error, result) =>{
+        connection.query('SELECT * from arrangement INNER JOIN medlem on kontaktperson = medlem.id where navn LIKE ?',[sok], (error, result) =>{
           if(error){
             reject(error);
             return;
