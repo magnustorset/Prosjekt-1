@@ -16,31 +16,34 @@ let brukerid = null
 let administrator = false
 let klokke = 0
 let emailCode = false
-let gjøremål = [{name: 'Godkjennebruker',
-                id: 'godkjenn'}
-                ];
+let latitude = ''
+let longitude = ''
 let brukerEpost;
 
 const MapWithASearchBox = compose(
   withProps({
-    googleMapURL: "https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places",
+    googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
     loadingElement: <div style={{ height: `100%` }} />,
     containerElement: <div style={{ height: `400px`, width: '400px'}} />,
     mapElement: <div style={{ height: `100%` }} />,
   }),
   lifecycle({
     componentWillMount() {
+      let stad = 63.426387
+      let sted = 10.392680
       const refs = {}
 
       this.setState({
         bounds: null,
         center: {
-          lat: 63.426387, lng: 10.392680
+          lat: stad, lng: sted
 
         },
         markers: [],
         onMapMounted: ref => {
           refs.map = ref;
+          console.log('Kartet lastet' + latitude);
+
         },
         onBoundsChanged: () => {
           this.setState({
@@ -48,8 +51,25 @@ const MapWithASearchBox = compose(
             center: refs.map.getCenter(),
           })
         },
+        onMarkerMounted: ref =>{
+          refs.marker = ref;
+          console.log('Markør');
+        },
         onSearchBoxMounted: ref => {
           refs.searchBox = ref;
+        },
+       dragMarker(){
+         let b = this.getPosition();
+         this.setPosition(b);
+         console.log(b.lat(),b.lng());
+       },
+       onMapClick(){
+         let p = refs.marker.getPosition();
+         console.log(p.lat(), p.lng());
+       },
+        onClick(){
+          let a = this.getPosition();
+          console.log(a.lat(),a.lng());
         },
         onPlacesChanged: () => {
           const places = refs.searchBox.getPlaces();
@@ -71,6 +91,11 @@ const MapWithASearchBox = compose(
             center: nextCenter,
             markers: nextMarkers,
           });
+          let k = refs.marker.getPosition();
+          latitude = k.lat();
+          longitude = k.lng();
+          console.log(latitude);
+          console.log(longitude);
           // refs.map.fitBounds(bounds);
         },
       })
@@ -78,23 +103,24 @@ const MapWithASearchBox = compose(
   }),
   withScriptjs,
   withGoogleMap
-)(props =>
-  <GoogleMap
+  )(props =>
+    <GoogleMap
     ref={props.onMapMounted}
     defaultZoom={15}
     center={props.center}
     onBoundsChanged={props.onBoundsChanged}
-  >
-    <SearchBox
+    onClick={props.onMapClick}
+    >
+      <SearchBox
       ref={props.onSearchBoxMounted}
       bounds={props.bounds}
       controlPosition={google.maps.ControlPosition.TOP_LEFT}
       onPlacesChanged={props.onPlacesChanged}
-    >
-      <input
-        type="text"
-        placeholder="Søk etter plass"
-        style={{
+      >
+        <input
+          type="text"
+          placeholder="Søk etter plass"
+          style={{
           boxSizing: `border-box`,
           border: `1px solid transparent`,
           width: `240px`,
@@ -106,13 +132,20 @@ const MapWithASearchBox = compose(
           fontSize: `14px`,
           outline: `none`,
           textOverflow: `ellipses`,
-        }}
-      />
-    </SearchBox>
-    {props.markers.map((marker, index) =>
-      <Marker key={index} position={marker.position} />
-    )}
-  </GoogleMap>
+          }}
+        />
+        </SearchBox>
+        {props.markers.map((marker, index) =>
+          <Marker
+            ref={props.onMarkerMounted}
+            key={index}
+            position={marker.position}
+            draggable={true}
+            onDragEnd={props.dragMarker}
+            onClick={props.onClick}
+            />
+          )}
+          </GoogleMap>
 );
 
 
@@ -484,6 +517,7 @@ class StartSide extends React.Component {
         <h1>Hei, {this.user.brukernavn}!</h1>
         Id: {this.user.id};
         <button ref='logOut'>Logg ut</button>
+        <button ref='test'>Test</button>
         <MapWithASearchBox />
       </div>
     )
@@ -497,6 +531,10 @@ class StartSide extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+    this.refs.test.onclick = ()=>{
+      console.log(latitude);
+      console.log(longitude);
+    }
 
     this.refs.logOut.onclick = () =>{
       brukerid = null;
