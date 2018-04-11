@@ -89,7 +89,6 @@ class EmailService {
 // Class that performs database queries related to users
 class UserService {
 
-
   searchUser(input){
     return new Promise((resolve, reject) =>{
       connection.query('SELECT * FROM medlem where tlf = ? or epost = ? or brukernavn = ?', [input, input, input], (error, result)=>{
@@ -195,6 +194,18 @@ class UserService {
   });
   }
 
+  setPassive(from, to, id) {
+    return new Promise((resolve, reject) => {
+    connection.query('INSERT INTO passiv (m_id, f_dato, t_dato) values (?, ?, ?)', [id, from, to], (error, result) => {
+      if(error){
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+  }
+
 }
 
 class LoginService {
@@ -222,7 +233,7 @@ class LoginService {
   if(!item) return null;
 
   return JSON.parse(item);
-}
+ }
   signOut(): ?User {
   localStorage.removeItem('signedInUser');
   }
@@ -348,6 +359,20 @@ class ArrangementService {
         resolve(result);
       });
     });
+  }
+
+  getRoles(a_id) {
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT r_id, COUNT(r_id), navn FROM vakt INNER JOIN rolle on r_id = rolle.id WHERE a_id = ? GROUP BY r_id', [a_id], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      });
+    });
+
   }
 }
 
