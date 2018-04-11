@@ -652,6 +652,7 @@ class MineSider extends React.Component {
             <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
             <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
             <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
+            <tr><td>Passiv fra: <input type='date' ref='passivFra' /></td><td>Passiv til: <input type='date' ref='passivTil' /></td></tr>
           </tbody>
         </table>
         <button ref='setPassive'>Meld deg passiv</button>
@@ -670,6 +671,13 @@ class MineSider extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+    this.refs.setPassive.onclick = () => {
+      userService.setPassive(this.refs.passivFra.value, this.refs.passivTil.value, this.id).then(() => {
+        console.log('Satt passiv fra ' + this.refs.passivFra.value + ' til ' + this.refs.passivTil.value);
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
+      });
+    }
     this.refs.changeInfo.onclick = () =>{
       this.props.history.push('/forandreinfo');
     }

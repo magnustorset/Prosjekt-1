@@ -89,7 +89,6 @@ class EmailService {
 // Class that performs database queries related to users
 class UserService {
 
-
   searchUser(input){
     return new Promise((resolve, reject) =>{
       connection.query('SELECT * FROM medlem where tlf = ? or epost = ? or brukernavn = ?', [input, input, input], (error, result)=>{
@@ -186,6 +185,18 @@ class UserService {
   editPassword(password, id, callback) {
     return new Promise((resolve, reject) => {
     connection.query('UPDATE medlem SET passord = ? WHERE id = ?', [password, id], (error, result) => {
+      if(error){
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+  }
+
+  setPassive(from, to, id) {
+    return new Promise((resolve, reject) => {
+    connection.query('INSERT INTO passiv (m_id, f_dato, t_dato) values (?, ?, ?)', [id, from, to], (error, result) => {
       if(error){
         reject(error);
         return;
