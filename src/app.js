@@ -604,14 +604,10 @@ class NyttArrangement extends React.Component{
     for (let tab of table) {
       id = (tab.children[0].children[0].value === "") ? -1 : +tab.children[0].children[0].value;
       count = (tab.children[1].children[0].value === "") ? -1 : +tab.children[1].children[0].value;
-      console.log(id + " - " + count);
       if(id >= 0 && count >= 0){
-        console.log(tab.children[0].children[0].value);
-        console.log(tab.children[1].children[0].value);
         arr.push({id: id, antall: count});
       }
     }
-    console.log(arr);
     return arr;
   }
   componentDidMount(){
@@ -1102,40 +1098,38 @@ class VisArrangement extends React.Component {
 
     return(
       <div>
-      <table>
-      <tbody>
-      <tr>
-      <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-      </tr>
-      <tr>
-      <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
-      </tr>
-      <tr>
-      <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-      </tr>
-      <tr>
-      <td>Oppmøtetidspunkt:</td><td>
-      {this.changeDate(this.arrangement.oppmootetidspunkt)}
-      </td>
-      </tr>
-      <tr>
-      <td>Starttidspunkt:</td><td>
-      {this.changeDate(this.arrangement.starttidspunkt)}
-      </td>
-      </tr>
-      <tr>
-      <td>Sluttidspunkt:</td><td>
-      {this.changeDate(this.arrangement.sluttidspunkt)}
-      </td>
-      </tr>
-      <tr>
-      <td>Oppmøtested:</td><td>{this.arrangement.kordinater}</td>
-      </tr>
-      <tr>
-      <td><button ref='endreArrangement'>Endre arrangementet</button></td>
-      </tr>
-      </tbody>
-      </table>
+        <table>
+          <tbody>
+            <tr>
+              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+            </tr>
+            <tr>
+              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
+            </tr>
+            <tr>
+              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+            </tr>
+            <tr>
+              <td>Oppmøtetidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Starttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Sluttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Oppmøtested:</td><td>{this.arrangement.kordinater}</td>
+            </tr>
+            <tr>
+              <td><button ref='endreArrangement'>Endre arrangementet</button></td>
+              <td><button ref='brukerInnkalling'>Kall inn</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     )
   }
@@ -1160,6 +1154,11 @@ class VisArrangement extends React.Component {
     this.refs.endreArrangement.onclick = () =>{
       this.props.history.push('/endreArrangement/'+this.arrangement.id);
     }
+    this.refs.brukerInnkalling.onclick = () =>{
+      console.log('/innkalling/'+this.arrangement.id);
+      this.props.history.push('/inkalling/'+this.arrangement.id);
+    }
+
   }
 }
 
@@ -1189,41 +1188,37 @@ class EndreArrangement extends React.Component {
   render(){
     return(
       <div>
-      <table>
-      <tbody>
-      <tr>
-      <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-      </tr>
-      <tr>
-      <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
-      </tr>
-      <tr>
-      <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-      </tr>
-      <tr>
-      <td>Oppmøtetidspunkt:</td><td>
-      <input type='datetime-local'name='oppmootetidspunkt' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/>
-      </td>
-      </tr>
-      <tr>
-      <td>Starttidspunkt:</td><td>
-      <input type='datetime-local' name='starttidspunkt' value={this.state.starttidspunkt} onChange={this.handleChange} />
-      </td>
-      </tr>
-      <tr>
-      <td>Sluttidspunkt:</td><td>
-      <input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} />
-      </td>
-      </tr>
-      <tr>
-      <td>Oppmøtested:</td><td><input name='kordinater' value={this.state.kordinater} onChange={this.handleChange} /></td>
-      </tr>
-      <tr>
-      <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
-      </tr>
-      </tbody>
-      </table>
-
+        <table>
+          <tbody>
+            <tr>
+              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+            </tr>
+            <tr>
+              <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
+            </tr>
+            <tr>
+              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+            </tr>
+            <tr>
+              <td>Oppmøtetidspunkt:</td>
+              <td><input type='datetime-local'name='oppmootetidspunkt' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/></td>
+            </tr>
+            <tr>
+              <td>Starttidspunkt:</td>
+              <td><input type='datetime-local' name='starttidspunkt' value={this.state.starttidspunkt} onChange={this.handleChange} /></td>
+            </tr>
+            <tr>
+              <td>Sluttidspunkt:</td>
+              <td><input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
+            </tr>
+            <tr>
+              <td>Oppmøtested:</td><td><input name='kordinater' value={this.state.kordinater} onChange={this.handleChange} /></td>
+            </tr>
+            <tr>
+              <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     )
   }
@@ -1252,6 +1247,46 @@ class EndreArrangement extends React.Component {
     });
   }
 }
+
+class Innkalling extends React.Component {
+  constructor(props) {
+    super(props);
+    this.id = props.match.params.id;
+    this.roller = []
+  }
+
+  render() {
+    let rolle = []
+    for (let roll of this.roller) {
+      rolle.push(<option key={roll.r_id} value={roll.r_id}>{roll.navn}</option>)
+    }
+    return(
+      <div>
+        <select ref='r'>
+          {rolle}
+        </select>
+        <button ref='button'>Button</button>
+      </div>
+    )
+  }
+
+  componentDidMount() {
+    // SQL med liste over brukere
+    console.log(this.id);
+    arrangementService.getRoles(this.id).then((result) => {
+      this.roller = result
+      console.log(result);
+      this.forceUpdate()
+    }).catch((error) => {
+      console.log(error);
+      if(errorMessage) errorMessage.set('Fant ingen roller i dette arrnagementet' + error)
+    })
+    this.refs.button.onclick = () => {
+      console.log(this.refs.r.value);
+    }
+  }
+}
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -1278,6 +1313,8 @@ ReactDOM.render((
         <Route exact path='/sokeResultat' component={VisSøkeResultat} />
         <Route exact path='/visArrangement/:id' component={VisArrangement} />
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
+        <Route exact path='/inkalling/:id' component={Innkalling} />
+
 
       </Switch>
     </div>
