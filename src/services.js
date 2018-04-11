@@ -64,6 +64,18 @@ class EmailService {
     })
   }
 
+  innkalling (clientEmail, rolle, arrNavn, arrDato) {
+    return new Primise((resolve, reject) => {
+      let message = {
+        from: 'rodekorsprosjekt@2rz.no',
+        to:  clientEmail,
+        subject: 'Innkalling til vakt',
+        text: 'Du har blitt kalt inn til ' + arrnavn + ' som ' + rolle + ' den ' + arrdato + '. Gå inn på appen for å godta vakten.',
+        html: 'Du har blitt kalt inn til ' + arrnavn + ' som ' + rolle + ' den ' + arrdato + '. Gå inn på appen for å godta vakten.'
+      }
+    })
+  }
+
 }
 // Class that performs database queries related to users
 class UserService {
