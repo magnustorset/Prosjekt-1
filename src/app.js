@@ -1140,14 +1140,8 @@ class VisArrangement extends React.Component {
     )
   }
   changeDate(variabel){
-    return(
-    new Intl.DateTimeFormat('en-GB', {
-      year: '2-digit',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(variabel))
+    let a = moment(variabel).format('DD.MM.YY HH:mm');
+    return a;
   }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
