@@ -337,6 +337,18 @@ class ArrangementService {
     });
   }
 
+  addShift(a_id, m_id, r_id){
+    return new Promise((resolve, reject) =>{
+      connection.query('UPDATE vakt SET m_id = ? WHERE a_id = ? AND r_id = ? AND m_id IS NULL LIMIT 1', [m_id, a_id, r_id], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      });
+    });
+  }
 }
 
 class AdministratorFunctions{
