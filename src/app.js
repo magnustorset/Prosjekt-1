@@ -516,7 +516,7 @@ class Arrangement extends React.Component{
     let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td><Link to={'/visArrangement/'+table.id}>{table.navn}</Link></td><td><Link to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td><Link to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
       a++;
     }
     let signedInUser = loginService.getSignedInUser();
@@ -549,6 +549,7 @@ class Arrangement extends React.Component{
   }
   hentArrangement(){
     arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {
+      console.log(result);
       this.arrangement= '';
       this.arrangement = result;
       this.forceUpdate();
@@ -1150,6 +1151,7 @@ class VisArrangement extends React.Component {
   }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
+      console.log(this.id);
       this.arrangement = result[0];
       this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
