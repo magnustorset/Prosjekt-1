@@ -65,7 +65,7 @@ class EmailService {
   }
 
   innkalling (clientEmail, rolle, arrNavn, arrDato) {
-    return new Primise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let message = {
         from: 'rodekorsprosjekt@2rz.no',
         to:  clientEmail,
