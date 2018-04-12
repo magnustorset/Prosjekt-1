@@ -362,12 +362,11 @@ class ArrangementService {
 
   getRoles(a_id) {
     return new Promise((resolve, reject) =>{
-      connection.query('SELECT r_id, COUNT(r_id), navn FROM vakt INNER JOIN rolle on r_id = rolle.id WHERE a_id = ? GROUP BY r_id', [a_id], (error, result) =>{
+      connection.query('SELECT r_id, COUNT(r_id) as antall, navn FROM vakt INNER JOIN rolle on r_id = rolle.id WHERE a_id = ? GROUP BY r_id', [a_id], (error, result) =>{
         if(error){
           reject(error);
           return;
         }
-
         resolve(result);
       });
     });

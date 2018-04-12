@@ -1371,19 +1371,71 @@ class Innkalling extends React.Component {
     super(props);
     this.id = props.match.params.id;
     this.roller = []
+    this.ikkeValgte = []
+    this.valgte = []
   }
 
   render() {
     let rolle = []
+    let ikkeValgtePersoner = []
+    let valgtePersoner = []
+    for(let ikke of this.ikkeValgte){
+      ikkeValgtePersoner.push(<li key={id}>{navn}<button>Flytt over</button></li>)
+    }
+    for(let valgt of this.valgte){
+      valgtePersoner.push(<li key={id}>{navn}</li>)
+    }
     for (let roll of this.roller) {
       rolle.push(<option key={roll.r_id} value={roll.r_id}>{roll.navn}</option>)
     }
     return(
       <div>
-        <select ref='r'>
-          {rolle}
-        </select>
-        <button ref='button'>Button</button>
+        <table style={{width: '100%'}}>
+          <thead>
+            <tr>
+              <td><select ref='r'>{rolle}</select>
+              <button ref='button'>Button</button></td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <p><strong>Ikke valgte</strong></p>
+              </td>
+              <td>
+                <p><strong>Valgte</strong></p>
+              </td>
+            </tr>
+            <tr>
+              <td style={{width: '50%'}}>
+                <table >
+                  <tbody>
+                    <tr>
+                      <td>
+                        <ul>
+                          {ikkeValgtePersoner}
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+              <td style={{width: '50%'}}>
+                <table >
+                  <tbody>
+                    <tr>
+                      <td>
+                        <ul>
+                          {valgtePersoner}
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     )
   }
