@@ -149,7 +149,6 @@ const MapWithASearchBox = compose(
           )}
           </GoogleMap>
 );
-
 const MapWithAMarker = compose(
   withProps({
     googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
@@ -1223,7 +1222,10 @@ class VisArrangement extends React.Component {
               <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
             </tr>
             <tr>
-              <td>Oppmøtested:</td><td><MapWithAMarker /></td>
+              <td>Oppmøtested:</td>
+            </tr>
+            <tr>
+            <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
               <td><button ref='endreArrangement'>Endre arrangementet</button></td>
@@ -1238,20 +1240,15 @@ class VisArrangement extends React.Component {
     let a = moment(variabel).format('DD.MM.YY HH:mm');
     return a;
   }
-  componentWillMount(){
-    arrangementService.showArrangement(this.id).then((result)=>{
-      mapLat = result[0].latitute;
-      mapLng = result[0].longitute;
-      console.log(mapLat+''+mapLng);
-    }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
-    });
-  }
+  componentWillUnmount(){
+    mapLat = '';
+    mapLng = '';
+    }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
-      console.log(this.id);
       this.arrangement = result[0];
-      console.log(mapLat + ' ' + mapLng);
+      mapLat = this.arrangement.latitute;
+      mapLng = this.arrangement.longitute;
     this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
@@ -1282,8 +1279,8 @@ class EndreArrangement extends React.Component {
     this.state = {beskrivelse: '',
                   oppmootetidspunkt: '',
                   starttidspunkt: '',
-                  sluttidspunkt: '',
-                  kordinater: ''};
+                  sluttidspunkt: ''
+                  };
 
     this.handleChange = this.handleChange.bind(this);
   }
@@ -1323,7 +1320,7 @@ class EndreArrangement extends React.Component {
               <td><input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
             </tr>
             <tr>
-              <td>Oppmøtested:</td><td><input name='kordinater' value={this.state.kordinater} onChange={this.handleChange} /></td>
+              <td>Oppmøtested:</td><td><MapWithAMarker /></td>
             </tr>
             <tr>
               <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
@@ -1342,10 +1339,11 @@ class EndreArrangement extends React.Component {
       this.arrangement = result[0];
 
       this.state.beskrivelse = this.arrangement.beskrivelse;
-      this.state.kordinater = this.arrangement.kordinater;
       this.state.oppmootetidspunkt = this.changeDate(this.arrangement.oppmootetidspunkt);
       this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
       this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
+      mapLat = this.arrangement.latitude;
+      mapLng = this.arrangement.longitute;
       this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
