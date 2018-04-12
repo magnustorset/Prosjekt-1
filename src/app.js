@@ -283,11 +283,14 @@ class Menu extends React.Component {
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
-          <li>
+          <li className='hopp'>
             <input  ref='serachFieldUser' type='text' className='form-control' />
           </li>
           <li>
-          <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+          <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}><span className='glyphicon glyphicon-search' /></button></Link>
+          </li>
+          <li>
+          <NavLink to='/' className='navLink'><button  className='btn-md' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button></NavLink>
           </li>
         </ul>
       </div>
@@ -318,11 +321,14 @@ class Menu extends React.Component {
     </li>
   </ul>
   <ul className="nav navbar-nav navbar-right">
-    <li>
+    <li className='hopp'>
       <input  ref='serachFieldUser' type='text' className='form-control' />
     </li>
     <li>
   <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+    </li>
+    <li>
+    <Link to='/'><button  className='btn-md' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button></Link>
     </li>
   </ul>
   </div>
@@ -349,6 +355,9 @@ class Menu extends React.Component {
       }).catch((error)=>{
         if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
       });
+    }
+    logOut(){
+      loginService.signOut();
     }
   }
 
