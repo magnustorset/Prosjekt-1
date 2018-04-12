@@ -18,6 +18,8 @@ let klokke = 0
 let emailCode = false
 let latitude = ''
 let longitude = ''
+let mapLat = ''
+let mapLng = ''
 let brukerEpost;
 
 const MapWithASearchBox = compose(
@@ -29,20 +31,20 @@ const MapWithASearchBox = compose(
   }),
   lifecycle({
     componentWillMount() {
-      let stad = 63.426387
-      let sted = 10.392680
+      let sted = 63.426387
+      let stad = 10.392680
       const refs = {}
 
       this.setState({
         bounds: null,
         center: {
-          lat: stad, lng: sted
+          lat: sted, lng: stad
 
         },
         markers: [],
         onMapMounted: ref => {
           refs.map = ref;
-          console.log('Kartet lastet' + latitude);
+          console.log('Kartet lastet');
 
         },
         onBoundsChanged: () => {
@@ -148,6 +150,65 @@ const MapWithASearchBox = compose(
           </GoogleMap>
 );
 
+const MapWithAMarker = compose(
+  withProps({
+    googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
+    loadingElement: <div style={{ height: `100%` }} />,
+    containerElement: <div style={{ height: `400px`, width: '400px'}} />,
+    mapElement: <div style={{ height: `100%` }} />,
+  }),
+  lifecycle({
+
+    componentWillMount() {
+      const refs = {}
+
+
+      this.setState({
+        bounds: null,
+        center: {
+          lat: mapLat, lng: mapLng
+
+        },
+        onBoundsChanged: () => {
+          this.setState({
+            center:{
+              lat: mapLat, lng: mapLng
+            },
+          })
+        },
+        markers: [],
+        onMapMounted: ref => {
+          refs.map = ref;
+          console.log('Kartet lastet');
+
+        },
+        onMarkerMounted: ref =>{
+          refs.marker = ref;
+          console.log('Markør');
+        },
+      })
+    },
+  }),
+  withScriptjs,
+  withGoogleMap
+  )(props =>
+    <GoogleMap
+    ref={props.onMapMounted}
+    defaultZoom={15}
+    center={props.center}
+    onBoundsChanged={props.onBoundsChanged}
+    >
+
+
+          <Marker
+            ref={props.onMarkerMounted}
+            position={props.center}
+
+
+            />
+
+          </GoogleMap>
+);
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -517,8 +578,6 @@ class StartSide extends React.Component {
         <h1>Hei, {this.user.brukernavn}!</h1>
         Id: {this.user.id};
         <button ref='logOut'>Logg ut</button>
-        <button ref='test'>Test</button>
-        <MapWithASearchBox />
       </div>
     )
   }
@@ -531,10 +590,6 @@ class StartSide extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
-    this.refs.test.onclick = ()=>{
-      console.log(latitude);
-      console.log(longitude);
-    }
 
     this.refs.logOut.onclick = () =>{
       brukerid = null;
@@ -617,7 +672,7 @@ class NyttArrangement extends React.Component{
         Startdato: <input type="datetime-local" ref="a_startdate" /> <br /> {/*Autofyll med dagens dato*/}
         Sluttdato: <input type="datetime-local" ref="a_enddate" /> <br />
         Oppmøtetidspunkt: <input type="datetime-local" ref="a_meetdate" /> <br />
-        Oppmøtested: <input type="text" ref="a_place" defaultValue="Her" /> <br />
+        Oppmøtested: <MapWithASearchBox /> <br />
         Beskrivelse: <textarea rows="4" cols="20" ref="a_desc" defaultValue="En tekstlig beskrivelse"/> <br />
         Kontaktperson: <br />
         Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
@@ -653,7 +708,7 @@ class NyttArrangement extends React.Component{
       console.log(this.refs.a_startdate.value);
       let roller = this.tabelGreie();
       console.log(roller);
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value, roller).then(() => {
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, roller, longitude,latitude).then(() => {
         console.log('Arrangement laget')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
@@ -1132,6 +1187,7 @@ class BrukerSide extends React.Component {
   }
 }
 
+
 class VisArrangement extends React.Component {
   constructor(props) {
     super(props)
@@ -1140,7 +1196,6 @@ class VisArrangement extends React.Component {
     this.user = [];
   }
   render(){
-
 
     return(
       <div>
@@ -1168,7 +1223,7 @@ class VisArrangement extends React.Component {
               <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
             </tr>
             <tr>
-              <td>Oppmøtested:</td><td>{this.arrangement.kordinater}</td>
+              <td>Oppmøtested:</td><td><MapWithAMarker /></td>
             </tr>
             <tr>
               <td><button ref='endreArrangement'>Endre arrangementet</button></td>
@@ -1183,11 +1238,21 @@ class VisArrangement extends React.Component {
     let a = moment(variabel).format('DD.MM.YY HH:mm');
     return a;
   }
+  componentWillMount(){
+    arrangementService.showArrangement(this.id).then((result)=>{
+      mapLat = result[0].latitute;
+      mapLng = result[0].longitute;
+      console.log(mapLat+''+mapLng);
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+    });
+  }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
       console.log(this.id);
       this.arrangement = result[0];
-      this.forceUpdate();
+      console.log(mapLat + ' ' + mapLng);
+    this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
         this.forceUpdate();

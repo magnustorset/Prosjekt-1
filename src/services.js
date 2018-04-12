@@ -123,7 +123,6 @@ class UserService {
         reject(error);
         return;
       }
-      console.log(result[0]);
       resolve(result);
     });
   });
@@ -283,7 +282,7 @@ class LoginService {
 }
 
 class ArrangementService {
-  addArrangement (tlf, navn, meetdate, startdate, enddate, place, desc, roller) {
+  addArrangement (tlf, navn, meetdate, startdate, enddate, desc, roller, longitude, latitude) {
       let k_id;
       return new Promise((resolve, reject) =>{
         connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
@@ -295,7 +294,7 @@ class ArrangementService {
           // console.log(result);
           // console.log(k_id);
 
-          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id], (error, result) => {
+          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute) values (?, ?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude], (error, result) => {
             if(error){
               console.log(error);
               return;
