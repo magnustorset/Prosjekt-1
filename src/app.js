@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
 
 
 let brukerid = null
@@ -84,6 +84,9 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/bestemme' className="nav-link">Administrator</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/vakt' className="nav-link">Vakt</Link>
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
@@ -993,6 +996,256 @@ class BrukerSide extends React.Component {
   }
 }
 
+class VaktUtsending extends React.Component {
+  constructor(){
+    super();
+    this.arrangement = [];
+    this.kval = [];
+    this.roll = [];
+
+    this.r = 0;
+    this.kan = [];
+    this.ut = [];
+
+  }
+
+  render(){
+    let a = 100;
+    let tableItems = [];
+    tableItems.push(<tr key={'Empty inside'}><td>Arrangement id</td><td>Rolle id</td><td>Arrangement navn</td><td>Rolle navn</td><td>Antall</td><td>Knapp</td></tr>);
+    for(let item of this.arrangement){
+      tableItems.push(<tr key={item.arr_id + '-' + item.rolle_id}><td>{item.arr_id}</td><td>{item.rolle_id}</td><td>{item.arr_navn}</td><td>{item.rolle_navn}</td><td>{item.antall}</td><td><button onClick={()=>{vaktEndre.lagListe(item.arr_id)}}>Godkjenne</button></td></tr>);
+      a++;
+    }
+
+    let tabKval = [];
+    tabKval.push(<tr key={'Empty inside2'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
+    for(let item of this.kval){
+      tabKval.push(<tr key={'2 - ' + item.m_id + '-' + item.r_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td></tr>);
+    }
+
+    let rolls = [];
+    for (let item of this.roll) {
+      rolls.push(<button key={item.id} onClick={() => {this.r = item.id; console.log(item.id); this.forceUpdate()}}>{item.navn}</button>);
+    }
+
+    let tabKan = [];
+    tabKan.push(<tr key={'Empty inside3'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
+    for(let i in this.kan){
+      let item = this.kan[i];
+      if (item.r_id === this.r) {
+        tabKan.push(<tr key={item.m_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td><td><button onClick={() => {this.leggTil(i)}}>Flytt</button></td></tr>);
+      }
+    }
+
+    let tabUt = [];
+    tabUt.push(<tr key={'Empty inside4'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
+    for(let i in this.ut){
+      let item = this.ut[i];
+      if (item.r_id === this.r) {
+        tabUt.push(<tr key={item.m_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td><td><button onClick={() => {this.taVekk(i)}}>Flytt</button></td></tr>);
+      }
+    }
+
+
+
+    let signedInUser = loginService.getSignedInUser();
+
+    return(
+      <div>
+        <table>
+          <tbody>
+            {tableItems}
+          </tbody>
+        </table>
+        <table ref='vaktTest'>
+          <tbody>
+            {tabKval}
+          </tbody>
+        </table>
+        {this.r}{rolls}
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <table>
+                  <tbody>
+                    {tabKan}
+                  </tbody>
+                </table>
+              </td>
+              <td>
+                <table>
+                  <tbody>
+                    {tabUt}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <VaktEndre />
+      </div>
+    )
+  }
+
+  componentDidMount(){
+    VaktValg.getArrangement().then((result) => {
+      this.arrangement = result;
+      this.forceUpdate();
+    }).catch((error) => {
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
+    });
+
+    VaktValg.listKval().then((result) => {
+      this.kan = result;
+      this.forceUpdate();
+    }).catch((error) => {
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
+    });
+
+    VaktValg.getAllRolls().then((result) => {
+      this.roll = result;
+      this.forceUpdate();
+    }).catch((error) => {
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
+    });
+  }
+
+  lagListe(arr_id) {
+    VaktValg.lagListe3(arr_id).then((res)=>{
+      console.log(res);
+      this.kval = res;
+      this.forceUpdate();
+    }).catch((err)=>{
+      console.log('Feil med resultatet');
+      console.log(err);
+    });
+  }
+
+  leggTil(i) {
+    let flytt = this.kan[i].m_id;
+    for (let per of this.ut) {
+      if (per.m_id === flytt) {
+        return;
+      }
+    }
+    this.ut.push(this.kan.splice(i,1)[0]);
+    this.forceUpdate();
+  }
+
+  taVekk(i) {
+    this.kan.push(this.ut.splice(i,1)[0]);
+    this.forceUpdate();
+  }
+}
+
+class VaktEndre extends React.Component {
+  constructor() {
+    super();
+    this.roll = [];
+
+    this.r = 0;
+    this.kan = [];
+    this.ut = [];
+  }
+
+  render() {
+
+    let rolls = [];
+    for (let item of this.roll) {
+      rolls.push(<button key={item.id} onClick={() => {this.r = item.id; console.log(item.id); this.forceUpdate()}}>{item.navn}</button>);
+    }
+
+    let tabKan = [];
+    tabKan.push(<tr key={'Empty inside3'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
+    for(let i in this.kan){
+      let item = this.kan[i];
+      if (item.r_id === this.r) {
+        tabKan.push(<tr key={item.m_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td><td><button onClick={() => {this.leggTil(i)}}>Flytt</button></td></tr>);
+      }
+    }
+
+    let tabUt = [];
+    tabUt.push(<tr key={'Empty inside4'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
+    for(let i in this.ut){
+      let item = this.ut[i];
+      if (item.r_id === this.r) {
+        tabUt.push(<tr key={item.m_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td><td><button onClick={() => {this.taVekk(i)}}>Flytt</button></td></tr>);
+      }
+    }
+
+
+    return(
+      <div>
+        {this.r}{rolls}
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <table>
+                  <tbody>
+                    {tabKan}
+                  </tbody>
+                </table>
+              </td>
+              <td>
+                <table>
+                  <tbody>
+                    {tabUt}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  componentDidMount() {
+    vaktEndre = this;
+
+    VaktValg.getAllRolls().then((result) => {
+      this.roll = result;
+      this.forceUpdate();
+    }).catch((error) => {
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
+    });
+  }
+
+  lagListe(arr_id) {
+    VaktValg.lagListe3(arr_id).then((res)=>{
+      console.log(res);
+      this.kan = res;
+      this.forceUpdate();
+    }).catch((err)=>{
+      console.log('Feil med resultatet');
+      console.log(err);
+    });
+  }
+
+  leggTil(i) {
+    let flytt = this.kan[i].m_id;
+    for (let per of this.ut) {
+      if (per.m_id === flytt) {
+        return;
+      }
+    }
+    this.ut.push(this.kan.splice(i,1)[0]);
+    this.forceUpdate();
+  }
+
+  taVekk(i) {
+    this.kan.push(this.ut.splice(i,1)[0]);
+    this.forceUpdate();
+  }
+}
+let vaktEndre;
+
+
+
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -1018,6 +1271,7 @@ ReactDOM.render((
         <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
         <Route exact path='/sokeResultat' component={VisSøkeResultat} />
 
+        <Route exact path='/vakt' component={VaktUtsending} />
       </Switch>
     </div>
   </HashRouter>
