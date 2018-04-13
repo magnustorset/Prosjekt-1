@@ -352,9 +352,15 @@ class Menu extends React.Component {
   }
   searchUsers(){
       userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
-        vis = result;
-          history.push('sokeResultat');
+        if(history.location.pathname === '/sokeResultat'){
+          vis = result;
+          console.log(vis);
+          sok.update();
+        }else{
+          vis = result;
+          history.push('sokeResultat')
           this.refs.serachFieldUser.value = '';
+        }
       }).catch((error)=>{
         if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
       });
@@ -1043,6 +1049,7 @@ class GodkjennBruker extends React.Component {
 class VisSøkeResultat extends React.Component {
   constructor(){
     super();
+
     this.sokeResultat = vis;
   }
   render(){
@@ -1056,21 +1063,20 @@ class VisSøkeResultat extends React.Component {
       {resultat}
       </ul>
       <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
-      <input type='text' ref='sokeFelt' />
       </div>
     );
   }
-  componentDidMount(){
-    userService.searchUser(this.refs.sokeFelt).then((result)=>{
-      this.sokeResultat = result;
-      this.forceUpdate();
-    }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke brukeren'+ error);
-      console.log(error);
-    });
-  }
+
+componentDidMount(){
+  sok = this;
+}
+update(){
+  this.sokeResultat = vis;
+  this.forceUpdate();
+}
 }
 
+let sok;
 class BrukerSide extends React.Component {
   constructor(props) {
     super(props)
@@ -1113,7 +1119,7 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+            <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1152,7 +1158,7 @@ class BrukerSide extends React.Component {
                 </tr>
               </tbody>
             </table>
-              <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+              <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
             </div>
           </div>
         )
