@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
 const _ = require('lodash');
 const { compose, withProps, lifecycle } = require('recompose')
 const {
@@ -1370,6 +1370,7 @@ class Innkalling extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.match.params.id;
+    this.r = 1;
     this.roller = []
     this.ikkeValgte = []
     this.valgte = []
@@ -1379,11 +1380,17 @@ class Innkalling extends React.Component {
     let rolle = []
     let ikkeValgtePersoner = []
     let valgtePersoner = []
-    for(let ikke of this.ikkeValgte){
-      ikkeValgtePersoner.push(<li key={id}>{navn}<button>Flytt over</button></li>)
+    for(let i in this.ikkeValgte){
+      let item = this.ikkeValgte[i];
+      if (item.r_id === this.r) {
+        ikkeValgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn}<button onClick={() => {this.leggTil(i)}}>Flytt over</button></li>)
+      }
     }
-    for(let valgt of this.valgte){
-      valgtePersoner.push(<li key={id}>{navn}</li>)
+    for(let i in this.valgte){
+      let item = this.valgte[i];
+      if (item.r_id === this.r) {
+        valgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn}<button onClick={() => {this.taVekk(i)}}>Flytt over</button></li>)
+      }
     }
     for (let roll of this.roller) {
       rolle.push(<option key={roll.r_id} value={roll.r_id}>{roll.navn}</option>)
@@ -1394,7 +1401,7 @@ class Innkalling extends React.Component {
           <thead>
             <tr>
               <td><select ref='r'>{rolle}</select>
-              <button ref='button'>Button</button></td>
+              <button ref='button'>Button</button>{this.r}</td>
             </tr>
           </thead>
           <tbody>
@@ -1445,6 +1452,9 @@ class Innkalling extends React.Component {
     console.log(this.id);
     arrangementService.getRoles(this.id).then((result) => {
       this.roller = result
+      if (result && result[0]) {
+        this.r = result[0].r_id;
+      }
       console.log(result);
       this.forceUpdate()
     }).catch((error) => {
@@ -1452,8 +1462,40 @@ class Innkalling extends React.Component {
       if(errorMessage) errorMessage.set('Fant ingen roller i dette arrnagementet' + error)
     })
     this.refs.button.onclick = () => {
-      console.log(this.refs.r.value);
+      this.r = +this.refs.r.value;
+      this.forceUpdate();
     }
+
+    VaktValg.lagListe3(this.id).then((res)=>{
+      console.log(res);
+      this.ikkeValgte = res;
+      this.forceUpdate();
+    }).catch((err)=>{
+      console.log('Feil med resultatet');
+      console.log(err);
+    });
+    // VaktValg.getRolls(arr_id).then((result) => {
+    //   this.roll = result;
+    //   this.forceUpdate();
+    // }).catch((error) => {
+    //   if(errorMessage) errorMessage.set('Finner ikke arrangement');
+    // });
+  }
+
+  leggTil(i) {
+    let flytt = this.ikkeValgte[i].m_id;
+    for (let per of this.valgte) {
+      if (per.m_id === flytt) {
+        return;
+      }
+    }
+    this.valgte.push(this.ikkeValgte.splice(i,1)[0]);
+    this.forceUpdate();
+  }
+
+  taVekk(i) {
+    this.ikkeValgte.push(this.valgte.splice(i,1)[0]);
+    this.forceUpdate();
   }
 }
 
