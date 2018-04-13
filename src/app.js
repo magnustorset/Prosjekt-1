@@ -871,8 +871,9 @@ class ForandrePassord extends React.Component {
   constructor() {
     super();
 
+    let signedInUser = loginService.getSignedInUser();
     this.user = [];
-    this.id = brukerid;
+    this.id = signedInUser.id;
   }
   render(){
     return(
