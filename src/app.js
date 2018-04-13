@@ -1,7 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
+<<<<<<< HEAD
 import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
+=======
+import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
+import createHashHistory from 'history/createHashHistory';
+const history = createHashHistory();
+>>>>>>> 071b5535c7b11dbeaaf355f6f3118735485783df
 const _ = require('lodash');
 const { compose, withProps, lifecycle } = require('recompose')
 const {
@@ -287,10 +293,10 @@ class Menu extends React.Component {
             <input  ref='serachFieldUser' type='text' className='form-control' />
           </li>
           <li>
-          <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}><span className='glyphicon glyphicon-search' /></button></Link>
+          <button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}><span className='glyphicon glyphicon-search' /></button>
           </li>
-          <li>
-          <NavLink to='/' className='navLink'><button  className='btn-md' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button></NavLink>
+          <li className='spaceBetweenSearchAndLogout'>
+          <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
           </li>
         </ul>
       </div>
@@ -325,10 +331,10 @@ class Menu extends React.Component {
       <input  ref='serachFieldUser' type='text' className='form-control' />
     </li>
     <li>
-  <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+  <button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button>
     </li>
-    <li>
-    <Link to='/'><button  className='btn-md' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button></Link>
+    <li className='spaceBetweenSearchAndLogout'>
+    <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
     </li>
   </ul>
   </div>
@@ -350,7 +356,8 @@ class Menu extends React.Component {
   searchUsers(){
       userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
         console.log(result);
-          sokeResultat.set(result);
+        sokeResultat.set(result);
+          history.push('sokeResultat');
           this.refs.serachFieldUser.value = '';
       }).catch((error)=>{
         if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
@@ -358,6 +365,7 @@ class Menu extends React.Component {
     }
     logOut(){
       loginService.signOut();
+      history.push('/')
     }
   }
 
