@@ -544,6 +544,18 @@ class VaktValg {
     });
   }
 
+  static getRolls(id) {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT r.id, r.navn, COUNT(*) AS \'antall\' FROM rolle r INNER JOIN vakt v ON r.id = v.r_id WHERE v.a_id = ? GROUP BY r.id, r.navn', [id], (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
+
   static getAvailable(id, start, kont) {
     // console.log('SELECT m.id, m.brukernavn, m.vaktpoeng, (m.id IN (SELECT m_id FROM interesse WHERE a_id = ?)) AS "Interesse" FROM passiv p RIGHT JOIN medlem m ON p.m_id = m.id LEFT JOIN vakt v ON m.id = v.m_id LEFT JOIN arrangement a ON v.a_id = a.id WHERE m.aktiv = true  AND NOT(? BETWEEN IFNULL(p.f_dato, 0) AND IFNULL(p.t_dato, 0)) AND NOT(IFNULL(a.starttidspunkt, 0) = ?) AND NOT(m.id = ?), [' + id + ', ' + start + ', ' + start + ', ' + kont + ']');
     return new Promise((resolve, reject) =>{

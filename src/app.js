@@ -1058,32 +1058,6 @@ class VaktUtsending extends React.Component {
             {tableItems}
           </tbody>
         </table>
-        <table ref='vaktTest'>
-          <tbody>
-            {tabKval}
-          </tbody>
-        </table>
-        {this.r}{rolls}
-        <table>
-          <tbody>
-            <tr>
-              <td>
-                <table>
-                  <tbody>
-                    {tabKan}
-                  </tbody>
-                </table>
-              </td>
-              <td>
-                <table>
-                  <tbody>
-                    {tabUt}
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
         <VaktEndre />
       </div>
     )
@@ -1151,33 +1125,21 @@ class VaktEndre extends React.Component {
   }
 
   render() {
-
-    let rolls = [];
-    for (let item of this.roll) {
-      rolls.push(<button key={item.id} onClick={() => {this.r = item.id; console.log(item.id); this.forceUpdate()}}>{item.navn}</button>);
-    }
-
-    let tabKan = [];
-    tabKan.push(<tr key={'Empty inside3'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
-    for(let i in this.kan){
-      let item = this.kan[i];
-      if (item.r_id === this.r) {
-        tabKan.push(<tr key={item.m_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td><td><button onClick={() => {this.leggTil(i)}}>Flytt</button></td></tr>);
-      }
-    }
-
-    let tabUt = [];
-    tabUt.push(<tr key={'Empty inside4'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
-    for(let i in this.ut){
-      let item = this.ut[i];
-      if (item.r_id === this.r) {
-        tabUt.push(<tr key={item.m_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td><td><button onClick={() => {this.taVekk(i)}}>Flytt</button></td></tr>);
-      }
-    }
-
+    let rolls = this.rolleListe();
+    let tabKan = this.kandidatListe();
+    let tabUt = this.utvalgtListe();
+    let rollCount = this.rolleTeller();
 
     return(
       <div>
+        <div>
+          id: 1, navn: test
+          <table>
+            <tbody>
+              {rollCount}
+            </tbody>
+          </table>
+        </div>
         {this.r}{rolls}
         <table>
           <tbody>
@@ -1205,13 +1167,6 @@ class VaktEndre extends React.Component {
 
   componentDidMount() {
     vaktEndre = this;
-
-    VaktValg.getAllRolls().then((result) => {
-      this.roll = result;
-      this.forceUpdate();
-    }).catch((error) => {
-      if(errorMessage) errorMessage.set('Finner ikke arrangement');
-    });
   }
 
   lagListe(arr_id) {
@@ -1222,6 +1177,12 @@ class VaktEndre extends React.Component {
     }).catch((err)=>{
       console.log('Feil med resultatet');
       console.log(err);
+    });
+    VaktValg.getRolls(arr_id).then((result) => {
+      this.roll = result;
+      this.forceUpdate();
+    }).catch((error) => {
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
     });
   }
 
@@ -1239,6 +1200,44 @@ class VaktEndre extends React.Component {
   taVekk(i) {
     this.kan.push(this.ut.splice(i,1)[0]);
     this.forceUpdate();
+  }
+
+  rolleListe() {
+    let rolls = [];
+    for (let item of this.roll) {
+      rolls.push(<button key={item.id} onClick={() => {this.r = item.id; console.log(item.id); this.forceUpdate()}}>{item.navn}</button>);
+    }
+    return rolls;
+  }
+  kandidatListe() {
+    let tabKan = [];
+    tabKan.push(<tr key={'Empty inside3'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
+    for(let i in this.kan){
+      let item = this.kan[i];
+      if (item.r_id === this.r) {
+        tabKan.push(<tr key={item.m_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td><td><button onClick={() => {this.leggTil(i)}}>Flytt</button></td></tr>);
+      }
+    }
+    return tabKan;
+  }
+  utvalgtListe() {
+    let tabUt = [];
+    tabUt.push(<tr key={'Empty inside4'}><td>Rolle id</td><td>Medlem id</td><td>Brukernavn</td></tr>);
+    for(let i in this.ut){
+      let item = this.ut[i];
+      if (item.r_id === this.r) {
+        tabUt.push(<tr key={item.m_id}><td>{item.r_id}</td><td>{item.m_id}</td><td>{item.brukernavn}</td><td><button onClick={() => {this.taVekk(i)}}>Flytt</button></td></tr>);
+      }
+    }
+    return tabUt;
+  }
+  rolleTeller() {
+    let rollCount = [];
+    rollCount.push(<tr key={'Empty inside5'}><td>Rolle navn</td><td>Antall krevet</td></tr>);
+    for(let item of this.roll) {
+      rollCount.push(<tr key={'awdadawd' + item.id}><td>{item.navn}</td><td>{item.antall}</td></tr>);
+    }
+    return rollCount;
   }
 }
 let vaktEndre;
