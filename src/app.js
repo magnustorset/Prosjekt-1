@@ -2,16 +2,212 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
-
+const _ = require('lodash');
+const { compose, withProps, lifecycle } = require('recompose')
+const {
+  withScriptjs,
+  withGoogleMap,
+  GoogleMap,
+  Marker,
+} = require('react-google-maps');
+const { SearchBox } = require('react-google-maps/lib/components/places/SearchBox');
 
 let brukerid = null
 let administrator = false
 let klokke = 0
 let emailCode = false
-let gjøremål = [{name: 'Godkjennebruker',
-                id: 'godkjenn'}
-                ];
+let latitude = ''
+let longitude = ''
+let mapLat = ''
+let mapLng = ''
 let brukerEpost;
+
+const MapWithASearchBox = compose(
+  withProps({
+    googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
+    loadingElement: <div style={{ height: `100%` }} />,
+    containerElement: <div style={{ height: `400px`, width: '400px'}} />,
+    mapElement: <div style={{ height: `100%` }} />,
+  }),
+  lifecycle({
+    componentWillMount() {
+      let sted = 63.426387
+      let stad = 10.392680
+      const refs = {}
+
+      this.setState({
+        bounds: null,
+        center: {
+          lat: sted, lng: stad
+
+        },
+        markers: [],
+        onMapMounted: ref => {
+          refs.map = ref;
+          console.log('Kartet lastet');
+
+        },
+        onBoundsChanged: () => {
+          this.setState({
+            bounds: refs.map.getBounds(),
+            center: refs.map.getCenter(),
+          })
+        },
+        onMarkerMounted: ref =>{
+          refs.marker = ref;
+          console.log('Markør');
+        },
+        onSearchBoxMounted: ref => {
+          refs.searchBox = ref;
+        },
+       dragMarker(){
+         let b = this.getPosition();
+         this.setPosition(b);
+         console.log(b.lat(),b.lng());
+       },
+       onMapClick(){
+         let p = refs.marker.getPosition();
+         console.log(p.lat(), p.lng());
+       },
+        onClick(){
+          let a = this.getPosition();
+          console.log(a.lat(),a.lng());
+        },
+        onPlacesChanged: () => {
+          const places = refs.searchBox.getPlaces();
+          const bounds = new google.maps.LatLngBounds();
+
+          places.forEach(place => {
+            if (place.geometry.viewport) {
+              bounds.union(place.geometry.viewport)
+            } else {
+              bounds.extend(place.geometry.location)
+            }
+          });
+          const nextMarkers = places.map(place => ({
+            position: place.geometry.location,
+          }));
+          const nextCenter = _.get(nextMarkers, '0.position', this.state.center);
+
+          this.setState({
+            center: nextCenter,
+            markers: nextMarkers,
+          });
+          let k = refs.marker.getPosition();
+          latitude = k.lat();
+          longitude = k.lng();
+          console.log(latitude);
+          console.log(longitude);
+          // refs.map.fitBounds(bounds);
+        },
+      })
+    },
+  }),
+  withScriptjs,
+  withGoogleMap
+  )(props =>
+    <GoogleMap
+    ref={props.onMapMounted}
+    defaultZoom={15}
+    center={props.center}
+    onBoundsChanged={props.onBoundsChanged}
+    onClick={props.onMapClick}
+    >
+      <SearchBox
+      ref={props.onSearchBoxMounted}
+      bounds={props.bounds}
+      controlPosition={google.maps.ControlPosition.TOP_LEFT}
+      onPlacesChanged={props.onPlacesChanged}
+      >
+        <input
+          type="text"
+          placeholder="Søk etter plass"
+          style={{
+          boxSizing: `border-box`,
+          border: `1px solid transparent`,
+          width: `240px`,
+          height: `32px`,
+          marginTop: `27px`,
+          padding: `0 12px`,
+          borderRadius: `3px`,
+          boxShadow: `0 2px 6px rgba(0, 0, 0, 0.3)`,
+          fontSize: `14px`,
+          outline: `none`,
+          textOverflow: `ellipses`,
+          }}
+        />
+        </SearchBox>
+        {props.markers.map((marker, index) =>
+          <Marker
+            ref={props.onMarkerMounted}
+            key={index}
+            position={marker.position}
+            draggable={true}
+            onDragEnd={props.dragMarker}
+            onClick={props.onClick}
+            />
+          )}
+          </GoogleMap>
+);
+const MapWithAMarker = compose(
+  withProps({
+    googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
+    loadingElement: <div style={{ height: `100%` }} />,
+    containerElement: <div style={{ height: `400px`, width: '400px'}} />,
+    mapElement: <div style={{ height: `100%` }} />,
+  }),
+  lifecycle({
+
+    componentWillMount() {
+      const refs = {}
+
+
+      this.setState({
+        bounds: null,
+        center: {
+          lat: mapLat, lng: mapLng
+
+        },
+        onBoundsChanged: () => {
+          this.setState({
+            center:{
+              lat: mapLat, lng: mapLng
+            },
+          })
+        },
+        markers: [],
+        onMapMounted: ref => {
+          refs.map = ref;
+          console.log('Kartet lastet');
+
+        },
+        onMarkerMounted: ref =>{
+          refs.marker = ref;
+          console.log('Markør');
+        },
+      })
+    },
+  }),
+  withScriptjs,
+  withGoogleMap
+  )(props =>
+    <GoogleMap
+    ref={props.onMapMounted}
+    defaultZoom={15}
+    center={props.center}
+    onBoundsChanged={props.onBoundsChanged}
+    >
+
+
+          <Marker
+            ref={props.onMarkerMounted}
+            position={props.center}
+
+
+            />
+
+          </GoogleMap>
+);
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -87,11 +283,14 @@ class Menu extends React.Component {
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
-          <li>
+          <li className='hopp'>
             <input  ref='serachFieldUser' type='text' className='form-control' />
           </li>
           <li>
-          <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+          <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}><span className='glyphicon glyphicon-search' /></button></Link>
+          </li>
+          <li>
+          <NavLink to='/' className='navLink'><button  className='btn-md' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button></NavLink>
           </li>
         </ul>
       </div>
@@ -122,11 +321,14 @@ class Menu extends React.Component {
     </li>
   </ul>
   <ul className="nav navbar-nav navbar-right">
-    <li>
+    <li className='hopp'>
       <input  ref='serachFieldUser' type='text' className='form-control' />
     </li>
     <li>
   <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+    </li>
+    <li>
+    <Link to='/'><button  className='btn-md' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button></Link>
     </li>
   </ul>
   </div>
@@ -153,6 +355,9 @@ class Menu extends React.Component {
       }).catch((error)=>{
         if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
       });
+    }
+    logOut(){
+      loginService.signOut();
     }
   }
 
@@ -381,7 +586,6 @@ class StartSide extends React.Component {
         <h1>Hei, {this.user.brukernavn}!</h1>
         Id: {this.user.id};
         <button ref='logOut'>Logg ut</button>
-
       </div>
     )
   }
@@ -413,7 +617,7 @@ class Arrangement extends React.Component{
     let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.id}><td>{table.navn}</td><td><Link to={'/bruker/'+table.kontaktperson}>{table.kontaktperson}</Link></td></tr>)
+      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
       a++;
     }
     let signedInUser = loginService.getSignedInUser();
@@ -434,8 +638,8 @@ class Arrangement extends React.Component{
     }
     return(
       <div>
-        <input type='text' ref='searchArrangement' onChange={ () =>{arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {this.arrangement= ''; this.arrangement = result; this.forceUpdate(); }).catch((error) => {if(errorMessage) errorMessage.set('Finner ikke arrangement'); }); }} />
-        <button ref='searchButton'>Søk arrangement</button>
+        <input type='text' ref='searchArrangement'  />
+        <button ref='searchButton'onClick={ () => {this.hentArrangement()}}>Søk arrangement</button>
         <table>
           <tbody>
             {tableItems}
@@ -446,6 +650,7 @@ class Arrangement extends React.Component{
   }
   hentArrangement(){
     arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {
+      console.log(result);
       this.arrangement= '';
       this.arrangement = result;
       this.forceUpdate();
@@ -475,7 +680,7 @@ class NyttArrangement extends React.Component{
         Startdato: <input type="datetime-local" ref="a_startdate" /> <br /> {/*Autofyll med dagens dato*/}
         Sluttdato: <input type="datetime-local" ref="a_enddate" /> <br />
         Oppmøtetidspunkt: <input type="datetime-local" ref="a_meetdate" /> <br />
-        Oppmøtested: <input type="text" ref="a_place" defaultValue="Her" /> <br />
+        Oppmøtested: <MapWithASearchBox /> <br />
         Beskrivelse: <textarea rows="4" cols="20" ref="a_desc" defaultValue="En tekstlig beskrivelse"/> <br />
         Kontaktperson: <br />
         Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
@@ -500,14 +705,10 @@ class NyttArrangement extends React.Component{
     for (let tab of table) {
       id = (tab.children[0].children[0].value === "") ? -1 : +tab.children[0].children[0].value;
       count = (tab.children[1].children[0].value === "") ? -1 : +tab.children[1].children[0].value;
-      console.log(id + " - " + count);
       if(id >= 0 && count >= 0){
-        console.log(tab.children[0].children[0].value);
-        console.log(tab.children[1].children[0].value);
         arr.push({id: id, antall: count});
       }
     }
-    console.log(arr);
     return arr;
   }
   componentDidMount(){
@@ -515,7 +716,7 @@ class NyttArrangement extends React.Component{
       console.log(this.refs.a_startdate.value);
       let roller = this.tabelGreie();
       console.log(roller);
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value, roller).then(() => {
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, roller, longitude,latitude).then(() => {
         console.log('Arrangement laget')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
@@ -543,26 +744,6 @@ class MineSider extends React.Component {
     this.id = signedInUser.id;
   }
   render(){
-    if(administrator){
-      return(
-        <div>
-          <h1>Min Side</h1>
-
-          <table>
-            <tbody>
-              <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
-              <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
-              <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
-            </tbody>
-          </table>
-          <button ref='setPassive'>Meld deg passiv</button>
-          <button ref='seeQualifications'>Se kvalifikasjoner</button>
-          <button ref='changeInfo'>Endre personalia</button>
-          <button ref='changePassword'>Endre passord</button>
-
-        </div>
-      )
-    }
     return(
       <div>
         <h1>Min Side</h1>
@@ -572,6 +753,7 @@ class MineSider extends React.Component {
             <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
             <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
             <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
+            <tr><td>Passiv fra: <input type='date' ref='passivFra' /></td><td>Passiv til: <input type='date' ref='passivTil' /></td></tr>
           </tbody>
         </table>
         <button ref='setPassive'>Meld deg passiv</button>
@@ -590,6 +772,13 @@ class MineSider extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+    this.refs.setPassive.onclick = () => {
+      userService.setPassive(this.refs.passivFra.value, this.refs.passivTil.value, this.id).then(() => {
+        console.log('Satt passiv fra ' + this.refs.passivFra.value + ' til ' + this.refs.passivTil.value);
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
+      });
+    }
     this.refs.changeInfo.onclick = () =>{
       this.props.history.push('/forandreinfo');
     }
@@ -613,15 +802,16 @@ class ForandreBrukerInfo extends React.Component {
   render(){
     return(
       <div>
-        <h1>Min Side {this.user.id}</h1>
+        <h1>Min Side </h1>
 
         <table>
           <tbody>
-            <tr><td>Medlemmsnummer:</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
+            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
             <tr><td>Epost: <input ref='emailInput' /></td><td>Poststed:</td></tr>
             <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
           </tbody>
         </table>
+        Du må skrive inn passordet ditt for å endre informasjonen din:<input type='password' ref='thePassword' />
         <button ref='saveButton'>Lagre forandringer</button>
         <button ref='cancelButton'>Forkast forandringer</button>
       </div>
@@ -651,11 +841,16 @@ class ForandreBrukerInfo extends React.Component {
       this.props.history.push('/minside');
     }
     this.refs.saveButton.onclick = () =>{
-      userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
-      this.props.history.push('/minside');
-    }).catch((error) =>{
-      if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
-    });
+      if(this.refs.thePassword.value === this.user.passord){
+        userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
+        this.props.history.push('/minside');
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+      });
+     }
+     else{
+       alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
+     }
     }
   this.update();
   }
@@ -672,6 +867,9 @@ class ForandrePassord extends React.Component {
     return(
       <div>
       <h2>Lag nytt passord</h2>
+
+      Skriv inn det gamle passordet:<input type ='password' ref='oldPassword' />
+
       Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
 
       Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
@@ -692,6 +890,7 @@ class ForandrePassord extends React.Component {
       });
 
       this.refs.saveButton.onclick = () =>{
+        if(this.refs.oldPassword.value === this.user.passord) {
           if(this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
 
           userService.editPassword(this.refs.passwordInput1.value, this.id).then(() =>{
@@ -702,9 +901,14 @@ class ForandrePassord extends React.Component {
         });
         }
         else {
-          alert('Passordfeltene må være like')
+          alert('Passordfeltene må være like!')
         }
     }
+    else{
+      alert('Det gamle passordet stemmer ikke!')
+    }
+  }
+
 
       this.refs.cancelButton.onclick = () =>{
         this.props.history.push('/minside');
@@ -986,10 +1190,270 @@ class BrukerSide extends React.Component {
   componentDidMount() {
     userService.getUser(this.id).then((result) => {
       this.user = result[0];
-      console.log(this.user);
-      console.log(this.user.tlf);
       this.forceUpdate();
     })
+  }
+}
+
+
+class VisArrangement extends React.Component {
+  constructor(props) {
+    super(props)
+    this.id = props.match.params.id;
+    this.arrangement = [];
+    this.user = [];
+  }
+  render(){
+
+    return(
+      <div>
+        <table>
+          <tbody>
+            <tr>
+              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+            </tr>
+            <tr>
+              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
+            </tr>
+            <tr>
+              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+            </tr>
+            <tr>
+              <td>Oppmøtetidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Starttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Sluttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Oppmøtested:</td>
+            </tr>
+            <tr>
+            <td><div><MapWithAMarker /></div></td>
+            </tr>
+            <tr>
+              <td><button ref='endreArrangement'>Endre arrangementet</button></td>
+              <td><button ref='brukerInnkalling'>Kall inn</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+  changeDate(variabel){
+    let a = moment(variabel).format('DD.MM.YY HH:mm');
+    return a;
+  }
+  componentWillUnmount(){
+    mapLat = '';
+    mapLng = '';
+    }
+  componentDidMount(){
+    arrangementService.showArrangement(this.id).then((result)=>{
+      this.arrangement = result[0];
+      mapLat = this.arrangement.latitute;
+      mapLng = this.arrangement.longitute;
+    this.forceUpdate();
+      userService.getUser(result[0].kontaktperson).then((result)=>{
+        this.user = result[0];
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke bruker');
+      });
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
+    });
+    this.refs.endreArrangement.onclick = () =>{
+      this.props.history.push('/endreArrangement/'+this.arrangement.id);
+    }
+    this.refs.brukerInnkalling.onclick = () =>{
+      console.log('/innkalling/'+this.arrangement.id);
+      this.props.history.push('/inkalling/'+this.arrangement.id);
+    }
+
+  }
+}
+
+class EndreArrangement extends React.Component {
+  constructor(props){
+    super(props);
+    this.arrangement = [];
+    this.id = props.match.params.id;
+    this.user = [];
+    this.state = {beskrivelse: '',
+                  oppmootetidspunkt: '',
+                  starttidspunkt: '',
+                  sluttidspunkt: ''
+                  };
+
+    this.handleChange = this.handleChange.bind(this);
+  }
+  handleChange(event){
+    const target = event.target;
+    const value = event.target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+  render(){
+    return(
+      <div>
+        <table>
+          <tbody>
+            <tr>
+              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+            </tr>
+            <tr>
+              <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
+            </tr>
+            <tr>
+              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+            </tr>
+            <tr>
+              <td>Oppmøtetidspunkt:</td>
+              <td><input type='datetime-local'name='oppmootetidspunkt' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/></td>
+            </tr>
+            <tr>
+              <td>Starttidspunkt:</td>
+              <td><input type='datetime-local' name='starttidspunkt' value={this.state.starttidspunkt} onChange={this.handleChange} /></td>
+            </tr>
+            <tr>
+              <td>Sluttidspunkt:</td>
+              <td><input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
+            </tr>
+            <tr>
+              <td>Oppmøtested:</td><td><MapWithAMarker /></td>
+            </tr>
+            <tr>
+              <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+  changeDate(variabel){
+  let a = moment(variabel).format('YYYY-MM-DDTHH:mm');
+  return a;
+  }
+  componentDidMount(){
+    arrangementService.showArrangement(this.id).then((result)=>{
+      this.arrangement = result[0];
+
+      this.state.beskrivelse = this.arrangement.beskrivelse;
+      this.state.oppmootetidspunkt = this.changeDate(this.arrangement.oppmootetidspunkt);
+      this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
+      this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
+      mapLat = this.arrangement.latitude;
+      mapLng = this.arrangement.longitute;
+      this.forceUpdate();
+      userService.getUser(result[0].kontaktperson).then((result)=>{
+        this.user = result[0];
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke bruker');
+      });
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
+    });
+  }
+}
+
+class Innkalling extends React.Component {
+  constructor(props) {
+    super(props);
+    this.id = props.match.params.id;
+    this.roller = []
+    this.ikkeValgte = []
+    this.valgte = []
+  }
+
+  render() {
+    let rolle = []
+    let ikkeValgtePersoner = []
+    let valgtePersoner = []
+    for(let ikke of this.ikkeValgte){
+      ikkeValgtePersoner.push(<li key={id}>{navn}<button>Flytt over</button></li>)
+    }
+    for(let valgt of this.valgte){
+      valgtePersoner.push(<li key={id}>{navn}</li>)
+    }
+    for (let roll of this.roller) {
+      rolle.push(<option key={roll.r_id} value={roll.r_id}>{roll.navn}</option>)
+    }
+    return(
+      <div>
+        <table style={{width: '100%'}}>
+          <thead>
+            <tr>
+              <td><select ref='r'>{rolle}</select>
+              <button ref='button'>Button</button></td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <p><strong>Ikke valgte</strong></p>
+              </td>
+              <td>
+                <p><strong>Valgte</strong></p>
+              </td>
+            </tr>
+            <tr>
+              <td style={{width: '50%'}}>
+                <table >
+                  <tbody>
+                    <tr>
+                      <td>
+                        <ul>
+                          {ikkeValgtePersoner}
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+              <td style={{width: '50%'}}>
+                <table >
+                  <tbody>
+                    <tr>
+                      <td>
+                        <ul>
+                          {valgtePersoner}
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  componentDidMount() {
+    // SQL med liste over brukere
+    console.log(this.id);
+    arrangementService.getRoles(this.id).then((result) => {
+      this.roller = result
+      console.log(result);
+      this.forceUpdate()
+    }).catch((error) => {
+      console.log(error);
+      if(errorMessage) errorMessage.set('Fant ingen roller i dette arrnagementet' + error)
+    })
+    this.refs.button.onclick = () => {
+      console.log(this.refs.r.value);
+    }
   }
 }
 
@@ -1017,6 +1481,10 @@ ReactDOM.render((
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
         <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
         <Route exact path='/sokeResultat' component={VisSøkeResultat} />
+        <Route exact path='/visArrangement/:id' component={VisArrangement} />
+        <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
+        <Route exact path='/inkalling/:id' component={Innkalling} />
+
 
       </Switch>
     </div>

@@ -64,10 +64,30 @@ class EmailService {
     })
   }
 
+  innkalling (clientEmail, rolle, arrNavn, arrDato) {
+    return new Promise((resolve, reject) => {
+      let message = {
+        from: 'rodekorsprosjekt@2rz.no',
+        to:  clientEmail,
+        subject: 'Innkalling til vakt',
+        text: 'Du har blitt kalt inn til ' + arrNavn + ' som ' + rolle + ' den ' + arrDato + '. Gå inn på appen for å godta vakten.',
+        html: 'Du har blitt kalt inn til ' + arrNavn + ' som ' + rolle + ' den ' + arrDato + '. Gå inn på appen for å godta vakten.'
+      }
+
+      transporter.sendMail(message, (err, info) => {
+        if (err) {
+          reject(err)
+          return;
+        }
+
+        resolve(info);
+      });
+    })
+  }
+
 }
 // Class that performs database queries related to users
 class UserService {
-
 
   searchUser(input){
     return new Promise((resolve, reject) =>{
@@ -103,7 +123,6 @@ class UserService {
         reject(error);
         return;
       }
-      console.log(result[0]);
       resolve(result);
     });
   });
@@ -174,6 +193,18 @@ class UserService {
   });
   }
 
+  setPassive(from, to, id) {
+    return new Promise((resolve, reject) => {
+    connection.query('INSERT INTO passiv (m_id, f_dato, t_dato) values (?, ?, ?)', [id, from, to], (error, result) => {
+      if(error){
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+  }
+
 }
 
 class LoginService {
@@ -201,7 +232,7 @@ class LoginService {
   if(!item) return null;
 
   return JSON.parse(item);
-}
+ }
   signOut(): ?User {
   localStorage.removeItem('signedInUser');
   }
@@ -251,7 +282,7 @@ class LoginService {
 }
 
 class ArrangementService {
-  addArrangement (tlf, navn, meetdate, startdate, enddate, place, desc, roller) {
+  addArrangement (tlf, navn, meetdate, startdate, enddate, desc, roller, longitude, latitude) {
       let k_id;
       return new Promise((resolve, reject) =>{
         connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
@@ -263,7 +294,7 @@ class ArrangementService {
           // console.log(result);
           // console.log(k_id);
 
-          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt, kordinater, beskrivelse, kontaktperson) values (?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, place, desc, k_id], (error, result) => {
+          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute) values (?, ?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude], (error, result) => {
             if(error){
               console.log(error);
               return;
@@ -292,7 +323,7 @@ class ArrangementService {
 
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
-        connection.query('SELECT * from arrangement where navn LIKE ?',[sok], (error, result) =>{
+        connection.query('SELECT *, arrangement.id as a_id from arrangement INNER JOIN medlem on kontaktperson = medlem.id where navn LIKE ?',[sok], (error, result) =>{
           if(error){
             reject(error);
             return;
@@ -300,6 +331,45 @@ class ArrangementService {
           resolve(result);
     });
   });
+
+  }
+
+  showArrangement(id){
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT * from arrangement where id = ?', [id], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      });
+    });
+  }
+
+  addShift(a_id, m_id, r_id){
+    return new Promise((resolve, reject) =>{
+      connection.query('UPDATE vakt SET m_id = ? WHERE a_id = ? AND r_id = ? AND m_id IS NULL LIMIT 1', [m_id, a_id, r_id], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      });
+    });
+  }
+
+  getRoles(a_id) {
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT r_id, COUNT(r_id) as antall, navn FROM vakt INNER JOIN rolle on r_id = rolle.id WHERE a_id = ? GROUP BY r_id', [a_id], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
 
   }
 }
