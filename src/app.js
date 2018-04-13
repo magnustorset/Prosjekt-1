@@ -23,6 +23,7 @@ let longitude = ''
 let mapLat = ''
 let mapLng = ''
 let brukerEpost;
+let vis = []
 
 const MapWithASearchBox = compose(
   withProps({
@@ -351,8 +352,7 @@ class Menu extends React.Component {
   }
   searchUsers(){
       userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
-        console.log(result);
-        sokeResultat.set(result);
+        vis = result;
           history.push('sokeResultat');
           this.refs.serachFieldUser.value = '';
       }).catch((error)=>{
@@ -1006,7 +1006,7 @@ class GodkjennBruker extends React.Component {
   render(){
     let brukerListe = [];
     for(let bruker of this.ikkeAktive){
-      brukerListe.push(<li key={bruker.id}>{bruker.fornavn},{bruker.etternavn} <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+      brukerListe.push(<li key={bruker.id}><Link to={'/bruker/'+bruker.id}>{bruker.fornavn},{bruker.etternavn}</Link> <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
     }
     return(
       <div>
@@ -1043,7 +1043,7 @@ class GodkjennBruker extends React.Component {
 class VisSøkeResultat extends React.Component {
   constructor(){
     super();
-    this.sokeResultat = [];
+    this.sokeResultat = vis;
   }
   render(){
    let resultat = [];
@@ -1056,21 +1056,20 @@ class VisSøkeResultat extends React.Component {
       {resultat}
       </ul>
       <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+      <input type='text' ref='sokeFelt' />
       </div>
     );
   }
-  componentWillUnmount(){
-    sokeResultat = null;
-  }
   componentDidMount(){
-    sokeResultat = this;
+    userService.searchUser(this.refs.sokeFelt).then((result)=>{
+      this.sokeResultat = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke brukeren'+ error);
+      console.log(error);
+    });
   }
-  set(innhold){
-   this.sokeResultat = innhold;
-   this.forceUpdate();
- }
 }
-let sokeResultat;
 
 class BrukerSide extends React.Component {
   constructor(props) {
