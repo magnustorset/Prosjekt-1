@@ -23,6 +23,7 @@ let longitude = ''
 let mapLat = ''
 let mapLng = ''
 let brukerEpost;
+let vis = []
 
 const MapWithASearchBox = compose(
   withProps({
@@ -351,10 +352,15 @@ class Menu extends React.Component {
   }
   searchUsers(){
       userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
-        console.log(result);
-        sokeResultat.set(result);
-          history.push('sokeResultat');
+        if(history.location.pathname === '/sokeResultat'){
+          vis = result;
+          console.log(vis);
+          sok.update();
+        }else{
+          vis = result;
+          history.push('sokeResultat')
           this.refs.serachFieldUser.value = '';
+        }
       }).catch((error)=>{
         if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
       });
@@ -1006,7 +1012,7 @@ class GodkjennBruker extends React.Component {
   render(){
     let brukerListe = [];
     for(let bruker of this.ikkeAktive){
-      brukerListe.push(<li key={bruker.id}>{bruker.fornavn},{bruker.etternavn} <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+      brukerListe.push(<li key={bruker.id}><Link to={'/bruker/'+bruker.id}>{bruker.fornavn},{bruker.etternavn}</Link> <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
     }
     return(
       <div>
@@ -1043,7 +1049,8 @@ class GodkjennBruker extends React.Component {
 class VisSøkeResultat extends React.Component {
   constructor(){
     super();
-    this.sokeResultat = [];
+
+    this.sokeResultat = vis;
   }
   render(){
    let resultat = [];
@@ -1059,19 +1066,17 @@ class VisSøkeResultat extends React.Component {
       </div>
     );
   }
-  componentWillUnmount(){
-    sokeResultat = null;
-  }
-  componentDidMount(){
-    sokeResultat = this;
-  }
-  set(innhold){
-   this.sokeResultat = innhold;
-   this.forceUpdate();
- }
-}
-let sokeResultat;
 
+componentDidMount(){
+  sok = this;
+}
+update(){
+  this.sokeResultat = vis;
+  this.forceUpdate();
+}
+}
+
+let sok;
 class BrukerSide extends React.Component {
   constructor(props) {
     super(props)
@@ -1114,7 +1119,7 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+            <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1153,7 +1158,7 @@ class BrukerSide extends React.Component {
                 </tr>
               </tbody>
             </table>
-              <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+              <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
             </div>
           </div>
         )
