@@ -1,13 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-<<<<<<< HEAD
 import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
-=======
-import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
 import createHashHistory from 'history/createHashHistory';
 const history = createHashHistory();
->>>>>>> 071b5535c7b11dbeaaf355f6f3118735485783df
 const _ = require('lodash');
 const { compose, withProps, lifecycle } = require('recompose')
 const {
