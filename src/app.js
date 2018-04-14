@@ -356,6 +356,7 @@ class Menu extends React.Component {
           vis = result;
           console.log(vis);
           sok.update();
+          this.refs.serachFieldUser.value = '';
         }else{
           vis = result;
           history.push('sokeResultat')
@@ -375,29 +376,31 @@ class Innlogging extends React.Component {
   render () {
 
     return (
-      <div className='Rot'>
-        <br />
-        <table >
-          <tbody>
-            <tr>
-              <td >Brukernavn: </td>
-              <td ><input type="text" ref="unInput" defaultValue="sindersopp@hotmail.com" /></td>
-              <td ><button ref="newUserButton">Ny bruker</button></td>
-            </tr>
-            <tr>
-              <td >Passord: </td>
-              <td ><input type="password" ref="pwInput" defaultValue="passord" /> </td>
-              <td ><button ref="newPasswordButton">Glemt passord?</button></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td ><button className="btn btn-primary" ref="innlogginButton">Logg inn</button></td>
-              <td ></td>
-            </tr>
-          </tbody>
-        </table>
+<div>
+      <div className='Rot container'>
+      <form>
+      <div className='form-group' id='bilde'>
+        <img src='src/Test.png' />
+      </div>
+        <div className='form-group'>
+          <label htmlFor='brukernavn'>Brukernavn:</label>
+          <input type="text" ref="unInput" className="form-control col-6" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
+        </div>
+        <div className='form-group'>
+          <label htmlFor='passord'>Passord:</label>
+          <input type="password" ref="pwInput" className="form-control col-4" defaultValue="passord" name='passord'/>
+        </div>
+        <div className='form-group'>
+          <button className="btn btn-primary" ref="innlogginButton">Logg inn</button>
+        </div>
+        <div className='form-group'>
+          <button className='btn-default' ref="newUserButton">Ny bruker</button>
+          <button className='btn-default' ref="newPasswordButton">Glemt passord?</button>
+        </div>
+        </form>
       </div>
 
+</div>
     )
   }
 
@@ -589,13 +592,26 @@ class StartSide extends React.Component {
   let signedInUser = loginService.getSignedInUser();
   this.user = [];
   this.id = signedInUser.id;
+
+  this.state = {
+    adminMelding: ''
+  }
+  this.handleChange = this.handleChange.bind(this);
+  }
+  handleChange(event){
+    const target = event.target;
+    const value = event.target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
   }
   render () {
     return (
-      <div>
+      <div className='startside'>
         <h1>Hei, {this.user.brukernavn}!</h1>
-        Id: {this.user.id};
-        <button ref='logOut'>Logg ut</button>
+        <textarea name='adminMelding' value={this.state.adminMelding} onChange={this.handleChange} />
       </div>
     )
   }
@@ -608,15 +624,16 @@ class StartSide extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+    administratorFunctions.getAdminMelding().then((result) =>{
+      this.state.adminMelding = result[0].melding;
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke melding' + error);
+    });
 
-    this.refs.logOut.onclick = () =>{
-      brukerid = null;
-      administrator = false;
-      loginService.signOut();
-      this.props.history.push('/');
     }
   }
-}
+
 
 class Arrangement extends React.Component{
   constructor(){
@@ -627,18 +644,26 @@ class Arrangement extends React.Component{
     let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
       a++;
     }
     let signedInUser = loginService.getSignedInUser();
     if(signedInUser.admin === 1)
     {
       return(
-        <div>
-          <input type='text' ref='searchArrangement' />
-          <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
-          <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+        <div className='table-responsive'>
           <table>
+            <thead>
+              <tr>
+                <td>
+                <input type='text' ref='searchArrangement' />
+                <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
+                </td>
+                <td>
+                  <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+                </td>
+              </tr>
+            </thead>
             <tbody>
               {tableItems}
             </tbody>
@@ -971,40 +996,54 @@ class SeKvalifikasjoner extends React.Component {
 class Administrator extends React.Component{
   render(){
     return(
-      <table style={{width: '100%'}}><tbody>
-        <tr>
-          <td valign='top' style={{width: '30%'}}>
-            <Egenskaper />
-          </td>
-          <td valign='top'>
-            <GodkjennBruker />
-          </td>
-        </tr>
-      </tbody></table>
+      <div className='table-responsive'>
+      <table style={{width: '100%'}}>
+        <thead>
+          <tr>
+            <td style={{width: '30%'}}>
+              <div><strong>Brukere som må godkjennes</strong></div>
+            </td>
+            <td style={{width: '30%'}}>
+              <div><strong>Godkjenn vaktbytter</strong></div>
+            </td>
+            <td style={{width: '30%'}}>
+              <div><strong>Annet</strong></div>
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td valign='top' style={{width: '30%'}}>
+              <GodkjennBruker />
+            </td>
+            <td valign='top'>
+
+            </td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <td>
+            <textarea ref='adminMelding' />
+            <button ref='RegistrerAdminMelding'>Commit</button>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
     )
   }
-}
-
-class Egenskaper extends React.Component <{}>{
-  constructor(){
-    super();
-  }
-  render(){
-
-    return(
-    <div>
-    <h1>Hva vil du gjøre?</h1>
-    <ul>
-
-      <li>
-      <Link to={'/godkjennebruker'}>Godkjenne bruker</Link>
-      </li>
-
-    </ul>
-    </div>
-    );
+  componentDidMount(){
+    this.refs.RegistrerAdminMelding.onclick = ()=> {
+      administratorFunctions.updateAdminMelding(this.refs.adminMelding.value);
+    }
   }
 }
+
 
 class GodkjennBruker extends React.Component {
   constructor(){
@@ -1069,13 +1108,13 @@ class VisSøkeResultat extends React.Component {
     );
   }
 
-componentDidMount(){
+  componentDidMount(){
   sok = this;
-}
-update(){
+  }
+  update(){
   this.sokeResultat = vis;
   this.forceUpdate();
-}
+  }
 }
 
 let sok;
