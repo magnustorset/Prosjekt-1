@@ -439,6 +439,30 @@ class AdministratorFunctions{
       });
     });
   }
+  getAdminMelding(){
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT * from Adminmelding where id = ?',[1], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+    
+        resolve(result);
+      });
+    });
+  }
+  updateAdminMelding(input){
+    return new Promise((resolve, reject) =>{
+      connection.query('UPDATE Adminmelding set melding = ? where id = ?', [input, 1], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
 }
 
 let userService = new UserService()
