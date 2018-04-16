@@ -302,7 +302,7 @@ class ArrangementService {
           reject(error);
           return;
         }
-        console.log(result);
+        
         resolve(result);
       })
     })
@@ -314,7 +314,7 @@ class ArrangementService {
           reject(error);
           return;
         }
-        console.log(result);
+
         resolve(result);
       })
     })
