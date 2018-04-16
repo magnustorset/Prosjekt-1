@@ -960,7 +960,7 @@ class ForandreBrukerInfo extends React.Component {
           }).catch((error) =>{
             if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
           });
-          alert('Brukerinfo oppdatert.');
+        
 
 
 
