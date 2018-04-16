@@ -1,5 +1,6 @@
 import mysql from 'mysql'
 import nodemailer from 'nodemailer'
+const passwordHash =require ('password-hash');
 
 // Setup database server reconnection when server timeouts connection:
 let connection
@@ -130,7 +131,8 @@ class UserService {
 
   addUser (fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr) {
     return new Promise((resolve, reject) =>{
-    connection.query('INSERT INTO medlem (fornavn, etternavn, brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr], (error, result) => {
+    let pord = passwordHash.generate(passord);
+    connection.query('INSERT INTO medlem (fornavn, etternavn, brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, pord, postnr], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -158,7 +160,8 @@ class UserService {
 
   newPassword(passord, epost) {
     return new Promise((resolve, reject) => {
-      connection.query('UPDATE medlem SET passord = ? WHERE epost = ?', [passord, epost], (error, result) => {
+      let pord = passwordHash.generate(passord);
+      connection.query('UPDATE medlem SET passord = ? WHERE epost = ?', [pord, epost], (error, result) => {
         if (error) {
           reject(error);
           return;
@@ -183,7 +186,8 @@ class UserService {
 
   editPassword(password, id, callback) {
     return new Promise((resolve, reject) => {
-    connection.query('UPDATE medlem SET passord = ? WHERE id = ?', [password, id], (error, result) => {
+      let pord = passwordHash.generate(password);
+    connection.query('UPDATE medlem SET passord = ? WHERE id = ?', [pord, id], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -216,12 +220,15 @@ class LoginService {
           return;
         }
         let login = false
-        if (result[0].passord === passord) {
+        if (passwordHash.verify(passord,result[0].passord)) {
           login = true
+          localStorage.setItem('signedInUser', JSON.stringify(result[0])); // Store User-object in browser
       }else{
           login = false
         }
-        localStorage.setItem('signedInUser', JSON.stringify(result[0])); // Store User-object in browser
+        console.log(passwordHash.verify(passord,result[0].passord));
+        console.log(login);
+
         resolve(login);
     });
   });
@@ -435,6 +442,30 @@ class AdministratorFunctions{
           return;
         }
         console.log('Brukeren er nå aktiv');
+        resolve();
+      });
+    });
+  }
+  getAdminMelding(){
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT * from Adminmelding where id = ?',[1], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      });
+    });
+  }
+  updateAdminMelding(input){
+    return new Promise((resolve, reject) =>{
+      connection.query('UPDATE Adminmelding set melding = ? where id = ?', [input, 1], (error, result) =>{
+        if(error){
+          reject(error);
+          return;
+        }
+
         resolve();
       });
     });

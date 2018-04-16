@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
 import createHashHistory from 'history/createHashHistory';
+import Popup from 'react-popup';
 const history = createHashHistory();
+const passwordHash =require ('password-hash');
 const _ = require('lodash');
 const { compose, withProps, lifecycle } = require('recompose')
 const {
@@ -23,6 +25,7 @@ let longitude = ''
 let mapLat = ''
 let mapLng = ''
 let brukerEpost;
+let vis = []
 
 const MapWithASearchBox = compose(
   withProps({
@@ -249,8 +252,72 @@ class ErrorMessage extends React.Component {
     this.forceUpdate();
   }
 }
-
 let errorMessage; // ErrorMessage-instance
+class Prompt extends React.Component {
+    constructor(props) {
+        super(props);
+
+
+        this.state = {
+            value: this.props.defaultValue
+        };
+
+        this.onChange = (e) => this._onChange(e);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.value !== this.state.value) {
+            this.props.onChange(this.state.value);
+        }
+    }
+
+    _onChange(e) {
+        let value = e.target.value;
+
+        this.setState({value: value});
+    }
+
+    render() {
+        return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+    }
+}
+
+  /** Prompt plugin */
+  Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
+    let promptValue = null;
+
+    let promptChange = function (value) {
+        promptValue = value;
+    };
+
+    this.create({
+        title: 'Skriv inn passordet ditt:',
+        content: <Prompt onChange={promptChange} placeholder={placeholder} value={defaultValue} />,
+        buttons: {
+            left: [{
+              text: 'Avbryt',
+              classname: 'abort',
+              action: function() {
+                Popup.close();
+              }
+            }],
+            right: [{
+                text: 'Lagre',
+                key: '⌘+s',
+                className: 'success',
+                action: function () {
+                    callback(promptValue);
+                    Popup.close();
+
+                }
+            }]
+        }
+    });
+});
+
+
+
+
 
 class Menu extends React.Component {
   render () {
@@ -351,10 +418,16 @@ class Menu extends React.Component {
   }
   searchUsers(){
       userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
-        console.log(result);
-        sokeResultat.set(result);
-          history.push('sokeResultat');
+        if(history.location.pathname === '/sokeResultat'){
+          vis = result;
+          console.log(vis);
+          sok.update();
           this.refs.serachFieldUser.value = '';
+        }else{
+          vis = result;
+          history.push('sokeResultat')
+          this.refs.serachFieldUser.value = '';
+        }
       }).catch((error)=>{
         if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
       });
@@ -369,34 +442,37 @@ class Innlogging extends React.Component {
   render () {
 
     return (
-      <div className='Rot'>
-        <br />
-        <table >
-          <tbody>
-            <tr>
-              <td >Brukernavn: </td>
-              <td ><input type="text" ref="unInput" defaultValue="sindersopp@hotmail.com" /></td>
-              <td ><button ref="newUserButton">Ny bruker</button></td>
-            </tr>
-            <tr>
-              <td >Passord: </td>
-              <td ><input type="password" ref="pwInput" defaultValue="passord" /> </td>
-              <td ><button ref="newPasswordButton">Glemt passord?</button></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td ><button className="btn btn-primary" ref="innlogginButton">Logg inn</button></td>
-              <td ></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+      <div className='Rot container'>
+
+      <div className='form-group' id='bilde'>
+        <img src='src/Test.png' />
+      </div>
+        <div className='form-group'>
+          <label htmlFor='brukernavn'>Brukernavn:</label>
+          <input type="text" ref="unInput" className="form-control col-6" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
+        </div>
+        <div className='form-group'>
+          <label htmlFor='passord'>Passord:</label>
+          <input type="password" ref="pwInput" className="form-control col-4" defaultValue="passord" name='passord'/>
+        </div>
+        <div className='form-group'>
+          <button className="btn btn-primary" ref="innlogginButton">Logg inn</button>
+        </div>
+        <div className='form-group'>
+          <button className='btn-default' ref="newUserButton">Ny bruker</button>
+          <button className='btn-default' ref="newPasswordButton">Glemt passord?</button>
+        </div>
+
       </div>
 
+      </div>
     )
   }
 
   // Called after render() is called for the first time
   componentDidMount () {
+
     this.refs.innlogginButton.onclick = () => {
       loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then((login) => {
         let signedInUser = loginService.getSignedInUser();
@@ -404,12 +480,12 @@ class Innlogging extends React.Component {
           console.log('Innlogget som admin');
           brukerid = signedInUser.id;
           administrator = true;
-          this.props.history.push('/start');
+          history.push('/start');
         }
         if(login && signedInUser.admin !=1 && signedInUser.aktiv === 1){
           console.log('Innlogget som bruker');
           brukerid = signedInUser.id;
-          this.props.history.push('/start');
+          history.push('/start');
         }
         if(signedInUser.aktiv != 1){
           localStorage.removeItem('signedInUser');
@@ -477,6 +553,7 @@ class NyBruker extends React.Component {
           </tbody>
         </table>
         <button ref="createuserButton">Ferdig</button>
+        <button onClick={()=>{history.goBack()} }>Tilbake</button>
       </div>
     )
   }
@@ -583,13 +660,26 @@ class StartSide extends React.Component {
   let signedInUser = loginService.getSignedInUser();
   this.user = [];
   this.id = signedInUser.id;
+
+  this.state = {melding: ''
+                };
+
+  this.handleChange = this.handleChange.bind(this);
+  }
+  handleChange(event){
+    const target = event.target;
+    const value = event.target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
   }
   render () {
     return (
-      <div>
+      <div className='startside'>
         <h1>Hei, {this.user.brukernavn}!</h1>
-        Id: {this.user.id};
-        <button ref='logOut'>Logg ut</button>
+        <textarea name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
       </div>
     )
   }
@@ -602,15 +692,16 @@ class StartSide extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+    administratorFunctions.getAdminMelding().then((result) =>{
+      this.state.melding = result[0].melding;
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke melding' + error);
+    });
 
-    this.refs.logOut.onclick = () =>{
-      brukerid = null;
-      administrator = false;
-      loginService.signOut();
-      this.props.history.push('/');
     }
   }
-}
+
 
 class Arrangement extends React.Component{
   constructor(){
@@ -621,18 +712,26 @@ class Arrangement extends React.Component{
     let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
       a++;
     }
     let signedInUser = loginService.getSignedInUser();
     if(signedInUser.admin === 1)
     {
       return(
-        <div>
-          <input type='text' ref='searchArrangement' />
-          <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
-          <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+        <div className='table-responsive'>
           <table>
+            <thead>
+              <tr>
+                <td>
+                <input type='text' ref='searchArrangement' />
+                <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
+                </td>
+                <td>
+                  <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+                </td>
+              </tr>
+            </thead>
             <tbody>
               {tableItems}
             </tbody>
@@ -752,18 +851,32 @@ class MineSider extends React.Component {
       <div>
         <h1>Min Side</h1>
 
-        <table>
+        <table className='minsideTabell'>
           <tbody>
-            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
-            <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
-            <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
-            <tr><td>Passiv fra: <input type='date' ref='passivFra' /></td><td>Passiv til: <input type='date' ref='passivTil' /></td></tr>
+            <tr>
+              <td className='minsideTabell'>Medlemmsnummer: {this.user.id}</td>
+              <td className='minsideTabell'>Postnummer: {this.user.poststed_postnr}</td>
+            </tr>
+            <tr>
+              <td className='minsideTabell'>Epost: {this.user.epost}</td>
+              <td className='minsideTabell'>Poststed: {this.user.poststed}</td>
+            </tr>
+            <tr>
+              <td className='minsideTabell'>Telefonnummer: {this.user.tlf}</td>
+              <td className='minsideTabell'>Gateadresse: {this.user.adresse}</td>
+            </tr>
+            <tr>
+              <td className='minsideTabell'>Passiv fra: <input type='date' ref='passivFra' /></td>
+              <td className='minsideTabell'>Passiv til: <input type='date' ref='passivTil' /></td>
+            </tr>
+            <tr>
+              <td className='minsideTabell'><button ref='setPassive'>Meld deg passiv</button>
+              <button ref='seeQualifications'>Se kvalifikasjoner</button></td>
+              <td className='minsideTabell'><button ref='changeInfo'>Endre personalia</button>
+              <button ref='changePassword'>Endre passord</button></td>
+            </tr>
           </tbody>
         </table>
-        <button ref='setPassive'>Meld deg passiv</button>
-        <button ref='seeQualifications'>Se kvalifikasjoner</button>
-        <button ref='changeInfo'>Endre personalia</button>
-        <button ref='changePassword'>Endre passord</button>
       </div>
     )
   }
@@ -799,8 +912,10 @@ class ForandreBrukerInfo extends React.Component {
   constructor() {
     super();
 
+    let signedInUser = loginService.getSignedInUser();
+    let bolle = 5;
     this.user = [];
-    this.id = brukerid;
+    this.id = signedInUser.id;
 
   }
   render(){
@@ -815,7 +930,6 @@ class ForandreBrukerInfo extends React.Component {
             <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
           </tbody>
         </table>
-        Du må skrive inn passordet ditt for å endre informasjonen din:<input type='password' ref='thePassword' />
         <button ref='saveButton'>Lagre forandringer</button>
         <button ref='cancelButton'>Forkast forandringer</button>
       </div>
@@ -831,6 +945,7 @@ class ForandreBrukerInfo extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+
   }
   componentDidMount(){
     userService.getUser(this.id).then((result) =>{
@@ -845,16 +960,35 @@ class ForandreBrukerInfo extends React.Component {
       this.props.history.push('/minside');
     }
     this.refs.saveButton.onclick = () =>{
-      if(this.refs.thePassword.value === this.user.passord){
-        userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
-        this.props.history.push('/minside');
-      }).catch((error) =>{
-        if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+      let email = this.refs.emailInput.value;
+      let adress = this.refs.adressInput.value;
+      let tlf = this.refs.tlfInput.value;
+      let zip = this.refs.zipInput.value;
+      let vip = this.id;
+
+      let thePassword = this.user.passord;
+
+      /** Call the plugin */
+      Popup.plugins(email, adress, tlf, zip, vip, thePassword).prompt('', 'Passord', function (value,signedInUser) {
+
+          if(passwordHash.verify(value,thePassword)){
+            userService.editUser(email, adress, tlf, zip, vip).then(() =>{
+              history.push('/minside');
+          }).catch((error) =>{
+            if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+          });
+
+
+
+
+         }
+         else{
+           alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
+         }
       });
-     }
-     else{
-       alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
-     }
+
+
+    // this.props.history.push('/minside');
     }
   this.update();
   }
@@ -864,15 +998,14 @@ class ForandrePassord extends React.Component {
   constructor() {
     super();
 
+    let signedInUser = loginService.getSignedInUser();
     this.user = [];
-    this.id = brukerid;
+    this.id = signedInUser.id;
   }
   render(){
     return(
       <div>
       <h2>Lag nytt passord</h2>
-
-      Skriv inn det gamle passordet:<input type ='password' ref='oldPassword' />
 
       Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
 
@@ -894,23 +1027,30 @@ class ForandrePassord extends React.Component {
       });
 
       this.refs.saveButton.onclick = () =>{
-        if(this.refs.oldPassword.value === this.user.passord) {
-          if(this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
+        let password1 = this.refs.passwordInput1.value;
+        let password2 = this.refs.passwordInput2.value;
 
-          userService.editPassword(this.refs.passwordInput1.value, this.id).then(() =>{
+        let thePassword = this.user.passord;
+        let currentId = this.user.id;
+        if (password1 === password2){
+          Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
+              if(passwordHash.verify(value,thePassword)){
+                userService.editPassword(password1, currentId).then(() =>{
+                  history.push('/minside');
+              }).catch((error) =>{
+                if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
+              });
 
-          this.props.history.push('/minside');
-        }).catch((error) =>{
-          if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
-        });
+             }
+             else{
+               alert('Passordet stemte ikke.');
+             }
+          });
+
         }
-        else {
+        else{
           alert('Passordfeltene må være like!')
         }
-    }
-    else{
-      alert('Det gamle passordet stemmer ikke!')
-    }
   }
 
 
@@ -954,7 +1094,7 @@ class SeKvalifikasjoner extends React.Component {
       if(errorMessage) errorMessage.set("Failed getting qualifications");
     });
     this.refs.tilbakeKnapp.onclick = () =>{
-      this.props.history.push('/minside');
+      this.props.history.goBack();
     }
 
   }
@@ -963,40 +1103,54 @@ class SeKvalifikasjoner extends React.Component {
 class Administrator extends React.Component{
   render(){
     return(
-      <table style={{width: '100%'}}><tbody>
-        <tr>
-          <td valign='top' style={{width: '30%'}}>
-            <Egenskaper />
-          </td>
-          <td valign='top'>
-            <GodkjennBruker />
-          </td>
-        </tr>
-      </tbody></table>
+      <div className='table-responsive'>
+      <table style={{width: '100%'}}>
+        <thead>
+          <tr>
+            <td style={{width: '30%'}}>
+              <div><strong>Brukere som må godkjennes</strong></div>
+            </td>
+            <td style={{width: '30%'}}>
+              <div><strong>Godkjenn vaktbytter</strong></div>
+            </td>
+            <td style={{width: '30%'}}>
+              <div><strong>Annet</strong></div>
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td valign='top' style={{width: '30%'}}>
+              <GodkjennBruker />
+            </td>
+            <td valign='top'>
+
+            </td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <td>
+            <textarea ref='adminMelding' />
+            <button ref='RegistrerAdminMelding'>Commit</button>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
     )
   }
-}
-
-class Egenskaper extends React.Component <{}>{
-  constructor(){
-    super();
-  }
-  render(){
-
-    return(
-    <div>
-    <h1>Hva vil du gjøre?</h1>
-    <ul>
-
-      <li>
-      <Link to={'/godkjennebruker'}>Godkjenne bruker</Link>
-      </li>
-
-    </ul>
-    </div>
-    );
+  componentDidMount(){
+    this.refs.RegistrerAdminMelding.onclick = ()=> {
+      administratorFunctions.updateAdminMelding(this.refs.adminMelding.value);
+    }
   }
 }
+
 
 class GodkjennBruker extends React.Component {
   constructor(){
@@ -1006,7 +1160,7 @@ class GodkjennBruker extends React.Component {
   render(){
     let brukerListe = [];
     for(let bruker of this.ikkeAktive){
-      brukerListe.push(<li key={bruker.id}>{bruker.fornavn},{bruker.etternavn} <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+      brukerListe.push(<li key={bruker.id}><Link to={'/bruker/'+bruker.id}>{bruker.fornavn},{bruker.etternavn}</Link> <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
     }
     return(
       <div>
@@ -1043,7 +1197,8 @@ class GodkjennBruker extends React.Component {
 class VisSøkeResultat extends React.Component {
   constructor(){
     super();
-    this.sokeResultat = [];
+
+    this.sokeResultat = vis;
   }
   render(){
    let resultat = [];
@@ -1059,19 +1214,17 @@ class VisSøkeResultat extends React.Component {
       </div>
     );
   }
-  componentWillUnmount(){
-    sokeResultat = null;
-  }
-  componentDidMount(){
-    sokeResultat = this;
-  }
-  set(innhold){
-   this.sokeResultat = innhold;
-   this.forceUpdate();
- }
-}
-let sokeResultat;
 
+  componentDidMount(){
+  sok = this;
+  }
+  update(){
+  this.sokeResultat = vis;
+  this.forceUpdate();
+  }
+}
+
+let sok;
 class BrukerSide extends React.Component {
   constructor(props) {
     super(props)
@@ -1111,10 +1264,11 @@ class BrukerSide extends React.Component {
               <tr>
               <td><button onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
               <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+              <td><button onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
               </tr>
             </tbody>
           </table>
-            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+            <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1150,10 +1304,12 @@ class BrukerSide extends React.Component {
                 <tr>
                 <td><button onClick={() =>{this.deleteAdmin()}}>Fjern bruker som admin</button></td>
                 <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+                <td><button onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
+
                 </tr>
               </tbody>
             </table>
-              <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+              <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
             </div>
           </div>
         )
@@ -1176,7 +1332,7 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+            <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1196,6 +1352,7 @@ class BrukerSide extends React.Component {
       this.user = result[0];
       this.forceUpdate();
     })
+
   }
 }
 
@@ -1208,6 +1365,8 @@ class VisArrangement extends React.Component {
     this.user = [];
   }
   render(){
+    let signedInUser = loginService.getSignedInUser();
+    if(signedInUser.admin === 1){
 
     return(
       <div>
@@ -1238,21 +1397,62 @@ class VisArrangement extends React.Component {
               <td>Oppmøtested:</td>
             </tr>
             <tr>
-            <td><div><MapWithAMarker /></div></td>
+              <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
-              <td><button ref='endreArrangement'>Endre arrangementet</button></td>
-              <td><button ref='brukerInnkalling'>Kall inn</button></td>
+              <td><button onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button></td>
+              <td><button onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )
+  }if(signedInUser.admin === 0){
+    return(
+      <div>
+        <table>
+          <tbody>
+            <tr>
+              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+            </tr>
+            <tr>
+              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
+            </tr>
+            <tr>
+              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+            </tr>
+            <tr>
+              <td>Oppmøtetidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Starttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Sluttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Oppmøtested:</td>
+            </tr>
+            <tr>
+              <td><div><MapWithAMarker /></div></td>
+            </tr>
+            <tr>
+              <td><button onClick={()=>{history.goBack()}}>Tilbake</button></td>
             </tr>
           </tbody>
         </table>
       </div>
     )
   }
+  }
   changeDate(variabel){
     let a = moment(variabel).format('DD.MM.YY HH:mm');
     return a;
   }
+
   componentWillUnmount(){
     mapLat = '';
     mapLng = '';
@@ -1272,13 +1472,6 @@ class VisArrangement extends React.Component {
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
     });
-    this.refs.endreArrangement.onclick = () =>{
-      this.props.history.push('/endreArrangement/'+this.arrangement.id);
-    }
-    this.refs.brukerInnkalling.onclick = () =>{
-      console.log('/innkalling/'+this.arrangement.id);
-      this.props.history.push('/inkalling/'+this.arrangement.id);
-    }
 
   }
 }
@@ -1333,7 +1526,10 @@ class EndreArrangement extends React.Component {
               <td><input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
             </tr>
             <tr>
-              <td>Oppmøtested:</td><td><MapWithAMarker /></td>
+              <td>Oppmøtested:</td>
+            </tr>
+            <tr>
+              <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
               <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
@@ -1679,6 +1875,7 @@ ReactDOM.render((
 
 
       </Switch>
+      <Popup />
     </div>
   </HashRouter>
 ), document.getElementById('root'))
