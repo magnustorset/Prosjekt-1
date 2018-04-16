@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 const history = createHashHistory();
@@ -890,11 +890,27 @@ class MineSider extends React.Component {
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
     this.refs.setPassive.onclick = () => {
-      userService.setPassive(this.refs.passivFra.value, this.refs.passivTil.value, this.id).then(() => {
-        console.log('Satt passiv fra ' + this.refs.passivFra.value + ' til ' + this.refs.passivTil.value);
-      }).catch((error) =>{
-        if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
-      });
+      let m_id = this.id
+      let start = this.refs.passivFra.value
+      let slutt = this.refs.passivTil.value
+      if(start <= slutt) {
+        PassivService.kanMeld(m_id, start, slutt).then((res) => {
+          console.log(res);
+          if(res[0].antall) {
+            PassivService.setPassiv(m_id, start, slutt).then((res) => {
+              console.log(res);
+            }).catch(() => {
+              console.log(error);
+              if(errorMessage) errorMessage.set('Error');
+            });
+          } else {
+            console.log('Du er opptatt på denne tiden.');
+          }
+        }).catch((error) =>{
+          console.log(error);
+          if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
+        });
+      }
     }
     this.refs.changeInfo.onclick = () =>{
       this.props.history.push('/forandreinfo');
