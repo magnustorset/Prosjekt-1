@@ -443,7 +443,7 @@ class Innlogging extends React.Component {
     return (
       <div>
       <div className='Rot container'>
-      <form>
+
       <div className='form-group' id='bilde'>
         <img src='src/Test.png' />
       </div>
@@ -462,7 +462,7 @@ class Innlogging extends React.Component {
           <button className='btn-default' ref="newUserButton">Ny bruker</button>
           <button className='btn-default' ref="newPasswordButton">Glemt passord?</button>
         </div>
-        </form>
+
       </div>
 
       </div>
@@ -478,12 +478,12 @@ class Innlogging extends React.Component {
           console.log('Innlogget som admin');
           brukerid = signedInUser.id;
           administrator = true;
-          this.props.history.push('/start');
+          history.push('/start');
         }
         if(login && signedInUser.admin !=1 && signedInUser.aktiv === 1){
           console.log('Innlogget som bruker');
           brukerid = signedInUser.id;
-          this.props.history.push('/start');
+          history.push('/start');
         }
         if(signedInUser.aktiv != 1){
           localStorage.removeItem('signedInUser');
@@ -551,6 +551,7 @@ class NyBruker extends React.Component {
           </tbody>
         </table>
         <button ref="createuserButton">Ferdig</button>
+        <button onClick={()=>{history.goBack()} }>Tilbake</button>
       </div>
     )
   }
@@ -658,9 +659,9 @@ class StartSide extends React.Component {
   this.user = [];
   this.id = signedInUser.id;
 
-  this.state = {
-    adminMelding: ''
-  }
+  this.state = {melding: ''
+                };
+
   this.handleChange = this.handleChange.bind(this);
   }
   handleChange(event){
@@ -676,7 +677,7 @@ class StartSide extends React.Component {
     return (
       <div className='startside'>
         <h1>Hei, {this.user.brukernavn}!</h1>
-        <textarea name='adminMelding' value={this.state.adminMelding} onChange={this.handleChange} />
+        <textarea name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
       </div>
     )
   }
@@ -690,7 +691,7 @@ class StartSide extends React.Component {
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
     administratorFunctions.getAdminMelding().then((result) =>{
-      this.state.adminMelding = result[0].melding;
+      this.state.melding = result[0].melding;
       this.forceUpdate();
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke melding' + error);
@@ -960,7 +961,7 @@ class ForandreBrukerInfo extends React.Component {
           }).catch((error) =>{
             if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
           });
-        
+
 
 
 
@@ -1343,6 +1344,8 @@ class VisArrangement extends React.Component {
     this.user = [];
   }
   render(){
+    let signedInUser = loginService.getSignedInUser();
+    if(signedInUser.admin === 1){
 
     return(
       <div>
@@ -1373,21 +1376,62 @@ class VisArrangement extends React.Component {
               <td>Oppmøtested:</td>
             </tr>
             <tr>
-            <td><div><MapWithAMarker /></div></td>
+              <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
-              <td><button ref='endreArrangement'>Endre arrangementet</button></td>
-              <td><button ref='brukerInnkalling'>Kall inn</button></td>
+              <td><button onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button></td>
+              <td><button onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )
+  }if(signedInUser.admin === 0){
+    return(
+      <div>
+        <table>
+          <tbody>
+            <tr>
+              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+            </tr>
+            <tr>
+              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
+            </tr>
+            <tr>
+              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+            </tr>
+            <tr>
+              <td>Oppmøtetidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Starttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Sluttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Oppmøtested:</td>
+            </tr>
+            <tr>
+              <td><div><MapWithAMarker /></div></td>
+            </tr>
+            <tr>
+              <td><button onClick={()=>{history.goBack()}}>Tilbake</button></td>
             </tr>
           </tbody>
         </table>
       </div>
     )
   }
+  }
   changeDate(variabel){
     let a = moment(variabel).format('DD.MM.YY HH:mm');
     return a;
   }
+
   componentWillUnmount(){
     mapLat = '';
     mapLng = '';
@@ -1407,13 +1451,6 @@ class VisArrangement extends React.Component {
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
     });
-    this.refs.endreArrangement.onclick = () =>{
-      this.props.history.push('/endreArrangement/'+this.arrangement.id);
-    }
-    this.refs.brukerInnkalling.onclick = () =>{
-      console.log('/innkalling/'+this.arrangement.id);
-      this.props.history.push('/inkalling/'+this.arrangement.id);
-    }
 
   }
 }
@@ -1468,7 +1505,10 @@ class EndreArrangement extends React.Component {
               <td><input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
             </tr>
             <tr>
-              <td>Oppmøtested:</td><td><MapWithAMarker /></td>
+              <td>Oppmøtested:</td>
+            </tr>
+            <tr>
+              <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
               <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
