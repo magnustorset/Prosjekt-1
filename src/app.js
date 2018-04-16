@@ -4,6 +4,24 @@ import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-d
 import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
+import BigCalendar from 'react-big-calendar';
+import Moment from 'moment'
+BigCalendar.momentLocalizer(moment);
+let eventen = []
+const MyCalendar = props => (
+  <div>
+    <BigCalendar
+      selecteable
+      events={eventen}
+      startAccessor='start'
+      endAccessor='end'
+      style={{height: '400px'}}
+      defaultDate={new Date()}
+      onSelectEvent={event => Popup.alert(event.desc)}
+    />
+  </div>
+);
+
 const history = createHashHistory();
 const passwordHash =require ('password-hash');
 const _ = require('lodash');
@@ -660,7 +678,7 @@ class StartSide extends React.Component {
   let signedInUser = loginService.getSignedInUser();
   this.user = [];
   this.id = signedInUser.id;
-
+  this.eventer = [];
   this.state = {melding: ''
                 };
 
@@ -680,10 +698,25 @@ class StartSide extends React.Component {
       <div className='startside'>
         <h1>Hei, {this.user.brukernavn}!</h1>
         <textarea name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
+        <div className='calendar'>
+        <MyCalendar />
+        </div>
       </div>
     )
   }
+  componentWillUnmount(){
+    eventen = [];
+  }
   componentDidMount () {
+    arrangementService.getAllArrangement().then((result)=>{
+      this.eventer = result;
+      for(let ting of this.eventer){
+        eventen.push({title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse});
+      }
+
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+    });
     userService.getUser(this.id).then((result) =>{
       console.log(this.id);
       this.user = result[0];
@@ -877,10 +910,21 @@ class MineSider extends React.Component {
             </tr>
           </tbody>
         </table>
+        <div className='calendar'>
+        <MyCalendar />
+        </div>
       </div>
     )
   }
   componentDidMount(){
+    arrangementService.getYourArrangements(loginService.getSignedInUser().id).then((result)=>{
+      for(let ting of result){
+        eventen.push({title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
+      }
+      console.log(eventen)
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke dine arrangement' + error);
+    });
     userService.getUser(this.id).then((result) =>{
       console.log(this.id);
       this.user = result[0];

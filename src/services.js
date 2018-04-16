@@ -289,6 +289,30 @@ class LoginService {
 }
 
 class ArrangementService {
+  getYourArrangements(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('SELECT a.navn,a.beskrivelse,a.starttidspunkt,a.sluttidspunkt from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ?', [id] ,(error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve(result);
+      })
+    })
+  }
+  getAllArrangement(){
+    return new Promise((resolve, reject)=>{
+      connection.query('SELECT * from arrangement',(error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve(result);
+      })
+    })
+  }
   addArrangement (tlf, navn, meetdate, startdate, enddate, desc, roller, longitude, latitude) {
       let k_id;
       return new Promise((resolve, reject) =>{

@@ -1,6 +1,9 @@
 body{
   background-color: #f4f5f7;
 }
+.calendar{
+  width: 500px;
+}
 .Rot {
   position: absolute;
   top:30%;
