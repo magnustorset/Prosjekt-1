@@ -281,8 +281,8 @@ class Prompt extends React.Component {
     }
 }
 
-/** Prompt plugin */
-Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
+  /** Prompt plugin */
+  Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
     let promptValue = null;
 
     let promptChange = function (value) {
@@ -441,7 +441,7 @@ class Innlogging extends React.Component {
   render () {
 
     return (
-<div>
+      <div>
       <div className='Rot container'>
       <form>
       <div className='form-group' id='bilde'>
@@ -465,7 +465,7 @@ class Innlogging extends React.Component {
         </form>
       </div>
 
-</div>
+      </div>
     )
   }
 
@@ -956,6 +956,7 @@ class ForandreBrukerInfo extends React.Component {
 
           if(value === thePassword){
             userService.editUser(email, adress, tlf, zip, vip).then(() =>{
+              history.push('/minside');
           }).catch((error) =>{
             if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
           });
@@ -968,7 +969,7 @@ class ForandreBrukerInfo extends React.Component {
            alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
          }
       });
-      this.props.history.push('/minside');
+
 
     // this.props.history.push('/minside');
     }
