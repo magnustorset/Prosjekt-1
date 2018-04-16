@@ -376,31 +376,30 @@ class Innlogging extends React.Component {
   render () {
 
     return (
-<div>
-      <div className='Rot container'>
-      <form>
-      <div className='form-group' id='bilde'>
-        <img src='src/Test.png' />
+      <div>
+        <div className='Rot container'>
+          <form>
+            <div className='form-group' id='bilde'>
+              <img src='src/Test.png' />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='brukernavn'>Brukernavn:</label>
+              <input type="text" ref="unInput" className="form-control col-6" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='passord'>Passord:</label>
+              <input type="password" ref="pwInput" className="form-control col-4" defaultValue="passord" name='passord'/>
+            </div>
+            <div className='form-group'>
+              <button className="btn btn-primary" ref="innlogginButton">Logg inn</button>
+            </div>
+            <div className='form-group'>
+              <button className='btn-default' ref="newUserButton">Ny bruker</button>
+              <button className='btn-default' ref="newPasswordButton">Glemt passord?</button>
+            </div>
+          </form>
+        </div>
       </div>
-        <div className='form-group'>
-          <label htmlFor='brukernavn'>Brukernavn:</label>
-          <input type="text" ref="unInput" className="form-control col-6" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
-        </div>
-        <div className='form-group'>
-          <label htmlFor='passord'>Passord:</label>
-          <input type="password" ref="pwInput" className="form-control col-4" defaultValue="passord" name='passord'/>
-        </div>
-        <div className='form-group'>
-          <button className="btn btn-primary" ref="innlogginButton">Logg inn</button>
-        </div>
-        <div className='form-group'>
-          <button className='btn-default' ref="newUserButton">Ny bruker</button>
-          <button className='btn-default' ref="newPasswordButton">Glemt passord?</button>
-        </div>
-        </form>
-      </div>
-
-</div>
     )
   }
 
@@ -508,10 +507,19 @@ class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-        Epost: <input type='email' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
-
-        <button ref='newPasswordButton'>Be om nytt passord</button>
-        <button ref='backButton'>Tilbake</button>
+        <div className='Rot container'>
+          <div className='form-group'>
+            <label htmlFor='epost'>E-post: </label>
+            <input type='email' name='epost' className='form-control col-6' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
+          </div>
+          <div className='form-group'>
+            <button className='btn-default' ref='newPasswordButton'>Be om nytt passord</button>
+            <button className='btn-default' ref='backButton'>Tilbake</button>
+          </div>
+          <div>
+            <ErrorMessage />
+          </div>
+        </div>
       </div>
     )
   }
@@ -520,13 +528,16 @@ class NyttPassord extends React.Component {
       brukerEpost = this.refs.nyEpostInput.value
       let emailCheck = Math.floor(Math.random() * 100000);
       loginService.navn(emailCheck, brukerEpost).then(() => {
-      })
-      emailService.newPassword(brukerEpost, emailCheck).then(() => {
-        console.log('Epost sendt');
-        this.props.history.push('/kode')
-      })
-
-    }
+        emailService.newPassword(brukerEpost, emailCheck).then(() => {
+          console.log('Epost sendt');
+          this.props.history.push('/kode')
+        }).catch((error) =>{
+          if(errorMessage) errorMessage.set('Finner ikke epost');
+        });
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Finner ikke epost');
+      });
+      }
     this.refs.backButton.onclick = () => {
       this.props.history.push('/')
     }
@@ -541,8 +552,14 @@ class ResetPassord extends React.Component {
   render() {
     return (
       <div>
-        <input type='text' ref='kodeInput' /> <br />
-        <button ref='kodeButton'>Sjekk kode</button>
+        <div className='Rot container'>
+          <div className='form-group'>
+            <label htmlFor='kode'>Kode:</label>
+            <input type='text' name='kode' className='form-control col-2' ref='kodeInput' />
+            <button className='btn-default' ref='kodeButton'>Sjekk kode</button>
+          </div>
+          <ErrorMessage />
+        </div>
       </div>
     )
   }
@@ -554,49 +571,64 @@ class ResetPassord extends React.Component {
         console.log('Riktig kode');
         emailCode = true
         this.props.history.push('/resetpassord')
-      })
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Feil kode');
+      });
       }
     }
   }
 
-  class NyttResetPassord extends React.Component {
-    constructor() {
-      super()
-    }
+class NyttResetPassord extends React.Component {
+  constructor() {
+    super()
+  }
 
-    render() {
-      return (
-        <div>
-          Passord: <input type='password' ref='passordInput1' /> <br />
-          Gjenta passord: <input type='password' ref='passordInput2' /> <br />
-          <button ref='byttPassordButton'>Bytt passord</button>
+  render() {
+    return (
+      <div>
+        <div className='Rot container'>
+          <div className='form-group'>
+            <label htmlFor='passord1'>Nytt passord</label>
+            <input type='password' name='passord1' className='form-control col-4' ref='passordInput1' />
+          </div>
+          <div className='form-group'>
+            <label htmlFor='passord2'>Gjenta passord</label>
+            <input type='password' name='passord2' className='form-control col-4' ref='passordInput2' />
+          </div>
+          <div className='form-group'>
+            <button className='btn-default' ref='byttPassordButton'>Bytt passord</button>
+          </div>
         </div>
-      )
-    }
+      </div>
+    )
+  }
 
-    componentDidMount() {
-      this.refs.byttPassordButton.onclick = () => {
-        if (emailCode && this.refs.passordInput1.value === this.refs.passordInput2.value) {
-          userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
-            console.log('Passord byttet');
-            this.props.history.push('/')
-          })
-        }
+  componentDidMount() {
+    this.refs.byttPassordButton.onclick = () => {
+      if (emailCode && this.refs.passordInput1.value === this.refs.passordInput2.value) {
+        userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
+          console.log('Passord byttet');
+          this.props.history.push('/')
+        }).catch((error) =>{
+          if(errorMessage) errorMessage.set('Kunne ikke bytte passord');
+        });
       }
     }
   }
+}
+
 
 class StartSide extends React.Component {
   constructor() {
-  super(); // Call React.Component constructor
-  let signedInUser = loginService.getSignedInUser();
-  this.user = [];
-  this.id = signedInUser.id;
+    super(); // Call React.Component constructor
+    let signedInUser = loginService.getSignedInUser();
+    this.user = [];
+    this.id = signedInUser.id;
 
-  this.state = {
-    adminMelding: ''
-  }
-  this.handleChange = this.handleChange.bind(this);
+    this.state = {
+      adminMelding: ''
+    }
+    this.handleChange = this.handleChange.bind(this);
   }
   handleChange(event){
     const target = event.target;
@@ -630,9 +662,8 @@ class StartSide extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke melding' + error);
     });
-
-    }
   }
+}
 
 
 class Arrangement extends React.Component{

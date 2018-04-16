@@ -245,8 +245,14 @@ class LoginService {
           reject(error);
           return;
         }
-
-        let m_id = result[0].id
+        console.log(result);
+        if (result.length === 0) {
+          reject(error);
+          return;
+        }else{
+            m_id = result[0].id;
+        }
+        console.log(m_id);
         let date = new Date()
         date.setMinutes(date.getMinutes() + 30)
 
@@ -273,7 +279,7 @@ class LoginService {
         if (result[0].count > 0) {
           resolve()
         } else{
-          reject('Feil kode')
+          reject(error);
           return;
         }
       })
@@ -446,7 +452,7 @@ class AdministratorFunctions{
           reject(error);
           return;
         }
-    
+
         resolve(result);
       });
     });
