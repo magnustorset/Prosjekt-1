@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -368,6 +368,9 @@ class Menu extends React.Component {
           <li className='nav-item'>
             <Link to='/bestemme' className="nav-link">Administrator</Link>
           </li>
+          <li className='nav-item'>
+            <Link to='/T-utstyr' className="nav-link">Utstyr</Link>
+          </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
@@ -594,10 +597,19 @@ class NyttPassord extends React.Component {
   render () {
     return (
       <div>
-        Epost: <input type='email' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
-
-        <button ref='newPasswordButton'>Be om nytt passord</button>
-        <button ref='backButton'>Tilbake</button>
+        <div className='Rot container'>
+          <div className='form-group'>
+            <label htmlFor='epost'>E-post: </label>
+            <input type='email' name='epost' className='form-control col-6' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
+          </div>
+          <div className='form-group'>
+            <button className='btn-default' ref='newPasswordButton'>Be om nytt passord</button>
+            <button className='btn-default' ref='backButton'>Tilbake</button>
+          </div>
+          <div>
+            <ErrorMessage />
+          </div>
+        </div>
       </div>
     )
   }
@@ -606,13 +618,16 @@ class NyttPassord extends React.Component {
       brukerEpost = this.refs.nyEpostInput.value
       let emailCheck = Math.floor(Math.random() * 100000);
       loginService.navn(emailCheck, brukerEpost).then(() => {
-      })
-      emailService.newPassword(brukerEpost, emailCheck).then(() => {
-        console.log('Epost sendt');
-        this.props.history.push('/kode')
-      })
-
-    }
+        emailService.newPassword(brukerEpost, emailCheck).then(() => {
+          console.log('Epost sendt');
+          this.props.history.push('/kode')
+        }).catch((error) =>{
+          if(errorMessage) errorMessage.set('Finner ikke epost');
+        });
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Finner ikke epost');
+      });
+      }
     this.refs.backButton.onclick = () => {
       this.props.history.push('/')
     }
@@ -627,8 +642,14 @@ class ResetPassord extends React.Component {
   render() {
     return (
       <div>
-        <input type='text' ref='kodeInput' /> <br />
-        <button ref='kodeButton'>Sjekk kode</button>
+        <div className='Rot container'>
+          <div className='form-group'>
+            <label htmlFor='kode'>Kode:</label>
+            <input type='text' name='kode' className='form-control col-2' ref='kodeInput' />
+            <button className='btn-default' ref='kodeButton'>Sjekk kode</button>
+          </div>
+          <ErrorMessage />
+        </div>
       </div>
     )
   }
@@ -640,49 +661,67 @@ class ResetPassord extends React.Component {
         console.log('Riktig kode');
         emailCode = true
         this.props.history.push('/resetpassord')
-      })
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Feil kode');
+      });
       }
     }
   }
 
-  class NyttResetPassord extends React.Component {
-    constructor() {
-      super()
-    }
+class NyttResetPassord extends React.Component {
+  constructor() {
+    super()
+  }
 
-    render() {
-      return (
-        <div>
-          Passord: <input type='password' ref='passordInput1' /> <br />
-          Gjenta passord: <input type='password' ref='passordInput2' /> <br />
-          <button ref='byttPassordButton'>Bytt passord</button>
+  render() {
+    return (
+      <div>
+        <div className='Rot container'>
+          <div className='form-group'>
+            <label htmlFor='passord1'>Nytt passord</label>
+            <input type='password' name='passord1' className='form-control col-4' ref='passordInput1' />
+          </div>
+          <div className='form-group'>
+            <label htmlFor='passord2'>Gjenta passord</label>
+            <input type='password' name='passord2' className='form-control col-4' ref='passordInput2' />
+          </div>
+          <div className='form-group'>
+            <button className='btn-default' ref='byttPassordButton'>Bytt passord</button>
+          </div>
         </div>
-      )
-    }
+      </div>
+    )
+  }
 
-    componentDidMount() {
-      this.refs.byttPassordButton.onclick = () => {
-        if (emailCode && this.refs.passordInput1.value === this.refs.passordInput2.value) {
-          userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
-            console.log('Passord byttet');
-            this.props.history.push('/')
-          })
-        }
+  componentDidMount() {
+    this.refs.byttPassordButton.onclick = () => {
+      if (emailCode && this.refs.passordInput1.value === this.refs.passordInput2.value) {
+        userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
+          console.log('Passord byttet');
+          this.props.history.push('/')
+        }).catch((error) =>{
+          if(errorMessage) errorMessage.set('Kunne ikke bytte passord');
+        });
       }
     }
   }
+}
+
 
 class StartSide extends React.Component {
   constructor() {
+
   super(); // Call React.Component constructor
   let signedInUser = loginService.getSignedInUser();
   this.user = [];
   this.id = signedInUser.id;
   this.eventer = [];
+
   this.state = {melding: ''
                 };
 
   this.handleChange = this.handleChange.bind(this);
+
   }
   handleChange(event){
     const target = event.target;
@@ -731,9 +770,8 @@ class StartSide extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke melding' + error);
     });
-
-    }
   }
+}
 
 
 class Arrangement extends React.Component{
@@ -934,11 +972,27 @@ class MineSider extends React.Component {
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
     this.refs.setPassive.onclick = () => {
-      userService.setPassive(this.refs.passivFra.value, this.refs.passivTil.value, this.id).then(() => {
-        console.log('Satt passiv fra ' + this.refs.passivFra.value + ' til ' + this.refs.passivTil.value);
-      }).catch((error) =>{
-        if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
-      });
+      let m_id = this.id
+      let start = this.refs.passivFra.value
+      let slutt = this.refs.passivTil.value
+      if(start <= slutt) {
+        PassivService.kanMeld(m_id, start, slutt).then((res) => {
+          console.log(res);
+          if(res[0].antall) {
+            PassivService.setPassiv(m_id, start, slutt).then((res) => {
+              console.log(res);
+            }).catch(() => {
+              console.log(error);
+              if(errorMessage) errorMessage.set('Error');
+            });
+          } else {
+            console.log('Du er opptatt på denne tiden.');
+          }
+        }).catch((error) =>{
+          console.log(error);
+          if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
+        });
+      }
     }
     this.refs.changeInfo.onclick = () =>{
       this.props.history.push('/forandreinfo');
@@ -1889,6 +1943,150 @@ class Innkalling extends React.Component {
   // }
 }
 
+
+
+class Utstyr extends React.Component {
+  constructor() {
+    super();
+    this.utstyr = [];
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'utstyrsListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    for (let item of this.utstyr) {
+      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Navn: <input ref='utNavn'/> <button ref='lagUt'>Legg til</button>
+        </div>
+        <RolleUtstyr />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log(this.refs.utNavn.value);
+      UtstyrService.addUtstyr(this.refs.utNavn.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllUtstyr().then((res) => {
+      console.log(res);
+      this.utstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(id) {
+    console.log('Endre: ' + id);
+    UtstyrService.alterUtstyr(id, this.refs.utNavn.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(id) {
+    console.log('Fjern: ' + id);
+    UtstyrService.removeUtstyr(id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class RolleUtstyr extends React.Component {
+  constructor() {
+    super();
+    this.rolleUtstyr = []
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    for (let item of this.rolleUtstyr) {
+      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Rolle: <input ref='rolle'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button ref='lagUt'>Legg til</button>
+        </div>
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log('Click');
+      UtstyrService.addRU(this.refs.rolle.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllRU().then((res) => {
+      console.log(res);
+      this.rolleUtstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(r_id, u_id) {
+    console.log('Endre');
+    UtstyrService.alterRU(r_id, u_id, this.refs.antall.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(r_id, u_id) {
+    console.log('Fjern');
+    UtstyrService.removeRU(r_id, u_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+
+
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -1916,8 +2114,7 @@ ReactDOM.render((
         <Route exact path='/visArrangement/:id' component={VisArrangement} />
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
         <Route exact path='/inkalling/:id' component={Innkalling} />
-
-
+        <Route exact path='/T-utstyr' component={Utstyr} />
       </Switch>
       <Popup />
     </div>

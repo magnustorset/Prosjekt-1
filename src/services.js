@@ -252,8 +252,14 @@ class LoginService {
           reject(error);
           return;
         }
-
-        let m_id = result[0].id
+        console.log(result);
+        if (result.length === 0) {
+          reject(error);
+          return;
+        }else{
+            m_id = result[0].id;
+        }
+        console.log(m_id);
         let date = new Date()
         date.setMinutes(date.getMinutes() + 30)
 
@@ -280,7 +286,7 @@ class LoginService {
         if (result[0].count > 0) {
           resolve()
         } else{
-          reject('Feil kode')
+          reject(error);
           return;
         }
       })
@@ -506,7 +512,7 @@ let administratorFunctions = new AdministratorFunctions()
 class VaktValg {
   static lagListe3(id) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT ro.r_id, ro.m_id, le.brukernavn, le.interesse, le.vaktpoeng, 0 AS "registrert", 0 AS "opptatt" FROM ( SELECT rr.r_id, rr.antall, rr.m_id FROM ( SELECT r_id, COUNT(*) AS antall FROM rolle_kvalifikasjon rk GROUP BY r_id ) ra INNER JOIN ( SELECT r_id, m_id, COUNT(*) AS antall FROM medlem_kvalifikasjon mk INNER JOIN rolle_kvalifikasjon rk ON mk.k_id = rk.k_id GROUP BY r_id, m_id ) rr ON ra.r_id = rr.r_id WHERE ra.antall =  rr.antall ) ro INNER JOIN ( SELECT DISTINCT m.id, m.brukernavn, EXISTS (SELECT * FROM interesse i WHERE i.m_id = m.id AND i.a_id = ar.id) AS "interesse", m.vaktpoeng FROM passiv p  RIGHT JOIN medlem m ON p.m_id = m.id  LEFT JOIN vakt v ON m.id = v.m_id  LEFT JOIN arrangement a ON v.a_id = a.id  CROSS JOIN ( SELECT * FROM arrangement WHERE id = ? ) ar WHERE m.aktiv = true  AND NOT(ar.starttidspunkt BETWEEN IFNULL(p.f_dato, 0)  AND IFNULL(p.t_dato, 0))  AND NOT(IFNULL(a.starttidspunkt, 0) = ar.starttidspunkt)  AND NOT(m.id = ar.kontaktperson) ) le ON ro.m_id = le.id WHERE ro.r_id IN ( SELECT DISTINCT r_id FROM vakt WHERE a_id = ? )', [id, id], (error, result) => {
+      connection.query('SELECT ro.r_id, ro.m_id, le.brukernavn, le.interesse, le.vaktpoeng, 0 AS "registrert", 0 AS "opptatt" FROM ( SELECT rr.r_id, rr.antall, rr.m_id FROM ( SELECT r_id, COUNT(*) AS antall FROM rolle_kvalifikasjon rk GROUP BY r_id ) ra INNER JOIN ( SELECT r_id, m_id, COUNT(*) AS antall FROM medlem_kvalifikasjon mk INNER JOIN rolle_kvalifikasjon rk ON mk.k_id = rk.k_id GROUP BY r_id, m_id ) rr ON ra.r_id = rr.r_id WHERE ra.antall =  rr.antall ) ro INNER JOIN ( SELECT DISTINCT m.id, m.brukernavn, EXISTS (SELECT * FROM interesse i WHERE i.m_id = m.id AND i.a_id = ar.id) AS "interesse", m.vaktpoeng FROM passiv p  RIGHT JOIN medlem m ON p.m_id = m.id  LEFT JOIN vakt v ON m.id = v.m_id CROSS JOIN ( SELECT * FROM arrangement WHERE id = ? ) ar WHERE m.aktiv = true  AND NOT(ar.starttidspunkt BETWEEN IFNULL(p.f_dato, 0)  AND IFNULL(p.t_dato, 0)) AND NOT EXISTS(SELECT * FROM arrangement ai INNER JOIN vakt vi ON ai.id = vi.a_id WHERE IFNULL(vi.m_id, 0) = m.id AND IFNULL(ai.starttidspunkt, 0) = ar.starttidspunkt) AND NOT(m.id = ar.kontaktperson) ) le ON ro.m_id = le.id WHERE ro.r_id IN ( SELECT DISTINCT r_id FROM vakt WHERE a_id = ? )', [id, id], (error, result) => {
         if (error) {
           reject(error);
           return;
@@ -566,4 +572,120 @@ class VaktValg {
 }
 
 
-export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg }
+class PassivService {
+  static kanMeld(m_id, start, slutt) {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT COUNT(*) AS antall FROM medlem m WHERE m.id = ? AND NOT EXISTS ( SELECT * FROM passiv pi WHERE pi.m_id = m.id AND (? BETWEEN pi.f_dato AND pi.t_dato) OR (? BETWEEN pi.f_dato AND pi.t_dato)) AND NOT EXISTS ( SELECT * FROM arrangement ai INNER JOIN vakt vi ON ai.id = vi.a_id WHERE vi.m_id = m.id AND ((? BETWEEN ai.starttidspunkt AND ai.sluttidspunkt) OR (? BETWEEN ai.starttidspunkt AND ai.sluttidspunkt)))', [m_id, start, slutt, start, slutt], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static setPassiv(m_id, start, slutt) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO passiv VALUES(?, ?, ?)', [m_id, start, slutt], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+}
+
+
+class UtstyrService {
+  static getAllUtstyr() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * FROM utstyr', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static addUtstyr(navn) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO utstyr (navn) VALUES(?)', [navn], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static alterUtstyr(id, navn) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE utstyr SET navn = ? WHERE id = ?', [navn, id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static removeUtstyr(id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM utstyr WHERE id = ?', [id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+
+  static getAllRU() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT r_id, u_id, r.navn AS "r_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN r_utstyr ru ON u.id = ru.u_id INNER JOIN rolle r ON ru.r_id = r.id', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static addRU(r_id, u_id, antall) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO r_utstyr (r_id, u_id, antall) VALUES(?, ?, ?)', [r_id, u_id, antall], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static alterRU(r_id, u_id, antall) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE r_utstyr SET antall = ? WHERE r_id = ? AND u_id = ?', [antall, r_id, u_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static removeRU(r_id, u_id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM r_utstyr WHERE r_id = ? AND u_id = ?', [r_id, u_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+
+
+
+}
+
+
+
+
+export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService }

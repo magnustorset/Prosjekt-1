@@ -42,6 +42,7 @@ body{
 }
 .btn-default{
   background-color: #c9efef;
+  margin-right: 5px;
 }
 #bilde{
   align-content: center;
