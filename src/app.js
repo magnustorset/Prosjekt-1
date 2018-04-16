@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
 import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
 import createHashHistory from 'history/createHashHistory';
+import Popup from 'react-popup';
 const history = createHashHistory();
 const _ = require('lodash');
 const { compose, withProps, lifecycle } = require('recompose')
@@ -250,8 +251,72 @@ class ErrorMessage extends React.Component {
     this.forceUpdate();
   }
 }
-
 let errorMessage; // ErrorMessage-instance
+class Prompt extends React.Component {
+    constructor(props) {
+        super(props);
+
+
+        this.state = {
+            value: this.props.defaultValue
+        };
+
+        this.onChange = (e) => this._onChange(e);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.value !== this.state.value) {
+            this.props.onChange(this.state.value);
+        }
+    }
+
+    _onChange(e) {
+        let value = e.target.value;
+
+        this.setState({value: value});
+    }
+
+    render() {
+        return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+    }
+}
+
+/** Prompt plugin */
+Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
+    let promptValue = null;
+
+    let promptChange = function (value) {
+        promptValue = value;
+    };
+
+    this.create({
+        title: 'Skriv inn passordet ditt:',
+        content: <Prompt onChange={promptChange} placeholder={placeholder} value={defaultValue} />,
+        buttons: {
+            left: [{
+              text: 'Avbryt',
+              classname: 'abort',
+              action: function() {
+                Popup.close();
+              }
+            }],
+            right: [{
+                text: 'Lagre',
+                key: '⌘+s',
+                className: 'success',
+                action: function () {
+                    callback(promptValue);
+                    Popup.close();
+
+                }
+            }]
+        }
+    });
+});
+
+
+
+
 
 class Menu extends React.Component {
   render () {
@@ -831,6 +896,7 @@ class ForandreBrukerInfo extends React.Component {
     super();
 
     let signedInUser = loginService.getSignedInUser();
+    let bolle = 5;
     this.user = [];
     this.id = signedInUser.id;
 
@@ -847,7 +913,6 @@ class ForandreBrukerInfo extends React.Component {
             <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
           </tbody>
         </table>
-        Du må skrive inn passordet ditt for å endre informasjonen din:<input type='password' ref='thePassword' />
         <button ref='saveButton'>Lagre forandringer</button>
         <button ref='cancelButton'>Forkast forandringer</button>
       </div>
@@ -863,6 +928,7 @@ class ForandreBrukerInfo extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+
   }
   componentDidMount(){
     userService.getUser(this.id).then((result) =>{
@@ -877,16 +943,34 @@ class ForandreBrukerInfo extends React.Component {
       this.props.history.push('/minside');
     }
     this.refs.saveButton.onclick = () =>{
-      if(this.refs.thePassword.value === this.user.passord){
-        userService.editUser(this.refs.emailInput.value, this.refs.adressInput.value, this.refs.tlfInput.value, this.refs.zipInput.value, this.id).then(() =>{
-        this.props.history.push('/minside');
-      }).catch((error) =>{
-        if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+      let email = this.refs.emailInput.value;
+      let adress = this.refs.adressInput.value;
+      let tlf = this.refs.tlfInput.value;
+      let zip = this.refs.zipInput.value;
+      let vip = this.id;
+
+      let thePassword = this.user.passord;
+
+      /** Call the plugin */
+      Popup.plugins(email, adress, tlf, zip, vip, thePassword).prompt('', 'Passord', function (value,signedInUser) {
+
+          if(value === thePassword){
+            userService.editUser(email, adress, tlf, zip, vip).then(() =>{
+          }).catch((error) =>{
+            if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+          });
+          alert('Brukerinfo oppdatert.');
+
+
+
+         }
+         else{
+           alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
+         }
       });
-     }
-     else{
-       alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
-     }
+      this.props.history.push('/minside');
+
+    // this.props.history.push('/minside');
     }
   this.update();
   }
@@ -904,8 +988,6 @@ class ForandrePassord extends React.Component {
     return(
       <div>
       <h2>Lag nytt passord</h2>
-
-      Skriv inn det gamle passordet:<input type ='password' ref='oldPassword' />
 
       Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
 
@@ -927,23 +1009,29 @@ class ForandrePassord extends React.Component {
       });
 
       this.refs.saveButton.onclick = () =>{
-        if(this.refs.oldPassword.value === this.user.passord) {
-          if(this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
+        let password1 = this.refs.passwordInput1.value;
+        let password2 = this.refs.passwordInput2.value;
 
-          userService.editPassword(this.refs.passwordInput1.value, this.id).then(() =>{
-
+        let thePassword = this.user.passord;
+        let currentId = this.user.id;
+        if (password1 === password2){
+          Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
+              if(value === thePassword){
+                userService.editPassword(password1, currentId).then(() =>{
+              }).catch((error) =>{
+                if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
+              });
+              alert('Passordet ble endret.');
+             }
+             else{
+               alert('Passordet stemte ikke.');
+             }
+          });
           this.props.history.push('/minside');
-        }).catch((error) =>{
-          if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
-        });
         }
-        else {
+        else{
           alert('Passordfeltene må være like!')
         }
-    }
-    else{
-      alert('Det gamle passordet stemmer ikke!')
-    }
   }
 
 
@@ -1579,6 +1667,7 @@ ReactDOM.render((
 
 
       </Switch>
+      <Popup />
     </div>
   </HashRouter>
 ), document.getElementById('root'))
