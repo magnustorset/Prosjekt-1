@@ -1572,7 +1572,7 @@ class Innkalling extends React.Component {
       });
 
     }
-// M A R
+
   }
 
   leggTil(i) {
