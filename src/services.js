@@ -1,5 +1,6 @@
 import mysql from 'mysql'
 import nodemailer from 'nodemailer'
+const passwordHash =require ('password-hash');
 
 // Setup database server reconnection when server timeouts connection:
 let connection
@@ -130,7 +131,8 @@ class UserService {
 
   addUser (fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr) {
     return new Promise((resolve, reject) =>{
-    connection.query('INSERT INTO medlem (fornavn, etternavn, brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr], (error, result) => {
+    let pord = passwordHash.generate(passord);
+    connection.query('INSERT INTO medlem (fornavn, etternavn, brukernavn, epost, id, tlf, adresse, passord, poststed_postnr) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', [fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, pord, postnr], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -158,7 +160,8 @@ class UserService {
 
   newPassword(passord, epost) {
     return new Promise((resolve, reject) => {
-      connection.query('UPDATE medlem SET passord = ? WHERE epost = ?', [passord, epost], (error, result) => {
+      let pord = passwordHash.generate(passord);
+      connection.query('UPDATE medlem SET passord = ? WHERE epost = ?', [pord, epost], (error, result) => {
         if (error) {
           reject(error);
           return;
@@ -183,7 +186,8 @@ class UserService {
 
   editPassword(password, id, callback) {
     return new Promise((resolve, reject) => {
-    connection.query('UPDATE medlem SET passord = ? WHERE id = ?', [password, id], (error, result) => {
+      let pord = passwordHash.generate(password);
+    connection.query('UPDATE medlem SET passord = ? WHERE id = ?', [pord, id], (error, result) => {
       if(error){
         reject(error);
         return;
@@ -216,12 +220,15 @@ class LoginService {
           return;
         }
         let login = false
-        if (result[0].passord === passord) {
+        if (passwordHash.verify(passord,result[0].passord)) {
           login = true
+          localStorage.setItem('signedInUser', JSON.stringify(result[0])); // Store User-object in browser
       }else{
           login = false
         }
-        localStorage.setItem('signedInUser', JSON.stringify(result[0])); // Store User-object in browser
+        console.log(passwordHash.verify(passord,result[0].passord));
+        console.log(login);
+
         resolve(login);
     });
   });
@@ -479,189 +486,10 @@ let administratorFunctions = new AdministratorFunctions()
 
 
 class VaktValg {
-  static searchUser(input){
-    return new Promise((resolve, reject) =>{
-      connection.query('SELECT * FROM medlem where tlf = ? or epost = ? or brukernavn = ?', [input, input, input], (error, result)=>{
-        if(error){
-          reject(error);
-          return;
-
-        }
-        resolve(result);
-      });
-    });
-  }
-
-  static getArrangement () {
-    return new Promise((resolve, reject) =>{
-      connection.query('SELECT a.id AS arr_id, r_id AS rolle_id, a.navn AS arr_navn, r.navn AS rolle_navn, COUNT(*) AS antall, a.oppmootetidspunkt, a.starttidspunkt, a.sluttidspunkt FROM arrangement a INNER JOIN vakt v ON a.id = a_id INNER JOIN rolle r ON r_id = r.id GROUP BY a_id, r_id', (error, result) => {
-        if(error){
-          reject(error);
-          return;
-        }
-        resolve(result);
-      });
-    });
-  }
-
-  static lagListe(id) {
-    return new Promise((resolve, reject) =>{
-      this.getArr(id).then((res)=>{
-        let a = res[0];
-        this.getAvailable(id, a.starttidspunkt, a.kontaktperson).then((res)=>{
-          let available = res;
-          this.getArrangementRoller(id).then((res)=>{
-            let roller = res;
-            console.log(roller);
-            let rolleList = [];
-            let proms = [];
-            for (var i = 0; i < roller.length; i++) {
-              console.log(roller[i].rolle_id);
-              proms.push(this.getKvalified(roller[i].rolle_id).then((res) => {
-                rolleList.push(res);
-                console.log(rolleList);
-                console.log('added kval-list');
-              }).catch((err) => {
-                console.log('Error with kval-list');
-                console.log(err);
-              }));
-            }
-            Promise.all(proms).then(() => {
-              console.log('proms ferdig');
-
-            }).catch(() => {
-              console.log('proms feilet');
-            });
-
-            console.log('Finished kval-lists');
-
-          }).catch(()=>{
-            console.log('Feil med brukerListen.');
-          });
-        }).catch(()=>{
-          console.log('Feil med brukerListen.');
-        });
-      }).catch(()=>{
-        console.log('Feil med arrangementet.');
-      });
-    });
-
-  }
-
-  static lagListe2(id) {
-    return new Promise((resolve, reject) =>{
-      let data = {};
-      let proms = [];
-
-      proms[0] = this.getArr(id).then((res) => {
-        data.arr = res[0];
-        console.log('Got array.');
-      }).catch((err) => {
-        console.log('Error getting array.');
-        console.log(err);
-      });
-
-      proms[1] = this.getArrangementRoller(id).then((res) => {
-        data.roll = res;
-        console.log('Got rolles');
-      }).catch((err) => {
-        console.log('Error getting rolles.');
-        console.log(err);
-      });
-
-      Promise.all(proms).then((res) => {
-        console.log(data);
-        console.log(data.av);
-        this.getAvailable(data.arr.id, data.arr.starttidspunkt, data.arr.kontaktperson).then((res) => {
-          console.log('Got available members.');
-          data.av = res;
-          data.avId = [];
-          data.kan = [];
-          let proms = [];
-
-          for (let i in data.av) {
-            data.avId[i] = data.av[i].id;
-          }
-          for (let i in data.roll) {
-            proms[i] = this.getKvalified(data.roll[i].rolle_id, data.avId).then((res) => {
-              data.kan.push(res);
-            }).catch((err) => {
-              console.log('Error getting candidates.');
-              console.log(err);
-            });
-          }
-          Promise.all(proms).then((res) => {
-            console.log(data);
-            console.log('done');
-          }).catch((err) => {
-            console.log('Error finnishing all proms (2)');
-            console.log(err);
-          });
-        }).catch((err) => {
-          console.log('Error getting available members.');
-          console.log(err);
-        });
-      }).catch((err) => {
-        console.log('Error finnishing promises.');
-        console.log(err);
-      });
-    });
-
-  }
-
   static lagListe3(id) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT ro.r_id, ro.m_id, le.brukernavn FROM ( SELECT rr.r_id, rr.antall, rr.m_id FROM ( SELECT r_id, COUNT(*) AS antall FROM rolle_kvalifikasjon rk GROUP BY r_id ) ra INNER JOIN ( SELECT r_id, m_id, COUNT(*) AS antall FROM medlem_kvalifikasjon mk INNER JOIN rolle_kvalifikasjon rk ON mk.k_id = rk.k_id GROUP BY r_id, m_id ) rr ON ra.r_id = rr.r_id WHERE ra.antall = rr.antall ) ro INNER JOIN ( SELECT DISTINCT m.id, m.brukernavn FROM passiv p RIGHT JOIN medlem m ON p.m_id = m.id LEFT JOIN vakt v ON m.id = v.m_id LEFT JOIN arrangement a ON v.a_id = a.id CROSS JOIN ( SELECT * FROM arrangement WHERE id = ? ) ar WHERE m.aktiv = true AND NOT(ar.starttidspunkt BETWEEN IFNULL(p.f_dato, 0) AND IFNULL(p.t_dato, 0)) AND NOT(IFNULL(a.starttidspunkt, 0) = ar.starttidspunkt) AND NOT(m.id = ar.kontaktperson) ) le ON ro.m_id = le.id WHERE ro.r_id IN ( SELECT DISTINCT r_id FROM vakt WHERE a_id = ? )', [id, id], (error, result) => {
+      connection.query('SELECT ro.r_id, ro.m_id, le.brukernavn, le.interesse, le.vaktpoeng, 0 AS "registrert", 0 AS "opptatt" FROM ( SELECT rr.r_id, rr.antall, rr.m_id FROM ( SELECT r_id, COUNT(*) AS antall FROM rolle_kvalifikasjon rk GROUP BY r_id ) ra INNER JOIN ( SELECT r_id, m_id, COUNT(*) AS antall FROM medlem_kvalifikasjon mk INNER JOIN rolle_kvalifikasjon rk ON mk.k_id = rk.k_id GROUP BY r_id, m_id ) rr ON ra.r_id = rr.r_id WHERE ra.antall =  rr.antall ) ro INNER JOIN ( SELECT DISTINCT m.id, m.brukernavn, EXISTS (SELECT * FROM interesse i WHERE i.m_id = m.id AND i.a_id = ar.id) AS "interesse", m.vaktpoeng FROM passiv p  RIGHT JOIN medlem m ON p.m_id = m.id  LEFT JOIN vakt v ON m.id = v.m_id  LEFT JOIN arrangement a ON v.a_id = a.id  CROSS JOIN ( SELECT * FROM arrangement WHERE id = ? ) ar WHERE m.aktiv = true  AND NOT(ar.starttidspunkt BETWEEN IFNULL(p.f_dato, 0)  AND IFNULL(p.t_dato, 0))  AND NOT(IFNULL(a.starttidspunkt, 0) = ar.starttidspunkt)  AND NOT(m.id = ar.kontaktperson) ) le ON ro.m_id = le.id WHERE ro.r_id IN ( SELECT DISTINCT r_id FROM vakt WHERE a_id = ? )', [id, id], (error, result) => {
         if (error) {
-          reject(error);
-          return;
-        }
-        resolve(result);
-      });
-    });
-  }
-
-  static listKval() {
-    return new Promise((resolve, reject) => {
-      connection.query('SELECT ro.r_id, ro.m_id, le.brukernavn FROM ( SELECT rr.r_id, rr.antall, rr.m_id FROM ( SELECT r_id, COUNT(*) AS antall FROM rolle_kvalifikasjon rk GROUP BY r_id ) ra INNER JOIN ( SELECT r_id, m_id, COUNT(*) AS antall FROM medlem_kvalifikasjon mk INNER JOIN rolle_kvalifikasjon rk ON mk.k_id = rk.k_id GROUP BY r_id, m_id ) rr ON ra.r_id = rr.r_id WHERE ra.antall = rr.antall ) ro INNER JOIN ( SELECT DISTINCT id, brukernavn FROM medlem m WHERE m.aktiv = true ) le ON ro.m_id = le.id', (error, result) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(result);
-      });
-    });
-  }
-
-  static getAllRolls() {
-    return new Promise((resolve, reject) => {
-      connection.query('SELECT id, navn FROM rolle', (error, result) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(result);
-      });
-    });
-  }
-
-  static getRolls(id) {
-    return new Promise((resolve, reject) => {
-      connection.query('SELECT r.id, r.navn, COUNT(*) AS \'antall\' FROM rolle r INNER JOIN vakt v ON r.id = v.r_id WHERE v.a_id = ? GROUP BY r.id, r.navn', [id], (error, result) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(result);
-      });
-    });
-  }
-
-  static getAvailable(id, start, kont) {
-    // console.log('SELECT m.id, m.brukernavn, m.vaktpoeng, (m.id IN (SELECT m_id FROM interesse WHERE a_id = ?)) AS "Interesse" FROM passiv p RIGHT JOIN medlem m ON p.m_id = m.id LEFT JOIN vakt v ON m.id = v.m_id LEFT JOIN arrangement a ON v.a_id = a.id WHERE m.aktiv = true  AND NOT(? BETWEEN IFNULL(p.f_dato, 0) AND IFNULL(p.t_dato, 0)) AND NOT(IFNULL(a.starttidspunkt, 0) = ?) AND NOT(m.id = ?), [' + id + ', ' + start + ', ' + start + ', ' + kont + ']');
-    return new Promise((resolve, reject) =>{
-      connection.query('SELECT m.id, m.brukernavn, m.vaktpoeng, (m.id IN (SELECT m_id FROM interesse WHERE a_id = ?)) AS "Interesse" FROM passiv p RIGHT JOIN medlem m ON p.m_id = m.id LEFT JOIN vakt v ON m.id = v.m_id LEFT JOIN arrangement a ON v.a_id = a.id WHERE m.aktiv = true  AND NOT(? BETWEEN IFNULL(p.f_dato, 0) AND IFNULL(p.t_dato, 0)) AND NOT(IFNULL(a.starttidspunkt, 0) = ?) AND NOT(m.id = ?)', [id, start, start, kont], (error, result) => {
-        if(error){
           reject(error);
           return;
         }
@@ -671,76 +499,52 @@ class VaktValg {
     });
   }
 
-  static getArr(id) {
+  static getReg(id) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT id, starttidspunkt, kontaktperson FROM arrangement WHERE id = ?', [id], (error, result) => {
-
-        if(error){
-          reject(error);
-          return;
-        }
-        resolve(result);
-      });
-    });
-  }
-
-  static getKvalified(r, pool) {
-    return new Promise((resolve, reject) => {
-      console.log(r);
-      connection.query('SELECT m_id FROM rolle_kvalifikasjon rk INNER JOIN medlem_kvalifikasjon mk ON rk.k_id = mk.k_id WHERE r_id = ? AND m_id IN (?) GROUP BY m_id HAVING COUNT(*) = (SELECT COUNT(*) FROM rolle_kvalifikasjon WHERE r_id = ?);', [r, pool, r], (error, result) => {
+      connection.query('SELECT v.r_id, m.id AS m_id, m.brukernavn, EXISTS (SELECT * FROM interesse i WHERE i.m_id = m.id AND i.a_id = a.id) AS "interesse", m.vaktpoeng, r_id AS "registrert", r_id AS "opptatt" FROM arrangement a INNER JOIN vakt v ON a.id = v.a_id INNER JOIN medlem m ON v.m_id = m.id WHERE a.id = ?', [id], (error, result) => {
         if (error) {
           reject(error);
           return;
         }
-
-        let res = [r, result]
-        resolve(res);
-      })
-    })
-  }
-
-  static arrayTest() {
-    return new Promise((resolve, reject) => {
-      connection.query('SELECT id FROM medlem WHERE aktiv = 1', (error, result) => {
-        if(error){
-          reject(error);
-          return;
-        }
         console.log(result);
-        let res = [];
-        for (var i = 0; i < result.length; i++) {
-          res[i] = result[i].id;
-        }
-        console.log(res);
-        connection.query('SELECT * FROM medlem', (error, result) => {
-          if(error){
-            reject(error);
-            return;
-          }
-          console.log(result);
-          connection.query('SELECT * FROM medlem WHERE id IN (?)', [res], (error, result) => {
-            if(error){
-              reject(error);
-              return;
-            }
-            console.log(result);
-          });
-        });
-      });
-    });
-  }
-
-  static getArrangementRoller(id) {
-    return new Promise((resolve, reject) =>{
-      connection.query('SELECT r.id AS rolle_id, COUNT(*) AS antall FROM arrangement a INNER JOIN vakt v ON a.id = a_id INNER JOIN rolle r ON r_id = r.id WHERE a.id = ? GROUP BY r_id', [id], (error, result) => {
-        if(error){
-          reject(error);
-          return;
-        }
         resolve(result);
       });
     });
   }
+
+  static setVakt(m_id, a_id, r_id) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE vakt SET m_id = ? WHERE a_id = ? AND r_id = ? AND m_id IS NULL LIMIT 1', [m_id, a_id, r_id], (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve(result);
+      });
+    });
+  }
+
+  static removeVakt(m_id, a_id, r_id) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE vakt SET m_id = NULL WHERE a_id = ? AND r_id = ? AND m_id = ? LIMIT 1', [a_id, r_id, m_id], (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve(result);
+      });
+    });
+  }
+
+
+
+
+
+
+
+
 }
 
 
