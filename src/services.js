@@ -566,9 +566,96 @@ class PassivService {
 }
 
 
+class UtstyrService {
+  static getAllUtstyr() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * FROM utstyr', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static addUtstyr(navn) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO utstyr (navn) VALUES(?)', [navn], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static alterUtstyr(id, navn) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE utstyr SET navn = ? WHERE id = ?', [navn, id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static removeUtstyr(id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM utstyr WHERE id = ?', [id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+
+  static getAllRU() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT r_id, u_id, r.navn AS "r_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN r_utstyr ru ON u.id = ru.u_id INNER JOIN rolle r ON ru.r_id = r.id', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static addRU(r_id, u_id, antall) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO r_utstyr (r_id, u_id, antall) VALUES(?, ?, ?)', [r_id, u_id, antall], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static alterRU(r_id, u_id, antall) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE r_utstyr SET antall = ? WHERE r_id = ? AND u_id = ?', [antall, r_id, u_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static removeRU(r_id, u_id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM r_utstyr WHERE r_id = ? AND u_id = ?', [r_id, u_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
 
 
 
 
+}
 
-export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService }
+
+
+
+export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService }

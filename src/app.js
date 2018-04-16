@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 const history = createHashHistory();
@@ -349,6 +349,9 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/bestemme' className="nav-link">Administrator</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/T-utstyr' className="nav-link">Utstyr</Link>
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
@@ -1861,6 +1864,150 @@ class Innkalling extends React.Component {
   // }
 }
 
+
+
+class Utstyr extends React.Component {
+  constructor() {
+    super();
+    this.utstyr = [];
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'utstyrsListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    for (let item of this.utstyr) {
+      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Navn: <input ref='utNavn'/> <button ref='lagUt'>Legg til</button>
+        </div>
+        <RolleUtstyr />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log(this.refs.utNavn.value);
+      UtstyrService.addUtstyr(this.refs.utNavn.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllUtstyr().then((res) => {
+      console.log(res);
+      this.utstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(id) {
+    console.log('Endre: ' + id);
+    UtstyrService.alterUtstyr(id, this.refs.utNavn.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(id) {
+    console.log('Fjern: ' + id);
+    UtstyrService.removeUtstyr(id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class RolleUtstyr extends React.Component {
+  constructor() {
+    super();
+    this.rolleUtstyr = []
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    for (let item of this.rolleUtstyr) {
+      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Rolle: <input ref='rolle'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button ref='lagUt'>Legg til</button>
+        </div>
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log('Click');
+      UtstyrService.addRU(this.refs.rolle.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllRU().then((res) => {
+      console.log(res);
+      this.rolleUtstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(r_id, u_id) {
+    console.log('Endre');
+    UtstyrService.alterRU(r_id, u_id, this.refs.antall.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(r_id, u_id) {
+    console.log('Fjern');
+    UtstyrService.removeRU(r_id, u_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+
+
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -1888,8 +2035,7 @@ ReactDOM.render((
         <Route exact path='/visArrangement/:id' component={VisArrangement} />
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
         <Route exact path='/inkalling/:id' component={Innkalling} />
-
-
+        <Route exact path='/T-utstyr' component={Utstyr} />
       </Switch>
       <Popup />
     </div>
