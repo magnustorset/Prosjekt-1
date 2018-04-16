@@ -1,7 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg } from './services'
+import createHashHistory from 'history/createHashHistory';
+const history = createHashHistory();
 const _ = require('lodash');
 const { compose, withProps, lifecycle } = require('recompose')
 const {
@@ -16,31 +18,37 @@ let brukerid = null
 let administrator = false
 let klokke = 0
 let emailCode = false
-let gjøremål = [{name: 'Godkjennebruker',
-                id: 'godkjenn'}
-                ];
+let latitude = ''
+let longitude = ''
+let mapLat = ''
+let mapLng = ''
 let brukerEpost;
+let vis = []
 
 const MapWithASearchBox = compose(
   withProps({
-    googleMapURL: "https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places",
+    googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
     loadingElement: <div style={{ height: `100%` }} />,
     containerElement: <div style={{ height: `400px`, width: '400px'}} />,
     mapElement: <div style={{ height: `100%` }} />,
   }),
   lifecycle({
     componentWillMount() {
+      let sted = 63.426387
+      let stad = 10.392680
       const refs = {}
 
       this.setState({
         bounds: null,
         center: {
-          lat: 63.426387, lng: 10.392680
+          lat: sted, lng: stad
 
         },
         markers: [],
         onMapMounted: ref => {
           refs.map = ref;
+          console.log('Kartet lastet');
+
         },
         onBoundsChanged: () => {
           this.setState({
@@ -48,8 +56,25 @@ const MapWithASearchBox = compose(
             center: refs.map.getCenter(),
           })
         },
+        onMarkerMounted: ref =>{
+          refs.marker = ref;
+          console.log('Markør');
+        },
         onSearchBoxMounted: ref => {
           refs.searchBox = ref;
+        },
+       dragMarker(){
+         let b = this.getPosition();
+         this.setPosition(b);
+         console.log(b.lat(),b.lng());
+       },
+       onMapClick(){
+         let p = refs.marker.getPosition();
+         console.log(p.lat(), p.lng());
+       },
+        onClick(){
+          let a = this.getPosition();
+          console.log(a.lat(),a.lng());
         },
         onPlacesChanged: () => {
           const places = refs.searchBox.getPlaces();
@@ -71,6 +96,11 @@ const MapWithASearchBox = compose(
             center: nextCenter,
             markers: nextMarkers,
           });
+          let k = refs.marker.getPosition();
+          latitude = k.lat();
+          longitude = k.lng();
+          console.log(latitude);
+          console.log(longitude);
           // refs.map.fitBounds(bounds);
         },
       })
@@ -78,23 +108,24 @@ const MapWithASearchBox = compose(
   }),
   withScriptjs,
   withGoogleMap
-)(props =>
-  <GoogleMap
+  )(props =>
+    <GoogleMap
     ref={props.onMapMounted}
     defaultZoom={15}
     center={props.center}
     onBoundsChanged={props.onBoundsChanged}
-  >
-    <SearchBox
+    onClick={props.onMapClick}
+    >
+      <SearchBox
       ref={props.onSearchBoxMounted}
       bounds={props.bounds}
       controlPosition={google.maps.ControlPosition.TOP_LEFT}
       onPlacesChanged={props.onPlacesChanged}
-    >
-      <input
-        type="text"
-        placeholder="Søk etter plass"
-        style={{
+      >
+        <input
+          type="text"
+          placeholder="Søk etter plass"
+          style={{
           boxSizing: `border-box`,
           border: `1px solid transparent`,
           width: `240px`,
@@ -106,15 +137,80 @@ const MapWithASearchBox = compose(
           fontSize: `14px`,
           outline: `none`,
           textOverflow: `ellipses`,
-        }}
-      />
-    </SearchBox>
-    {props.markers.map((marker, index) =>
-      <Marker key={index} position={marker.position} />
-    )}
-  </GoogleMap>
+          }}
+        />
+        </SearchBox>
+        {props.markers.map((marker, index) =>
+          <Marker
+            ref={props.onMarkerMounted}
+            key={index}
+            position={marker.position}
+            draggable={true}
+            onDragEnd={props.dragMarker}
+            onClick={props.onClick}
+            />
+          )}
+          </GoogleMap>
 );
+const MapWithAMarker = compose(
+  withProps({
+    googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
+    loadingElement: <div style={{ height: `100%` }} />,
+    containerElement: <div style={{ height: `400px`, width: '400px'}} />,
+    mapElement: <div style={{ height: `100%` }} />,
+  }),
+  lifecycle({
 
+    componentWillMount() {
+      const refs = {}
+
+
+      this.setState({
+        bounds: null,
+        center: {
+          lat: mapLat, lng: mapLng
+
+        },
+        onBoundsChanged: () => {
+          this.setState({
+            center:{
+              lat: mapLat, lng: mapLng
+            },
+          })
+        },
+        markers: [],
+        onMapMounted: ref => {
+          refs.map = ref;
+          console.log('Kartet lastet');
+
+        },
+        onMarkerMounted: ref =>{
+          refs.marker = ref;
+          console.log('Markør');
+        },
+      })
+    },
+  }),
+  withScriptjs,
+  withGoogleMap
+  )(props =>
+    <GoogleMap
+    ref={props.onMapMounted}
+    defaultZoom={15}
+    center={props.center}
+    onBoundsChanged={props.onBoundsChanged}
+    >
+
+
+          <Marker
+            ref={props.onMarkerMounted}
+            position={props.center}
+
+
+            />
+
+          </GoogleMap>
+);
 
 class ErrorMessage extends React.Component {
   constructor() {
@@ -190,11 +286,14 @@ class Menu extends React.Component {
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
-          <li>
+          <li className='hopp'>
             <input  ref='serachFieldUser' type='text' className='form-control' />
           </li>
           <li>
-          <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+          <button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}><span className='glyphicon glyphicon-search' /></button>
+          </li>
+          <li className='spaceBetweenSearchAndLogout'>
+          <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
           </li>
         </ul>
       </div>
@@ -225,11 +324,14 @@ class Menu extends React.Component {
     </li>
   </ul>
   <ul className="nav navbar-nav navbar-right">
-    <li>
+    <li className='hopp'>
       <input  ref='serachFieldUser' type='text' className='form-control' />
     </li>
     <li>
-  <Link to='/sokeResultat'><button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button></Link>
+  <button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button>
+    </li>
+    <li className='spaceBetweenSearchAndLogout'>
+    <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
     </li>
   </ul>
   </div>
@@ -250,12 +352,23 @@ class Menu extends React.Component {
   }
   searchUsers(){
       userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
-        console.log(result);
-          sokeResultat.set(result);
+        if(history.location.pathname === '/sokeResultat'){
+          vis = result;
+          console.log(vis);
+          sok.update();
           this.refs.serachFieldUser.value = '';
+        }else{
+          vis = result;
+          history.push('sokeResultat')
+          this.refs.serachFieldUser.value = '';
+        }
       }).catch((error)=>{
         if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
       });
+    }
+    logOut(){
+      loginService.signOut();
+      history.push('/')
     }
   }
 
@@ -263,29 +376,31 @@ class Innlogging extends React.Component {
   render () {
 
     return (
-      <div className='Rot'>
-        <br />
-        <table >
-          <tbody>
-            <tr>
-              <td >Brukernavn: </td>
-              <td ><input type="text" ref="unInput" defaultValue="sindersopp@hotmail.com" /></td>
-              <td ><button ref="newUserButton">Ny bruker</button></td>
-            </tr>
-            <tr>
-              <td >Passord: </td>
-              <td ><input type="password" ref="pwInput" defaultValue="passord" /> </td>
-              <td ><button ref="newPasswordButton">Glemt passord?</button></td>
-            </tr>
-            <tr>
-              <td></td>
-              <td ><button className="btn btn-primary" ref="innlogginButton">Logg inn</button></td>
-              <td ></td>
-            </tr>
-          </tbody>
-        </table>
+<div>
+      <div className='Rot container'>
+      <form>
+      <div className='form-group' id='bilde'>
+        <img src='src/Test.png' />
+      </div>
+        <div className='form-group'>
+          <label htmlFor='brukernavn'>Brukernavn:</label>
+          <input type="text" ref="unInput" className="form-control col-6" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
+        </div>
+        <div className='form-group'>
+          <label htmlFor='passord'>Passord:</label>
+          <input type="password" ref="pwInput" className="form-control col-4" defaultValue="passord" name='passord'/>
+        </div>
+        <div className='form-group'>
+          <button className="btn btn-primary" ref="innlogginButton">Logg inn</button>
+        </div>
+        <div className='form-group'>
+          <button className='btn-default' ref="newUserButton">Ny bruker</button>
+          <button className='btn-default' ref="newPasswordButton">Glemt passord?</button>
+        </div>
+        </form>
       </div>
 
+</div>
     )
   }
 
@@ -477,14 +592,26 @@ class StartSide extends React.Component {
   let signedInUser = loginService.getSignedInUser();
   this.user = [];
   this.id = signedInUser.id;
+
+  this.state = {
+    adminMelding: ''
+  }
+  this.handleChange = this.handleChange.bind(this);
+  }
+  handleChange(event){
+    const target = event.target;
+    const value = event.target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
   }
   render () {
     return (
-      <div>
+      <div className='startside'>
         <h1>Hei, {this.user.brukernavn}!</h1>
-        Id: {this.user.id};
-        <button ref='logOut'>Logg ut</button>
-        <MapWithASearchBox />
+        <textarea name='adminMelding' value={this.state.adminMelding} onChange={this.handleChange} />
       </div>
     )
   }
@@ -497,15 +624,16 @@ class StartSide extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+    administratorFunctions.getAdminMelding().then((result) =>{
+      this.state.adminMelding = result[0].melding;
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke melding' + error);
+    });
 
-    this.refs.logOut.onclick = () =>{
-      brukerid = null;
-      administrator = false;
-      loginService.signOut();
-      this.props.history.push('/');
     }
   }
-}
+
 
 class Arrangement extends React.Component{
   constructor(){
@@ -516,18 +644,26 @@ class Arrangement extends React.Component{
     let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td>Navn</td><td>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
       a++;
     }
     let signedInUser = loginService.getSignedInUser();
     if(signedInUser.admin === 1)
     {
       return(
-        <div>
-          <input type='text' ref='searchArrangement' />
-          <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
-          <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+        <div className='table-responsive'>
           <table>
+            <thead>
+              <tr>
+                <td>
+                <input type='text' ref='searchArrangement' />
+                <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
+                </td>
+                <td>
+                  <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+                </td>
+              </tr>
+            </thead>
             <tbody>
               {tableItems}
             </tbody>
@@ -579,7 +715,7 @@ class NyttArrangement extends React.Component{
         Startdato: <input type="datetime-local" ref="a_startdate" /> <br /> {/*Autofyll med dagens dato*/}
         Sluttdato: <input type="datetime-local" ref="a_enddate" /> <br />
         Oppmøtetidspunkt: <input type="datetime-local" ref="a_meetdate" /> <br />
-        Oppmøtested: <input type="text" ref="a_place" defaultValue="Her" /> <br />
+        Oppmøtested: <MapWithASearchBox /> <br />
         Beskrivelse: <textarea rows="4" cols="20" ref="a_desc" defaultValue="En tekstlig beskrivelse"/> <br />
         Kontaktperson: <br />
         Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
@@ -615,7 +751,7 @@ class NyttArrangement extends React.Component{
       console.log(this.refs.a_startdate.value);
       let roller = this.tabelGreie();
       console.log(roller);
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_place.value, this.refs.a_desc.value, roller).then(() => {
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, roller, longitude,latitude).then(() => {
         console.log('Arrangement laget')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
@@ -694,8 +830,9 @@ class ForandreBrukerInfo extends React.Component {
   constructor() {
     super();
 
+    let signedInUser = loginService.getSignedInUser();
     this.user = [];
-    this.id = brukerid;
+    this.id = signedInUser.id;
 
   }
   render(){
@@ -759,8 +896,9 @@ class ForandrePassord extends React.Component {
   constructor() {
     super();
 
+    let signedInUser = loginService.getSignedInUser();
     this.user = [];
-    this.id = brukerid;
+    this.id = signedInUser.id;
   }
   render(){
     return(
@@ -858,40 +996,54 @@ class SeKvalifikasjoner extends React.Component {
 class Administrator extends React.Component{
   render(){
     return(
-      <table style={{width: '100%'}}><tbody>
-        <tr>
-          <td valign='top' style={{width: '30%'}}>
-            <Egenskaper />
-          </td>
-          <td valign='top'>
-            <GodkjennBruker />
-          </td>
-        </tr>
-      </tbody></table>
+      <div className='table-responsive'>
+      <table style={{width: '100%'}}>
+        <thead>
+          <tr>
+            <td style={{width: '30%'}}>
+              <div><strong>Brukere som må godkjennes</strong></div>
+            </td>
+            <td style={{width: '30%'}}>
+              <div><strong>Godkjenn vaktbytter</strong></div>
+            </td>
+            <td style={{width: '30%'}}>
+              <div><strong>Annet</strong></div>
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td valign='top' style={{width: '30%'}}>
+              <GodkjennBruker />
+            </td>
+            <td valign='top'>
+
+            </td>
+            <td>
+            </td>
+          </tr>
+          <tr>
+            <td>
+            <textarea ref='adminMelding' />
+            <button ref='RegistrerAdminMelding'>Commit</button>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
     )
   }
-}
-
-class Egenskaper extends React.Component <{}>{
-  constructor(){
-    super();
-  }
-  render(){
-
-    return(
-    <div>
-    <h1>Hva vil du gjøre?</h1>
-    <ul>
-
-      <li>
-      <Link to={'/godkjennebruker'}>Godkjenne bruker</Link>
-      </li>
-
-    </ul>
-    </div>
-    );
+  componentDidMount(){
+    this.refs.RegistrerAdminMelding.onclick = ()=> {
+      administratorFunctions.updateAdminMelding(this.refs.adminMelding.value);
+    }
   }
 }
+
 
 class GodkjennBruker extends React.Component {
   constructor(){
@@ -901,7 +1053,7 @@ class GodkjennBruker extends React.Component {
   render(){
     let brukerListe = [];
     for(let bruker of this.ikkeAktive){
-      brukerListe.push(<li key={bruker.id}>{bruker.fornavn},{bruker.etternavn} <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+      brukerListe.push(<li key={bruker.id}><Link to={'/bruker/'+bruker.id}>{bruker.fornavn},{bruker.etternavn}</Link> <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
     }
     return(
       <div>
@@ -938,7 +1090,8 @@ class GodkjennBruker extends React.Component {
 class VisSøkeResultat extends React.Component {
   constructor(){
     super();
-    this.sokeResultat = [];
+
+    this.sokeResultat = vis;
   }
   render(){
    let resultat = [];
@@ -954,19 +1107,17 @@ class VisSøkeResultat extends React.Component {
       </div>
     );
   }
-  componentWillUnmount(){
-    sokeResultat = null;
-  }
-  componentDidMount(){
-    sokeResultat = this;
-  }
-  set(innhold){
-   this.sokeResultat = innhold;
-   this.forceUpdate();
- }
-}
-let sokeResultat;
 
+  componentDidMount(){
+  sok = this;
+  }
+  update(){
+  this.sokeResultat = vis;
+  this.forceUpdate();
+  }
+}
+
+let sok;
 class BrukerSide extends React.Component {
   constructor(props) {
     super(props)
@@ -1009,7 +1160,7 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+            <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1048,7 +1199,7 @@ class BrukerSide extends React.Component {
                 </tr>
               </tbody>
             </table>
-              <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+              <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
             </div>
           </div>
         )
@@ -1094,6 +1245,7 @@ class BrukerSide extends React.Component {
   }
 }
 
+
 class VisArrangement extends React.Component {
   constructor(props) {
     super(props)
@@ -1102,7 +1254,6 @@ class VisArrangement extends React.Component {
     this.user = [];
   }
   render(){
-
 
     return(
       <div>
@@ -1130,7 +1281,10 @@ class VisArrangement extends React.Component {
               <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
             </tr>
             <tr>
-              <td>Oppmøtested:</td><td>{this.arrangement.kordinater}</td>
+              <td>Oppmøtested:</td>
+            </tr>
+            <tr>
+            <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
               <td><button ref='endreArrangement'>Endre arrangementet</button></td>
@@ -1145,11 +1299,16 @@ class VisArrangement extends React.Component {
     let a = moment(variabel).format('DD.MM.YY HH:mm');
     return a;
   }
+  componentWillUnmount(){
+    mapLat = '';
+    mapLng = '';
+    }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
-      console.log(this.id);
       this.arrangement = result[0];
-      this.forceUpdate();
+      mapLat = this.arrangement.latitute;
+      mapLng = this.arrangement.longitute;
+    this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
         this.forceUpdate();
@@ -1179,8 +1338,8 @@ class EndreArrangement extends React.Component {
     this.state = {beskrivelse: '',
                   oppmootetidspunkt: '',
                   starttidspunkt: '',
-                  sluttidspunkt: '',
-                  kordinater: ''};
+                  sluttidspunkt: ''
+                  };
 
     this.handleChange = this.handleChange.bind(this);
   }
@@ -1220,7 +1379,7 @@ class EndreArrangement extends React.Component {
               <td><input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
             </tr>
             <tr>
-              <td>Oppmøtested:</td><td><input name='kordinater' value={this.state.kordinater} onChange={this.handleChange} /></td>
+              <td>Oppmøtested:</td><td><MapWithAMarker /></td>
             </tr>
             <tr>
               <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
@@ -1239,10 +1398,11 @@ class EndreArrangement extends React.Component {
       this.arrangement = result[0];
 
       this.state.beskrivelse = this.arrangement.beskrivelse;
-      this.state.kordinater = this.arrangement.kordinater;
       this.state.oppmootetidspunkt = this.changeDate(this.arrangement.oppmootetidspunkt);
       this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
       this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
+      mapLat = this.arrangement.latitude;
+      mapLng = this.arrangement.longitute;
       this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
@@ -1260,20 +1420,79 @@ class Innkalling extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.match.params.id;
+    this.r = 1;
     this.roller = []
+    this.ikkeValgte = []
+    this.valgte = []
   }
 
   render() {
     let rolle = []
+    let ikkeValgtePersoner = []
+    let valgtePersoner = []
+    for(let i in this.ikkeValgte){
+      let item = this.ikkeValgte[i];
+      if (item.r_id === this.r) {
+        ikkeValgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn}<button onClick={() => {this.leggTil(i)}}>Flytt over</button></li>)
+      }
+    }
+    for(let i in this.valgte){
+      let item = this.valgte[i];
+      if (item.r_id === this.r) {
+        valgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn}<button onClick={() => {this.taVekk(i)}}>Flytt over</button></li>)
+      }
+    }
     for (let roll of this.roller) {
       rolle.push(<option key={roll.r_id} value={roll.r_id}>{roll.navn}</option>)
     }
     return(
       <div>
-        <select ref='r'>
-          {rolle}
-        </select>
-        <button ref='button'>Button</button>
+        <table style={{width: '100%'}}>
+          <thead>
+            <tr>
+              <td><select ref='r'>{rolle}</select>
+              <button ref='button'>Button</button>{this.r}</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <p><strong>Ikke valgte</strong></p>
+              </td>
+              <td>
+                <p><strong>Valgte</strong></p>
+              </td>
+            </tr>
+            <tr>
+              <td style={{width: '50%'}}>
+                <table >
+                  <tbody>
+                    <tr>
+                      <td>
+                        <ul>
+                          {ikkeValgtePersoner}
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+              <td style={{width: '50%'}}>
+                <table >
+                  <tbody>
+                    <tr>
+                      <td>
+                        <ul>
+                          {valgtePersoner}
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     )
   }
@@ -1283,6 +1502,9 @@ class Innkalling extends React.Component {
     console.log(this.id);
     arrangementService.getRoles(this.id).then((result) => {
       this.roller = result
+      if (result && result[0]) {
+        this.r = result[0].r_id;
+      }
       console.log(result);
       this.forceUpdate()
     }).catch((error) => {
@@ -1290,8 +1512,40 @@ class Innkalling extends React.Component {
       if(errorMessage) errorMessage.set('Fant ingen roller i dette arrnagementet' + error)
     })
     this.refs.button.onclick = () => {
-      console.log(this.refs.r.value);
+      this.r = +this.refs.r.value;
+      this.forceUpdate();
     }
+
+    VaktValg.lagListe3(this.id).then((res)=>{
+      console.log(res);
+      this.ikkeValgte = res;
+      this.forceUpdate();
+    }).catch((err)=>{
+      console.log('Feil med resultatet');
+      console.log(err);
+    });
+    // VaktValg.getRolls(arr_id).then((result) => {
+    //   this.roll = result;
+    //   this.forceUpdate();
+    // }).catch((error) => {
+    //   if(errorMessage) errorMessage.set('Finner ikke arrangement');
+    // });
+  }
+
+  leggTil(i) {
+    let flytt = this.ikkeValgte[i].m_id;
+    for (let per of this.valgte) {
+      if (per.m_id === flytt) {
+        return;
+      }
+    }
+    this.valgte.push(this.ikkeValgte.splice(i,1)[0]);
+    this.forceUpdate();
+  }
+
+  taVekk(i) {
+    this.ikkeValgte.push(this.valgte.splice(i,1)[0]);
+    this.forceUpdate();
   }
 }
 
