@@ -1384,21 +1384,26 @@ class Innkalling extends React.Component {
     let rolle = []
     let ikkeValgtePersoner = []
     let valgtePersoner = []
+    // console.log(this.roller);
+    console.log(this.ikkeValgte);
+    console.log(this.valgte);
+
     for(let i in this.ikkeValgte){
       let item = this.ikkeValgte[i];
       if (item.r_id === this.r) {
-        ikkeValgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn}<button onClick={() => {this.leggTil(i)}}>Flytt over</button></li>)
+        ikkeValgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn} - {(item.interesse) ? 'Ja':'Nei'} - {item.vaktpoeng} - {this.getRollName(item.registrert)} - {this.getRollName(item.opptatt)}<button onClick={() => {this.leggTil(+i)}}>Flytt over</button></li>)
       }
     }
     for(let i in this.valgte){
       let item = this.valgte[i];
       if (item.r_id === this.r) {
-        valgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn}<button onClick={() => {this.taVekk(i)}}>Flytt over</button></li>)
+        valgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn} - {(item.interesse) ? 'Ja':'Nei'} - {item.vaktpoeng} - {this.getRollName(item.registrert)} - {this.getRollName(item.opptatt)}<button onClick={() => {this.taVekk(+i)}}>Flytt over</button></li>)
       }
     }
     for (let roll of this.roller) {
       rolle.push(<option key={roll.r_id} value={roll.r_id}>{roll.navn}</option>)
     }
+
     return(
       <div>
         <table style={{width: '100%'}}>
@@ -1447,60 +1452,201 @@ class Innkalling extends React.Component {
             </tr>
           </tbody>
         </table>
+        <button ref="save">Save</button>
       </div>
     )
   }
 
   componentDidMount() {
-    // SQL med liste over brukere
-    console.log(this.id);
+    // console.log(this.id);
     arrangementService.getRoles(this.id).then((result) => {
       this.roller = result
       if (result && result[0]) {
         this.r = result[0].r_id;
       }
-      console.log(result);
+      // console.log(result);
       this.forceUpdate()
     }).catch((error) => {
       console.log(error);
       if(errorMessage) errorMessage.set('Fant ingen roller i dette arrnagementet' + error)
     })
-    this.refs.button.onclick = () => {
-      this.r = +this.refs.r.value;
-      this.forceUpdate();
-    }
 
     VaktValg.lagListe3(this.id).then((res)=>{
-      console.log(res);
+      // console.log(res);
       this.ikkeValgte = res;
       this.forceUpdate();
     }).catch((err)=>{
       console.log('Feil med resultatet');
       console.log(err);
     });
-    // VaktValg.getRolls(arr_id).then((result) => {
-    //   this.roll = result;
-    //   this.forceUpdate();
-    // }).catch((error) => {
-    //   if(errorMessage) errorMessage.set('Finner ikke arrangement');
-    // });
+
+    VaktValg.getReg(this.id).then((res)=>{
+      // console.log(res);
+      this.valgte = res;
+      this.forceUpdate();
+    }).catch((err)=>{
+      console.log('Feil med resultatet');
+      console.log(err);
+    });
+
+    this.refs.button.onclick = () => {
+      this.r = +this.refs.r.value;
+      this.forceUpdate();
+    }
+
+    this.refs.save.onclick = () => {
+      console.log(this.roller);
+
+      let leggTil = [];
+      let fjern = [];
+      let ignorer = [];
+
+      for(let item of this.ikkeValgte) {
+        if(item.registrert) {
+          fjern.push({
+            m_id: item.m_id,
+            r_id: item.registrert
+          });
+        }
+      }
+
+      for(let item of this.valgte) {
+        if(item.registrert === item.opptatt) {
+          ignorer.push({
+            m_id: item.m_id,
+            r_id: item.registrert
+          });
+        } else {
+          if(item.registrert) {
+            fjern.push({
+              m_id: item.m_id,
+              r_id: item.registrert
+            });
+          }
+          leggTil.push({
+            m_id: item.m_id,
+            r_id: item.opptatt
+          });
+        }
+      }
+      console.log(ignorer);
+      console.log(fjern);
+      console.log(leggTil);
+
+      for(let item of this.roller) {
+        let count = 0;
+        for(let med of leggTil) {
+          if (med.r_id === item.r_id) {
+            count++;
+          }
+        }
+        for(let med of ignorer) {
+          console.log('dawdsd');
+          if (med.r_id === item.r_id) {
+            console.log('greawdas');
+            count++;
+          }
+        }
+        if (count > item.antall) {
+          console.log('Error');
+          return;
+        }
+      }
+
+      console.log(fjern);
+      console.log(leggTil);
+
+      let proms = [];
+      for(let item of fjern) {
+        console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
+        proms.push(VaktValg.removeVakt(item.m_id, this.id, item.r_id));
+      }
+      Promise.all(proms).then(() => {
+        for(let item of leggTil) {
+          console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
+          VaktValg.setVakt(item.m_id, this.id, item.r_id);
+        }
+      }).catch((err)=>{
+        console.log('Something went wrong.');
+        console.log(err);
+      });
+
+    }
+// M A R
   }
 
   leggTil(i) {
+    console.log(i);
     let flytt = this.ikkeValgte[i].m_id;
+    let roll = this.ikkeValgte[i].r_id;
     for (let per of this.valgte) {
       if (per.m_id === flytt) {
         return;
       }
     }
     this.valgte.push(this.ikkeValgte.splice(i,1)[0]);
+    this.settOpptatt(flytt, roll);
     this.forceUpdate();
   }
 
   taVekk(i) {
+    console.log(i);
+    console.log(this.valgte);
+    let flytt = this.valgte[i].m_id;
+    console.log(flytt);
     this.ikkeValgte.push(this.valgte.splice(i,1)[0]);
+    this.settOpptatt(flytt, 0);
     this.forceUpdate();
   }
+
+  getRollName(reg) {
+    if (reg) {
+      for (let item of this.roller) {
+        if (reg === item.r_id) {
+          return item.navn;
+        }
+      }
+      return 'ERROR: Roll id not found in event';
+    }
+    else {
+      return 'Ikke registrert';
+    }
+  }
+
+  settOpptatt(m_id, r_id) {
+    console.log(m_id, r_id);
+    for (var i = 0; i < this.valgte.length; i++) {
+      if (this.valgte[i].m_id === m_id) {
+        // console.log(m_id);
+        // console.log(this.valgte[i].opptatt);
+        // console.log(r_id);
+        this.valgte[i].opptatt = r_id;
+        // console.log(this.valgte[i].opptatt);
+      }
+    }
+    for (var i = 0; i < this.ikkeValgte.length; i++) {
+      if (this.ikkeValgte[i].m_id === m_id) {
+        // console.log(m_id);
+        // console.log(this.valgte[i].opptatt);
+        // console.log(r_id);
+        this.ikkeValgte[i].opptatt = r_id;
+        // console.log(this.valgte[i].opptatt);
+      }
+    }
+  }
+
+  // setOpptatt(m_id, r_id) {
+  //   for (item of this.ikkeValgte) {
+  //     if (item.m_id === m_id) {
+  //       item.opptatt = r_id
+  //     }
+  //   }
+  //   for (item of this.valgte) {
+  //     if (item.m_id === m_id) {
+  //       item.opptatt = r_id;
+  //     }
+  //   }
+  // }
 }
 
 ReactDOM.render((
