@@ -5,6 +5,7 @@ import { userService, loginService, arrangementService, emailService, administra
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 const history = createHashHistory();
+const passwordHash =require ('password-hash');
 const _ = require('lodash');
 const { compose, withProps, lifecycle } = require('recompose')
 const {
@@ -471,6 +472,7 @@ class Innlogging extends React.Component {
 
   // Called after render() is called for the first time
   componentDidMount () {
+
     this.refs.innlogginButton.onclick = () => {
       loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then((login) => {
         let signedInUser = loginService.getSignedInUser();
@@ -849,18 +851,32 @@ class MineSider extends React.Component {
       <div>
         <h1>Min Side</h1>
 
-        <table>
+        <table className='minsideTabell'>
           <tbody>
-            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer: {this.user.poststed_postnr}</td></tr>
-            <tr><td>Epost: {this.user.epost}</td><td>Poststed: {this.user.poststed}</td></tr>
-            <tr><td>Telefonnummer: {this.user.tlf}</td><td>Gateadresse: {this.user.adresse}</td></tr>
-            <tr><td>Passiv fra: <input type='date' ref='passivFra' /></td><td>Passiv til: <input type='date' ref='passivTil' /></td></tr>
+            <tr>
+              <td className='minsideTabell'>Medlemmsnummer: {this.user.id}</td>
+              <td className='minsideTabell'>Postnummer: {this.user.poststed_postnr}</td>
+            </tr>
+            <tr>
+              <td className='minsideTabell'>Epost: {this.user.epost}</td>
+              <td className='minsideTabell'>Poststed: {this.user.poststed}</td>
+            </tr>
+            <tr>
+              <td className='minsideTabell'>Telefonnummer: {this.user.tlf}</td>
+              <td className='minsideTabell'>Gateadresse: {this.user.adresse}</td>
+            </tr>
+            <tr>
+              <td className='minsideTabell'>Passiv fra: <input type='date' ref='passivFra' /></td>
+              <td className='minsideTabell'>Passiv til: <input type='date' ref='passivTil' /></td>
+            </tr>
+            <tr>
+              <td className='minsideTabell'><button ref='setPassive'>Meld deg passiv</button>
+              <button ref='seeQualifications'>Se kvalifikasjoner</button></td>
+              <td className='minsideTabell'><button ref='changeInfo'>Endre personalia</button>
+              <button ref='changePassword'>Endre passord</button></td>
+            </tr>
           </tbody>
         </table>
-        <button ref='setPassive'>Meld deg passiv</button>
-        <button ref='seeQualifications'>Se kvalifikasjoner</button>
-        <button ref='changeInfo'>Endre personalia</button>
-        <button ref='changePassword'>Endre passord</button>
       </div>
     )
   }
@@ -955,7 +971,7 @@ class ForandreBrukerInfo extends React.Component {
       /** Call the plugin */
       Popup.plugins(email, adress, tlf, zip, vip, thePassword).prompt('', 'Passord', function (value,signedInUser) {
 
-          if(value === thePassword){
+          if(passwordHash.verify(value,thePassword)){
             userService.editUser(email, adress, tlf, zip, vip).then(() =>{
               history.push('/minside');
           }).catch((error) =>{
@@ -1018,18 +1034,19 @@ class ForandrePassord extends React.Component {
         let currentId = this.user.id;
         if (password1 === password2){
           Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
-              if(value === thePassword){
+              if(passwordHash.verify(value,thePassword)){
                 userService.editPassword(password1, currentId).then(() =>{
+                  history.push('/minside');
               }).catch((error) =>{
                 if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
               });
-              alert('Passordet ble endret.');
+
              }
              else{
                alert('Passordet stemte ikke.');
              }
           });
-          this.props.history.push('/minside');
+
         }
         else{
           alert('Passordfeltene må være like!')
@@ -1077,7 +1094,7 @@ class SeKvalifikasjoner extends React.Component {
       if(errorMessage) errorMessage.set("Failed getting qualifications");
     });
     this.refs.tilbakeKnapp.onclick = () =>{
-      this.props.history.push('/minside');
+      this.props.history.goBack();
     }
 
   }
@@ -1247,6 +1264,7 @@ class BrukerSide extends React.Component {
               <tr>
               <td><button onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
               <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+              <td><button onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
               </tr>
             </tbody>
           </table>
@@ -1286,6 +1304,8 @@ class BrukerSide extends React.Component {
                 <tr>
                 <td><button onClick={() =>{this.deleteAdmin()}}>Fjern bruker som admin</button></td>
                 <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+                <td><button onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
+
                 </tr>
               </tbody>
             </table>
@@ -1312,7 +1332,7 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button onClick={() =>{this.props.history.push('/start');}}>Gå tilbake</button>
+            <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1332,6 +1352,7 @@ class BrukerSide extends React.Component {
       this.user = result[0];
       this.forceUpdate();
     })
+
   }
 }
 

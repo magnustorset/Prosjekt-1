@@ -10,7 +10,7 @@ body{
   width: 500px;
   border: 3px solid black;
   border-radius: 25px;
-  align-content: center;
+  text-align: justify;
 }
 .button {
   padding-left: 10px;
@@ -42,6 +42,12 @@ body{
 }
 #bilde{
   align-content: center;
+}
+
+.minsideTabell{
+  padding: 7px;
+
+
 }
 
 .mm-popup {
