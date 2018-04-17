@@ -214,7 +214,7 @@ class UserService {
 class LoginService {
   checkLogin (brukernavn, passord, callback) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT * from medlem WHERE epost = ?', [brukernavn], (error, result) => {
+      connection.query('SELECT * from medlem WHERE epost = ? or brukernavn = ?', [brukernavn, brukernavn], (error, result) => {
         if(error){
           reject(error);
           return;
@@ -295,6 +295,19 @@ class LoginService {
 }
 
 class ArrangementService {
+  getUtkaltArrangement(id){
+    return new Promise((resolve, reject) =>{
+      connection.query('select a.navn from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is ?', [id,null,null],(error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      });
+    });
+  }
+
   getYourArrangements(id){
     return new Promise((resolve, reject)=>{
       connection.query('SELECT a.navn,a.beskrivelse,a.starttidspunkt,a.sluttidspunkt from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ?', [id] ,(error, result)=>{
