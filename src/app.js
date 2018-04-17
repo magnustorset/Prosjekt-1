@@ -444,7 +444,8 @@ class Menu extends React.Component {
     if(kollaps.style.display =='none'){klokke=0;}
   }
   searchUsers(){
-      userService.searchUser(this.refs.serachFieldUser.value).then((result) =>{
+    let userSearch = '%' + this.refs.serachFieldUser.value + '%'
+      userService.searchUser(userSearch).then((result) =>{
         if(history.location.pathname === '/sokeResultat'){
           vis = result;
           console.log(vis);
@@ -1338,8 +1339,8 @@ class BrukerSide extends React.Component {
     if (signedInUser.admin === 1 && this.user.admin === 0) {
       return(
         <div>
-          <div className="table-responsive">
-          <table className='table'>
+          <div className="brukerSideTabell">
+          <table>
             <thead>
               <tr>
                 <th>{this.user.fornavn}, {this.user.etternavn}</th>
