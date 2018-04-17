@@ -339,6 +339,7 @@ class Prompt extends React.Component {
 
 class Menu extends React.Component {
   render () {
+      let displayValue;
       let signedInUser = loginService.getSignedInUser();
       if(signedInUser && signedInUser.admin === 1){
     return (
@@ -434,12 +435,16 @@ class Menu extends React.Component {
   </nav>
   );
   }
-  return(
-    <div>
-    </div>
-  )
+  else{
+    return(
+      null
+    )
   }
+  }
+
   componentDidMount(){
+    let signedInUser = loginService.getSignedInUser();
+    if(signedInUser){
     this.refs.serachUsersButton.onclick = ()=>{
       let userSearch = '%' + this.refs.serachFieldUser.value + '%'
         userService.searchUser(userSearch).then((result) =>{
@@ -454,8 +459,10 @@ class Menu extends React.Component {
         }).catch((error)=>{
           if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
         });
+      }
     }
-  }
+    }
+
   collapseNavbar(){
     let kollaps = document.getElementById('navbarSupportedContent');
     kollaps.style.display ='none';
