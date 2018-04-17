@@ -1974,6 +1974,8 @@ class Utstyr extends React.Component {
           Navn: <input ref='utNavn'/> <button ref='lagUt'>Legg til</button>
         </div>
         <RolleUtstyr />
+        <ArrangementUtstyr />
+        <br />
       </div>
     )
   }
@@ -2035,6 +2037,8 @@ class RolleUtstyr extends React.Component {
 
     return(
       <div>
+        <br />
+        <p>Rolle utstyrsListe</p>
         <div>
           <table>
             <tbody>
@@ -2043,6 +2047,7 @@ class RolleUtstyr extends React.Component {
           </table>
           Rolle: <input ref='rolle'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button ref='lagUt'>Legg til</button>
         </div>
+        <br />
       </div>
     )
   }
@@ -2081,6 +2086,78 @@ class RolleUtstyr extends React.Component {
   removeUtstyr(r_id, u_id) {
     console.log('Fjern');
     UtstyrService.removeRU(r_id, u_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class ArrangementUtstyr extends React.Component {
+  constructor() {
+    super();
+    this.arrangememtUtstyr = []
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'a_utstyrsListe'}><td>Arrangement</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    for (let item of this.arrangememtUtstyr) {
+      utstyrsListe.push(<tr key={item.a_id + ' - ' + item.u_id}><td>{item.a_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <br />
+        <p>Arrangament utstyrsListe</p>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Arrangement: <input ref='arrangement'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button ref='lagUt'>Legg til</button>
+        </div>
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log('Click');
+      UtstyrService.addAU(this.refs.arrangement.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllAU().then((res) => {
+      console.log(res);
+      this.arrangememtUtstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(a_id, u_id) {
+    console.log('Endre');
+    UtstyrService.alterAU(a_id, u_id, this.refs.antall.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(a_id, u_id) {
+    console.log('Fjern');
+    UtstyrService.removeAU(a_id, u_id).then((res) => {
       console.log(res);
       this.update();
     }).catch((err) => {
