@@ -34,8 +34,6 @@ const {
 } = require('react-google-maps');
 const { SearchBox } = require('react-google-maps/lib/components/places/SearchBox');
 
-let brukerid = null
-let administrator = false
 let klokke = 0
 let emailCode = false
 let latitude = ''
@@ -298,7 +296,7 @@ class Prompt extends React.Component {
     render() {
         return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
     }
-}
+  }
 
   /** Prompt plugin */
   Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
@@ -332,10 +330,6 @@ class Prompt extends React.Component {
         }
     });
 });
-
-
-
-
 
 class Menu extends React.Component {
   render () {
@@ -499,13 +493,10 @@ class Innlogging extends React.Component {
         let signedInUser = loginService.getSignedInUser();
         if (login && signedInUser.admin === 1 && signedInUser.aktiv === 1) {
           console.log('Innlogget som admin');
-          brukerid = signedInUser.id;
-          administrator = true;
           history.push('/start');
         }
         if(login && signedInUser.admin !=1 && signedInUser.aktiv === 1){
           console.log('Innlogget som bruker');
-          brukerid = signedInUser.id;
           history.push('/start');
         }
         if(signedInUser.aktiv != 1){
@@ -526,6 +517,7 @@ class Innlogging extends React.Component {
 }
 
 class NyBruker extends React.Component {
+
   render () {
     return (
       <div>
@@ -594,6 +586,7 @@ class NyBruker extends React.Component {
 }
 
 class NyttPassord extends React.Component {
+
   render () {
     return (
       <div>
@@ -613,6 +606,7 @@ class NyttPassord extends React.Component {
       </div>
     )
   }
+
   componentDidMount () {
     this.refs.newPasswordButton.onclick = () => {
       brukerEpost = this.refs.nyEpostInput.value
@@ -635,9 +629,6 @@ class NyttPassord extends React.Component {
 }
 
 class ResetPassord extends React.Component {
-  constructor() {
-    super()
-  }
 
   render() {
     return (
@@ -699,6 +690,7 @@ class NyttResetPassord extends React.Component {
         userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
           console.log('Passord byttet');
           this.props.history.push('/')
+          emailCode = false;
         }).catch((error) =>{
           if(errorMessage) errorMessage.set('Kunne ikke bytte passord');
         });
@@ -706,7 +698,6 @@ class NyttResetPassord extends React.Component {
     }
   }
 }
-
 
 class StartSide extends React.Component {
   constructor() {
@@ -772,7 +763,6 @@ class StartSide extends React.Component {
     });
   }
 }
-
 
 class Arrangement extends React.Component{
   constructor(){
@@ -937,10 +927,6 @@ class MineSider extends React.Component {
               <td className='minsideTabell'>Gateadresse: {this.user.adresse}</td>
             </tr>
             <tr>
-              <td className='minsideTabell'>Passiv fra: <input type='date' ref='passivFra' /></td>
-              <td className='minsideTabell'>Passiv til: <input type='date' ref='passivTil' /></td>
-            </tr>
-            <tr>
               <td className='minsideTabell'><button ref='setPassive'>Meld deg passiv</button>
               <button ref='seeQualifications'>Se kvalifikasjoner</button></td>
               <td className='minsideTabell'><button ref='changeInfo'>Endre personalia</button>
@@ -971,8 +957,39 @@ class MineSider extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+    this.refs.setPassive.onclick = () =>{
+      this.props.history.push('/passiv');
+    }
+    this.refs.changeInfo.onclick = () =>{
+      this.props.history.push('/forandreinfo');
+    }
+    this.refs.changePassword.onclick = () =>{
+      this.props.history.push('/forandrepassord');
+    }
+    this.refs.seeQualifications.onclick = () =>{
+      this.props.history.push('/sekvalifikasjoner');
+    }
+  }
+}
+
+class Passiv extends React.Component {
+  render() {
+    return(
+      <div>
+        <label htmlFor='passivFra'>Passiv fra: </label>
+        <input type='date' name='passivFra' ref='passivFra' />
+        <label htmlFor='passivTil'>Passiv til: </label>
+        <input type='date' name='passivTil' ref='passivTil' />
+        <button ref='setPassive'>Sett passiv</button>
+        <button ref='tilbakeButton'>Tilbake</button>
+      </div>
+    )
+  }
+
+  componentDidMount() {
     this.refs.setPassive.onclick = () => {
-      let m_id = this.id
+      let m_id = loginService.getSignedInUser().id;
+      console.log(m_id);
       let start = this.refs.passivFra.value
       let slutt = this.refs.passivTil.value
       if(start <= slutt) {
@@ -985,6 +1002,7 @@ class MineSider extends React.Component {
               console.log(error);
               if(errorMessage) errorMessage.set('Error');
             });
+            history.push('/minside')
           } else {
             console.log('Du er opptatt på denne tiden.');
           }
@@ -992,17 +1010,14 @@ class MineSider extends React.Component {
           console.log(error);
           if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
         });
+      } else {
+        alert('Sluttdato må være senere enn startdato')
       }
     }
-    this.refs.changeInfo.onclick = () =>{
-      this.props.history.push('/forandreinfo');
+    this.refs.tilbakeButton.onclick = () => {
+      history.push('/minside')
     }
-    this.refs.changePassword.onclick = () =>{
-      this.props.history.push('/forandrepassord');
-    }
-    this.refs.seeQualifications.onclick = () =>{
-      this.props.history.push('/sekvalifikasjoner');
-    }
+
   }
 }
 
@@ -1164,7 +1179,7 @@ class SeKvalifikasjoner extends React.Component {
 
     this.user = [];
     this.kvalifikasjoner = [];
-    this.id = brukerid;
+    this.id = loginService.getSignedInUser().id;
 
   }
   render(){
@@ -1248,7 +1263,6 @@ class Administrator extends React.Component{
     }
   }
 }
-
 
 class GodkjennBruker extends React.Component {
   constructor(){
@@ -1453,7 +1467,6 @@ class BrukerSide extends React.Component {
 
   }
 }
-
 
 class VisArrangement extends React.Component {
   constructor(props) {
@@ -1981,8 +1994,6 @@ class Innkalling extends React.Component {
   // }
 }
 
-
-
 class Utstyr extends React.Component {
   constructor() {
     super();
@@ -2199,9 +2210,6 @@ class ArrangementUtstyr extends React.Component {
   }
 }
 
-
-
-
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -2216,6 +2224,7 @@ ReactDOM.render((
         <Route exact path='/resetpassord' component={NyttResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
+        <Route exact path='/passiv' component={Passiv} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
         <Route exact path='/bestemme' component={Administrator} />
 

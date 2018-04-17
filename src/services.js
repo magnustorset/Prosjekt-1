@@ -27,7 +27,7 @@ function connect () {
   })
 }
 connect()
-
+//oppkobling til epostserver
 let transporter = nodemailer.createTransport({
   host: 'mail.fastname.no',
   port: 465,
@@ -43,6 +43,8 @@ let transporter = nodemailer.createTransport({
 });
 
 class EmailService {
+
+  //Sender epost med kode til nytt passord
   newPassword (clientEmail, emailCheck) {
     return new Promise((resolve, reject) => {
 
@@ -65,6 +67,7 @@ class EmailService {
     })
   }
 
+  //Sender inkkallingsepost
   innkalling (clientEmail, rolle, arrNavn, arrDato) {
     return new Promise((resolve, reject) => {
       let message = {
@@ -234,13 +237,13 @@ class LoginService {
   });
   }
 
-  getSignedInUser(): ?User {
-  let item: ?string = localStorage.getItem('signedInUser'); // Get User-object from browser
+  getSignedInUser() {
+  let item = localStorage.getItem('signedInUser'); // Get User-object from browser
   if(!item) return null;
 
   return JSON.parse(item);
  }
-  signOut(): ?User {
+  signOut() {
   localStorage.removeItem('signedInUser');
   }
 
