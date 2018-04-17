@@ -2010,9 +2010,6 @@ class RolleUtstyr extends React.Component {
   }
 }
 
-
-
-
 class ArrangementUtstyr extends React.Component {
   constructor() {
     super();
