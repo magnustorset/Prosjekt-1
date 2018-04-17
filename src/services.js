@@ -27,7 +27,7 @@ function connect () {
   })
 }
 connect()
-
+//oppkobling til epostserver
 let transporter = nodemailer.createTransport({
   host: 'mail.fastname.no',
   port: 465,
@@ -43,6 +43,8 @@ let transporter = nodemailer.createTransport({
 });
 
 class EmailService {
+
+  //Sender epost med kode til nytt passord
   newPassword (clientEmail, emailCheck) {
     return new Promise((resolve, reject) => {
 
@@ -65,6 +67,7 @@ class EmailService {
     })
   }
 
+  //Sender inkkallingsepost
   innkalling (clientEmail, rolle, arrNavn, arrDato) {
     return new Promise((resolve, reject) => {
       let message = {
@@ -92,7 +95,7 @@ class UserService {
 
   searchUser(input){
     return new Promise((resolve, reject) =>{
-      connection.query('SELECT * FROM medlem where tlf = ? or epost = ? or brukernavn = ?', [input, input, input], (error, result)=>{
+      connection.query('SELECT * FROM medlem where tlf LIKE ? or epost LIKE ? or brukernavn LIKE ? or CONCAT(fornavn, " ", etternavn) LIKE ?', [input, input, input, input], (error, result)=>{
         if(error){
           reject(error);
           return;
@@ -234,13 +237,13 @@ class LoginService {
   });
   }
 
-  getSignedInUser(): ?User {
-  let item: ?string = localStorage.getItem('signedInUser'); // Get User-object from browser
+  getSignedInUser() {
+  let item = localStorage.getItem('signedInUser'); // Get User-object from browser
   if(!item) return null;
 
   return JSON.parse(item);
  }
-  signOut(): ?User {
+  signOut() {
   localStorage.removeItem('signedInUser');
   }
 
@@ -295,9 +298,21 @@ class LoginService {
 }
 
 class ArrangementService {
+  godtaVakt(dato,a_id,m_id){
+    return new Promise((resolve, reject) =>{
+      connection.query('update vakt set bekreftelsestid = ? where a_id = ? and m_id = ?', [dato,a_id,m_id], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
   getGodkjenteArrangement(id){
     return new Promise((resolve, reject)=>{
-      connection.query('select a.navn from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
+      connection.query('select a.navn, a.id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
         if(error){
           reject(error);
           return;
@@ -309,7 +324,7 @@ class ArrangementService {
   }
   getUtkaltArrangement(id){
     return new Promise((resolve, reject) =>{
-      connection.query('select a.navn from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is ?', [id,null,null],(error, result)=>{
+      connection.query('select a.navn, a.id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is ?', [id,null,null],(error, result)=>{
         if(error){
           reject(error);
           return;

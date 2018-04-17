@@ -54,6 +54,14 @@ body{
 
 }
 
+.brukerSideTabell > table{
+
+}
+
+.brukerSideTabell > th {
+
+}
+
 .mm-popup {
     display: none;
 }
