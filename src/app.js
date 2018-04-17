@@ -412,6 +412,9 @@ class Menu extends React.Component {
     <li className='nav-item'>
     <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
     </li>
+    <li className='nav-item'>
+      <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
+    </li>
   </ul>
   <ul className="nav navbar-nav navbar-right">
     <li className='hopp'>
@@ -2175,11 +2178,18 @@ class MineVakter extends React.Component {
   }
   render(){
     let ikke = [];
+    let godtatt = [];
+    for(let yes of this.godkjente){
+      godtatt.push(<li>{yes.navn}</li>);
+    }
     for(let not of this.ikkeGodkjente){
       ikke.push(<li>{not.navn}</li>);
     }
     return(
       <div>
+        <ul>
+          {godtatt}
+        </ul>
         <ul>
           {ikke}
         </ul>
@@ -2187,6 +2197,12 @@ class MineVakter extends React.Component {
     );
   }
   componentDidMount() {
+    arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
+      this.godkjente = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+    });
     arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
       this.ikkeGodkjente = result;
       this.forceUpdate();
