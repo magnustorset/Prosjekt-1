@@ -380,7 +380,7 @@ class Menu extends React.Component {
             <input  ref='serachFieldUser' type='text' className='form-control' />
           </li>
           <li>
-          <button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}><span className='glyphicon glyphicon-search' /></button>
+          <button  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}><span className='glyphicon glyphicon-search' /></button>
           </li>
           <li className='spaceBetweenSearchAndLogout'>
           <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
@@ -421,7 +421,7 @@ class Menu extends React.Component {
       <input  ref='serachFieldUser' type='text' className='form-control' />
     </li>
     <li>
-  <button  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUsers();}}>Søk</button>
+  <button  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
     </li>
     <li className='spaceBetweenSearchAndLogout'>
     <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
@@ -436,6 +436,23 @@ class Menu extends React.Component {
     </div>
   )
   }
+  componentDidMount(){
+    this.refs.serachUsersButton.onclick = ()=>{
+      let userSearch = '%' + this.refs.serachFieldUser.value + '%'
+        userService.searchUser(userSearch).then((result) =>{
+          if(history.location.pathname === '/sokeResultat'){
+            vis = result;
+            sok.update();
+            this.refs.serachFieldUser.value = '';
+          }else{
+            vis = result;
+            this.refs.serachFieldUser.value = '';
+          }
+        }).catch((error)=>{
+          if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
+        });
+    }
+  }
   collapseNavbar(){
     let kollaps = document.getElementById('navbarSupportedContent');
     kollaps.style.display ='none';
@@ -443,23 +460,6 @@ class Menu extends React.Component {
     else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
     if(kollaps.style.display =='none'){klokke=0;}
   }
-  searchUsers(){
-    let userSearch = '%' + this.refs.serachFieldUser.value + '%'
-      userService.searchUser(userSearch).then((result) =>{
-        if(history.location.pathname === '/sokeResultat'){
-          vis = result;
-          console.log(vis);
-          sok.update();
-          this.refs.serachFieldUser.value = '';
-        }else{
-          vis = result;
-          history.push('sokeResultat')
-          this.refs.serachFieldUser.value = '';
-        }
-      }).catch((error)=>{
-        if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
-      });
-    }
     logOut(){
       loginService.signOut();
       history.push('/')
