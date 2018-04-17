@@ -295,6 +295,18 @@ class LoginService {
 }
 
 class ArrangementService {
+  getGodkjenteArrangement(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('select a.navn from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      });
+    });
+  }
   getUtkaltArrangement(id){
     return new Promise((resolve, reject) =>{
       connection.query('select a.navn from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is ?', [id,null,null],(error, result)=>{
