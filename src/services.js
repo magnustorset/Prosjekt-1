@@ -298,6 +298,18 @@ class LoginService {
 }
 
 class ArrangementService {
+  updateArrangement(text,oppmote,start,slutt,id){
+    return new Promise((resolve, reject)=>{
+      connection.query('UPDATE arrangement set beskrivelse = ?, oppmootetidspunkt = ?, starttidspunkt = ?, sluttidspunkt = ?  where id = ?', [text,oppmote,start,slutt,id], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve();
+      });
+    });
+  }
   godtaVakt(dato,a_id,m_id){
     return new Promise((resolve, reject) =>{
       connection.query('update vakt set bekreftelsestid = ? where a_id = ? and m_id = ?', [dato,a_id,m_id], (error, result)=>{

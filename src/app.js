@@ -1621,22 +1621,22 @@ class EndreArrangement extends React.Component {
               <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
             </tr>
             <tr>
-              <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
+              <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' ref='text' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
             </tr>
             <tr>
               <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
             </tr>
             <tr>
               <td>Oppmøtetidspunkt:</td>
-              <td><input type='datetime-local'name='oppmootetidspunkt' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/></td>
+              <td><input type='datetime-local'name='oppmootetidspunkt' ref='oppmøte' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/></td>
             </tr>
             <tr>
               <td>Starttidspunkt:</td>
-              <td><input type='datetime-local' name='starttidspunkt' value={this.state.starttidspunkt} onChange={this.handleChange} /></td>
+              <td><input type='datetime-local' name='starttidspunkt' ref='start' value={this.state.starttidspunkt} onChange={this.handleChange} /></td>
             </tr>
             <tr>
               <td>Sluttidspunkt:</td>
-              <td><input type='datetime-local' name='sluttidspunkt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
+              <td><input type='datetime-local' name='sluttidspunkt' ref='slutt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
             </tr>
             <tr>
               <td>Oppmøtested:</td>
@@ -1646,6 +1646,7 @@ class EndreArrangement extends React.Component {
             </tr>
             <tr>
               <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
+              <td><button ref='lagreEndringer'>Lagre endringene</button></td>
             </tr>
           </tbody>
         </table>
@@ -1676,6 +1677,14 @@ class EndreArrangement extends React.Component {
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
     });
+    this.refs.lagreEndringer.onclick = () =>{
+      arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,this.id).then((result)=>{
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement' + error);
+    });
+
+    }
   }
 }
 
