@@ -371,6 +371,9 @@ class Menu extends React.Component {
           <li className='nav-item'>
             <Link to='/T-utstyr' className="nav-link">Utstyr</Link>
           </li>
+          <li className='nav-item'>
+            <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
+          </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
@@ -747,6 +750,7 @@ class StartSide extends React.Component {
     eventen = [];
   }
   componentDidMount () {
+    console.log(moment(new Date()).format('YYYY-MM-DDTHH:mm:SS'));
     arrangementService.getAllArrangement().then((result)=>{
       this.eventer = result;
       for(let ting of this.eventer){
@@ -1084,9 +1088,6 @@ class ForandreBrukerInfo extends React.Component {
            alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
          }
       });
-
-
-    // this.props.history.push('/minside');
     }
   this.update();
   }
@@ -2166,7 +2167,34 @@ class ArrangementUtstyr extends React.Component {
   }
 }
 
-
+class MineVakter extends React.Component {
+  constructor(){
+    super();
+    this.godkjente = [];
+    this.ikkeGodkjente = [];
+  }
+  render(){
+    let ikke = [];
+    for(let not of this.ikkeGodkjente){
+      ikke.push(<li>{not.navn}</li>);
+    }
+    return(
+      <div>
+        <ul>
+          {ikke}
+        </ul>
+      </div>
+    );
+  }
+  componentDidMount() {
+    arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
+      this.ikkeGodkjente = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+    });
+  }
+}
 
 
 ReactDOM.render((
@@ -2197,6 +2225,7 @@ ReactDOM.render((
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
         <Route exact path='/inkalling/:id' component={Innkalling} />
         <Route exact path='/T-utstyr' component={Utstyr} />
+        <Route exact path='/mineVakter' component={MineVakter} />
       </Switch>
       <Popup />
     </div>
