@@ -252,8 +252,14 @@ class LoginService {
           reject(error);
           return;
         }
-
-        let m_id = result[0].id
+        console.log(result);
+        if (result.length === 0) {
+          reject(error);
+          return;
+        }else{
+            m_id = result[0].id;
+        }
+        console.log(m_id);
         let date = new Date()
         date.setMinutes(date.getMinutes() + 30)
 
@@ -280,7 +286,7 @@ class LoginService {
         if (result[0].count > 0) {
           resolve()
         } else{
-          reject('Feil kode')
+          reject(error);
           return;
         }
       })
@@ -289,6 +295,30 @@ class LoginService {
 }
 
 class ArrangementService {
+  getYourArrangements(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('SELECT a.navn,a.beskrivelse,a.starttidspunkt,a.sluttidspunkt from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ?', [id] ,(error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        
+        resolve(result);
+      })
+    })
+  }
+  getAllArrangement(){
+    return new Promise((resolve, reject)=>{
+      connection.query('SELECT * from arrangement',(error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve(result);
+      })
+    })
+  }
   addArrangement (tlf, navn, meetdate, startdate, enddate, desc, roller, longitude, latitude) {
       let k_id;
       return new Promise((resolve, reject) =>{
