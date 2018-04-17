@@ -34,6 +34,8 @@ const {
 } = require('react-google-maps');
 const { SearchBox } = require('react-google-maps/lib/components/places/SearchBox');
 
+let brukerid = null
+let administrator = false
 let klokke = 0
 let emailCode = false
 let latitude = ''
@@ -296,7 +298,7 @@ class Prompt extends React.Component {
     render() {
         return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
     }
-  }
+}
 
   /** Prompt plugin */
   Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
@@ -331,6 +333,10 @@ class Prompt extends React.Component {
     });
 });
 
+
+
+
+
 class Menu extends React.Component {
   render () {
       let signedInUser = loginService.getSignedInUser();
@@ -364,6 +370,9 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/T-utstyr' className="nav-link">Utstyr</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
@@ -402,6 +411,9 @@ class Menu extends React.Component {
     </li>
     <li className='nav-item'>
     <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+    </li>
+    <li className='nav-item'>
+      <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
     </li>
   </ul>
   <ul className="nav navbar-nav navbar-right">
@@ -493,10 +505,13 @@ class Innlogging extends React.Component {
         let signedInUser = loginService.getSignedInUser();
         if (login && signedInUser.admin === 1 && signedInUser.aktiv === 1) {
           console.log('Innlogget som admin');
+          brukerid = signedInUser.id;
+          administrator = true;
           history.push('/start');
         }
         if(login && signedInUser.admin !=1 && signedInUser.aktiv === 1){
           console.log('Innlogget som bruker');
+          brukerid = signedInUser.id;
           history.push('/start');
         }
         if(signedInUser.aktiv != 1){
@@ -517,7 +532,6 @@ class Innlogging extends React.Component {
 }
 
 class NyBruker extends React.Component {
-
   render () {
     return (
       <div>
@@ -586,7 +600,6 @@ class NyBruker extends React.Component {
 }
 
 class NyttPassord extends React.Component {
-
   render () {
     return (
       <div>
@@ -606,7 +619,6 @@ class NyttPassord extends React.Component {
       </div>
     )
   }
-
   componentDidMount () {
     this.refs.newPasswordButton.onclick = () => {
       brukerEpost = this.refs.nyEpostInput.value
@@ -629,6 +641,9 @@ class NyttPassord extends React.Component {
 }
 
 class ResetPassord extends React.Component {
+  constructor() {
+    super()
+  }
 
   render() {
     return (
@@ -690,7 +705,6 @@ class NyttResetPassord extends React.Component {
         userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
           console.log('Passord byttet');
           this.props.history.push('/')
-          emailCode = false;
         }).catch((error) =>{
           if(errorMessage) errorMessage.set('Kunne ikke bytte passord');
         });
@@ -698,6 +712,7 @@ class NyttResetPassord extends React.Component {
     }
   }
 }
+
 
 class StartSide extends React.Component {
   constructor() {
@@ -738,6 +753,7 @@ class StartSide extends React.Component {
     eventen = [];
   }
   componentDidMount () {
+    console.log(moment(new Date()).format('YYYY-MM-DDTHH:mm:SS'));
     arrangementService.getAllArrangement().then((result)=>{
       this.eventer = result;
       for(let ting of this.eventer){
@@ -763,6 +779,7 @@ class StartSide extends React.Component {
     });
   }
 }
+
 
 class Arrangement extends React.Component{
   constructor(){
@@ -927,6 +944,10 @@ class MineSider extends React.Component {
               <td className='minsideTabell'>Gateadresse: {this.user.adresse}</td>
             </tr>
             <tr>
+              <td className='minsideTabell'>Passiv fra: <input type='date' ref='passivFra' /></td>
+              <td className='minsideTabell'>Passiv til: <input type='date' ref='passivTil' /></td>
+            </tr>
+            <tr>
               <td className='minsideTabell'><button ref='setPassive'>Meld deg passiv</button>
               <button ref='seeQualifications'>Se kvalifikasjoner</button></td>
               <td className='minsideTabell'><button ref='changeInfo'>Endre personalia</button>
@@ -957,39 +978,8 @@ class MineSider extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
-    this.refs.setPassive.onclick = () =>{
-      this.props.history.push('/passiv');
-    }
-    this.refs.changeInfo.onclick = () =>{
-      this.props.history.push('/forandreinfo');
-    }
-    this.refs.changePassword.onclick = () =>{
-      this.props.history.push('/forandrepassord');
-    }
-    this.refs.seeQualifications.onclick = () =>{
-      this.props.history.push('/sekvalifikasjoner');
-    }
-  }
-}
-
-class Passiv extends React.Component {
-  render() {
-    return(
-      <div>
-        <label htmlFor='passivFra'>Passiv fra: </label>
-        <input type='date' name='passivFra' ref='passivFra' />
-        <label htmlFor='passivTil'>Passiv til: </label>
-        <input type='date' name='passivTil' ref='passivTil' />
-        <button ref='setPassive'>Sett passiv</button>
-        <button ref='tilbakeButton'>Tilbake</button>
-      </div>
-    )
-  }
-
-  componentDidMount() {
     this.refs.setPassive.onclick = () => {
-      let m_id = loginService.getSignedInUser().id;
-      console.log(m_id);
+      let m_id = this.id
       let start = this.refs.passivFra.value
       let slutt = this.refs.passivTil.value
       if(start <= slutt) {
@@ -1002,7 +992,6 @@ class Passiv extends React.Component {
               console.log(error);
               if(errorMessage) errorMessage.set('Error');
             });
-            history.push('/minside')
           } else {
             console.log('Du er opptatt på denne tiden.');
           }
@@ -1010,14 +999,17 @@ class Passiv extends React.Component {
           console.log(error);
           if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
         });
-      } else {
-        alert('Sluttdato må være senere enn startdato')
       }
     }
-    this.refs.tilbakeButton.onclick = () => {
-      history.push('/minside')
+    this.refs.changeInfo.onclick = () =>{
+      this.props.history.push('/forandreinfo');
     }
-
+    this.refs.changePassword.onclick = () =>{
+      this.props.history.push('/forandrepassord');
+    }
+    this.refs.seeQualifications.onclick = () =>{
+      this.props.history.push('/sekvalifikasjoner');
+    }
   }
 }
 
@@ -1099,9 +1091,6 @@ class ForandreBrukerInfo extends React.Component {
            alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
          }
       });
-
-
-    // this.props.history.push('/minside');
     }
   this.update();
   }
@@ -1179,7 +1168,7 @@ class SeKvalifikasjoner extends React.Component {
 
     this.user = [];
     this.kvalifikasjoner = [];
-    this.id = loginService.getSignedInUser().id;
+    this.id = brukerid;
 
   }
   render(){
@@ -1263,6 +1252,7 @@ class Administrator extends React.Component{
     }
   }
 }
+
 
 class GodkjennBruker extends React.Component {
   constructor(){
@@ -1467,6 +1457,7 @@ class BrukerSide extends React.Component {
 
   }
 }
+
 
 class VisArrangement extends React.Component {
   constructor(props) {
@@ -1681,12 +1672,11 @@ class Innkalling extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.match.params.id;
+    this.arrangement = []
     this.r = 1;
-    this.roller = [];
-    this.ikkeValgte = [];
-    this.valgte = [];
-
-    this.arr = {};
+    this.roller = []
+    this.ikkeValgte = []
+    this.valgte = []
   }
 
   render() {
@@ -1694,7 +1684,6 @@ class Innkalling extends React.Component {
     let ikkeValgtePersoner = []
     let valgtePersoner = []
     // console.log(this.roller);
-    console.log('RENDER');
     console.log(this.ikkeValgte);
     console.log(this.valgte);
 
@@ -1768,18 +1757,13 @@ class Innkalling extends React.Component {
   }
 
   componentDidMount() {
-    console.log('DidMount');
-    // console.log(this.id);
-    arrangementService.showArrangement(this.id).then((res) => {
-      this.arr = res[0];
-      console.log(this.arr);
-    }).catch((err) => {
-      console.log(err);
-    });
-
+    arrangementService.showArrangement(this.id).then((result)=>{
+      this.arrangement = result;
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement')
+    })
     arrangementService.getRoles(this.id).then((result) => {
-      this.roller = result;
-      console.log(this.roller);
+      this.roller = result
       if (result && result[0]) {
         this.r = result[0].r_id;
       }
@@ -1793,8 +1777,6 @@ class Innkalling extends React.Component {
     VaktValg.lagListe3(this.id).then((res)=>{
       // console.log(res);
       this.ikkeValgte = res;
-      console.log('Got Kval');
-      console.log(res);
       this.forceUpdate();
     }).catch((err)=>{
       console.log('Feil med resultatet');
@@ -1804,8 +1786,6 @@ class Innkalling extends React.Component {
     VaktValg.getReg(this.id).then((res)=>{
       // console.log(res);
       this.valgte = res;
-      console.log('Got Reg');
-      console.log(res);
       this.forceUpdate();
     }).catch((err)=>{
       console.log('Feil med resultatet');
@@ -1848,8 +1828,7 @@ class Innkalling extends React.Component {
           }
           leggTil.push({
             m_id: item.m_id,
-            r_id: item.opptatt,
-            epost: item.epost
+            r_id: item.opptatt
           });
         }
       }
@@ -1886,31 +1865,10 @@ class Innkalling extends React.Component {
         proms.push(VaktValg.removeVakt(item.m_id, this.id, item.r_id));
       }
       Promise.all(proms).then(() => {
-        let proms = [];
         for(let item of leggTil) {
           console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
-          proms.push(VaktValg.setVakt(item.m_id, this.id, item.r_id, new Date()).then((res) => {
-            emailService.innkalling(item.epost, this.getRollName(item.r_id), this.arr.navn, this.arr.oppmootetidspunkt).then((res) => {
-              console.log('EPOST SUKSE: ');
-              console.log(res);
-            }).catch((err) => {
-              console.log('EPOST FEIL: ');
-              console.log(err);
-              console.log(item.epost);
-              console.log(this.getRollName(item.r_id));
-              console.log(this.arr.navn);
-              console.log(this.arr.oppmootetidspunkt);
-            })
-          }).catch((err) => {
-            console.log(err);
-          }));
+          VaktValg.setVakt(item.m_id, this.id, item.r_id);
         }
-        Promise.all(proms).then((res) => {
-          console.log('SUKKSSEEE!!');
-          this.componentDidMount();
-        }).catch((err) => {
-          console.log('FEEILLL!!!');
-        })
       }).catch((err)=>{
         console.log('Something went wrong.');
         console.log(err);
@@ -1993,6 +1951,8 @@ class Innkalling extends React.Component {
   //   }
   // }
 }
+
+
 
 class Utstyr extends React.Component {
   constructor() {
@@ -2210,7 +2170,6 @@ class ArrangementUtstyr extends React.Component {
   }
 }
 
-
 class MineVakter extends React.Component {
   constructor(){
     super();
@@ -2221,74 +2180,21 @@ class MineVakter extends React.Component {
     let ikke = [];
     let godtatt = [];
     for(let yes of this.godkjente){
-      godtatt.push(<li key={yes.id}><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></li>);
+      godtatt.push(<li>{yes.navn}</li>);
     }
     for(let not of this.ikkeGodkjente){
-      ikke.push(<li key={not.id}><Link to={'/visArrangement/'+not.id}>{not.navn}</Link><button onClick={()=>{this.godta(not.id)}}>Godta vakt</button></li>);
+      ikke.push(<li>{not.navn}</li>);
     }
     return(
       <div>
-        <table style={{width: '100%'}}>
-          <thead>
-
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <p><strong>Ikke godkjente</strong></p>
-              </td>
-              <td>
-                <p><strong>Godkjente</strong></p>
-              </td>
-            </tr>
-            <tr>
-              <td style={{width: '50%'}}>
-                <table >
-                  <tbody>
-                    <tr>
-                      <td>
-                        <ul>
-                          {ikke}
-                        </ul>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-              <td style={{width: '50%'}}>
-                <table >
-                  <tbody>
-                    <tr>
-                      <td>
-                        <ul>
-                          {godtatt}
-                        </ul>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
+        <ul>
+          {godtatt}
+        </ul>
+        <ul>
+          {ikke}
+        </ul>
       </div>
     );
-  }
-  godta(value){
-    arrangementService.godtaVakt(new Date(),value,loginService.getSignedInUser().id);
-    arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
-      this.godkjente = result;
-      this.forceUpdate();
-    }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
-    });
-    arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
-      this.ikkeGodkjente = result;
-      this.forceUpdate();
-    }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
-    });
   }
   componentDidMount() {
     arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
@@ -2307,7 +2213,6 @@ class MineVakter extends React.Component {
 }
 
 
-
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -2322,7 +2227,6 @@ ReactDOM.render((
         <Route exact path='/resetpassord' component={NyttResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
-        <Route exact path='/passiv' component={Passiv} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
         <Route exact path='/bestemme' component={Administrator} />
 
@@ -2337,6 +2241,7 @@ ReactDOM.render((
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
         <Route exact path='/inkalling/:id' component={Innkalling} />
         <Route exact path='/T-utstyr' component={Utstyr} />
+        <Route exact path='/mineVakter' component={MineVakter} />
       </Switch>
       <Popup />
     </div>
