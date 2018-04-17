@@ -586,14 +586,6 @@ class VaktValg {
       });
     });
   }
-
-
-
-
-
-
-
-
 }
 
 
@@ -750,6 +742,133 @@ class UtstyrService {
 }
 
 
+class KvalifikasjonService {
+  static getAllKvalifikasjon() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * FROM kvalifikasjon', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static addKvalifikasjon(navn, varighet) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO kvalifikasjon (navn, varighet) VALUES(?, ?)', [navn, varighet], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static alterKvalifikasjon(id, navn, varighet) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE kvalifikasjon SET navn = ?, varighet = ? WHERE id = ?', [navn, varighet, id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static removeKvalifikasjon(id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM kvalifikasjon WHERE id = ?', [id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
 
 
-export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService }
+  static getAllRK() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT r_id, k_id, r.navn AS "r_navn", k.navn AS "k_navn" FROM kvalifikasjon k INNER JOIN rolle_kvalifikasjon rk ON k.id = rk.k_id INNER JOIN rolle r ON rk.r_id = r.id', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static addRK(r_id, k_id) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO rolle_kvalifikasjon (r_id, k_id) VALUES(?, ?)', [r_id, k_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  // static alterRK(r_id, k_id) {
+  //   return new Promise((resolve, reject) => {
+  //     connection.query('UPDATE rolle_kvalifikasjon SET antall = ? WHERE r_id = ? AND k_id = ?', [r_id, k_id], (error, result) => {
+  //       if(error) {
+  //         reject(error);
+  //       }
+  //       resolve(result);
+  //     });
+  //   });
+  // }
+  static removeRK(r_id, k_id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM rolle_kvalifikasjon WHERE r_id = ? AND k_id = ?', [r_id, k_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+
+  static getAllMK() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT m_id, k_id, m.brukernavn AS "m_navn", k.navn AS "k_navn", gyldig_til AS "gyldig" FROM medlem m INNER JOIN medlem_kvalifikasjon mk ON m.id = mk.m_id INNER JOIN kvalifikasjon k ON mk.k_id = k.id', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static addMK(m_id, k_id, gyldig) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO medlem_kvalifikasjon (m_id, k_id, gyldig_til) VALUES(?, ?, ?)', [m_id, k_id, gyldig], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static alterMK(m_id, k_id, gyldig) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE medlem_kvalifikasjon SET gyldig_til = ? WHERE m_id = ? AND k_id = ?', [gyldig, m_id, k_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static removeMK(m_id, k_id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM medlem_kvalifikasjon WHERE m_id = ? AND k_id = ?', [m_id, k_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+}
+
+
+export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService }

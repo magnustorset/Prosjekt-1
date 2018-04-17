@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -370,6 +370,9 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/T-utstyr' className="nav-link">Utstyr</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/T-kval' className="nav-link">Kvalifikasjon</Link>
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
@@ -1967,18 +1970,7 @@ class Innkalling extends React.Component {
     }
   }
 
-  // setOpptatt(m_id, r_id) {
-  //   for (item of this.ikkeValgte) {
-  //     if (item.m_id === m_id) {
-  //       item.opptatt = r_id
-  //     }
-  //   }
-  //   for (item of this.valgte) {
-  //     if (item.m_id === m_id) {
-  //       item.opptatt = r_id;
-  //     }
-  //   }
-  // }
+
 }
 
 
@@ -2200,6 +2192,225 @@ class ArrangementUtstyr extends React.Component {
 }
 
 
+class Kvalifikasjoner extends React.Component {
+  constructor() {
+    super();
+    this.kvalifikasjon = [];
+  }
+  render() {
+    let kvalListe = [];
+
+    kvalListe.push(<tr key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet</td><td>Knapper</td></tr>);
+    for (let item of this.kvalifikasjon) {
+      kvalListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td>{item.varighet}</td><td><button onClick={() => {this.changeKval(item.id)}}>Endre</button><button onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {kvalListe}
+            </tbody>
+          </table>
+          Navn: <input ref='kvNavn'/> Varighet: <input ref='kvVar'/> <button ref='lagKv'>Legg til</button>
+        </div>
+        <RolleKvalifikasjoner />
+        <MedlemKvalifikasjoner />
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagKv.onclick = () => {
+      console.log(this.refs.kvNavn.value);
+      KvalifikasjonService.addKvalifikasjon(this.refs.kvNavn.value, this.refs.kvVar.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    KvalifikasjonService.getAllKvalifikasjon().then((res) => {
+      console.log(res);
+      this.kvalifikasjon = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeKval(id) {
+    console.log('Endre: ' + id);
+    KvalifikasjonService.alterKvalifikasjon(id, this.refs.kvNavn.value, this.refs.kvVar.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeKval(id) {
+    console.log('Fjern: ' + id);
+    KvalifikasjonService.removeKvalifikasjon(id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class RolleKvalifikasjoner extends React.Component {
+  constructor() {
+    super();
+    this.rolleKval = []
+  }
+  render() {
+    let kvalListe = [];
+
+    kvalListe.push(<tr key={'RKListe'}><td>Rolle</td><td>Kvalifikasjon</td><td>Knapper</td></tr>);
+    for (let item of this.rolleKval) {
+      kvalListe.push(<tr key={item.r_id + ' - ' + item.k_id}><td>{item.r_navn}</td><td>{item.k_navn}</td><td><button onClick={() => {this.removeKval(item.r_id, item.k_id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <br />
+        <p>Rolle KvalifikkasjonListe</p>
+        <div>
+          <table>
+            <tbody>
+              {kvalListe}
+            </tbody>
+          </table>
+          Rolle: <input ref='rolle'/> Kvalifikasjon: <input ref='kval'/> <button ref='lagRK'>Legg til</button>
+        </div>
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagRK.onclick = () => {
+      console.log('Click');
+      KvalifikasjonService.addRK(this.refs.rolle.value, this.refs.kval.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    KvalifikasjonService.getAllRK().then((res) => {
+      console.log(res);
+      this.rolleKval = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeKval(r_id, k_id) {
+    console.log('Endre');
+    // KvalifikasjonService.alterRK(r_id, k_id).then((res) => {
+    //   console.log(res);
+    //   this.update();
+    // }).catch((err) => {
+    //   console.log(err);
+    // });
+  }
+  removeKval(r_id, k_id) {
+    console.log('Fjern');
+    KvalifikasjonService.removeRK(r_id, k_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class MedlemKvalifikasjoner extends React.Component {
+  constructor() {
+    super();
+    this.medKval = []
+  }
+  render() {
+    let kvalListe = [];
+
+    kvalListe.push(<tr key={'medKval'}><td>Medlem</td><td>Kvalifikasjon</td><td>Gyldig til</td><td>Knapper</td></tr>);
+    for (let item of this.medKval) {
+      kvalListe.push(<tr key={item.m_id + ' - ' + item.k_id}><td>{item.m_navn}</td><td>{item.k_navn}</td><td>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td><button onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <br />
+        <p>Arrangament utstyrsListe</p>
+        <div>
+          <table>
+            <tbody>
+              {kvalListe}
+            </tbody>
+          </table>
+          Medlem: <input ref='med'/> Kvalifikasjon: <input ref='kval'/> Gyldig til: <input ref='gyldig'/> <button ref='lagMK'>Legg til</button>
+        </div>
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagMK.onclick = () => {
+      console.log('Click');
+      KvalifikasjonService.addMK(this.refs.med.value, this.refs.kval.value, new Date()).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    KvalifikasjonService.getAllMK().then((res) => {
+      console.log(res);
+      this.medKval = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeKval(m_id, k_id) {
+    console.log('Endre');
+    KvalifikasjonService.alterMK(m_id, k_id, new Date()).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeKval(m_id, k_id) {
+    console.log('Fjern');
+    KvalifikasjonService.removeMK(m_id, k_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+
+
+
 
 
 ReactDOM.render((
@@ -2230,6 +2441,8 @@ ReactDOM.render((
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
         <Route exact path='/inkalling/:id' component={Innkalling} />
         <Route exact path='/T-utstyr' component={Utstyr} />
+        <Route exact path='/T-kval' component={Kvalifikasjoner} />
+
       </Switch>
       <Popup />
     </div>
