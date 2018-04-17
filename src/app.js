@@ -371,9 +371,6 @@ class Menu extends React.Component {
           <li className='nav-item'>
             <Link to='/T-utstyr' className="nav-link">Utstyr</Link>
           </li>
-          <li className='nav-item'>
-            <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
-          </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
@@ -411,9 +408,6 @@ class Menu extends React.Component {
     </li>
     <li className='nav-item'>
     <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-    </li>
-    <li className='nav-item'>
-      <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
     </li>
   </ul>
   <ul className="nav navbar-nav navbar-right">
@@ -753,7 +747,6 @@ class StartSide extends React.Component {
     eventen = [];
   }
   componentDidMount () {
-    console.log(moment(new Date()).format('YYYY-MM-DDTHH:mm:SS'));
     arrangementService.getAllArrangement().then((result)=>{
       this.eventer = result;
       for(let ting of this.eventer){
@@ -1091,6 +1084,9 @@ class ForandreBrukerInfo extends React.Component {
            alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
          }
       });
+
+
+    // this.props.history.push('/minside');
     }
   this.update();
   }
@@ -1672,11 +1668,12 @@ class Innkalling extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.match.params.id;
-    this.arrangement = []
     this.r = 1;
-    this.roller = []
-    this.ikkeValgte = []
-    this.valgte = []
+    this.roller = [];
+    this.ikkeValgte = [];
+    this.valgte = [];
+
+    this.arr = {};
   }
 
   render() {
@@ -1684,6 +1681,7 @@ class Innkalling extends React.Component {
     let ikkeValgtePersoner = []
     let valgtePersoner = []
     // console.log(this.roller);
+    console.log('RENDER');
     console.log(this.ikkeValgte);
     console.log(this.valgte);
 
@@ -1757,13 +1755,18 @@ class Innkalling extends React.Component {
   }
 
   componentDidMount() {
-    arrangementService.showArrangement(this.id).then((result)=>{
-      this.arrangement = result;
-    }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement')
-    })
+    console.log('DidMount');
+    // console.log(this.id);
+    arrangementService.showArrangement(this.id).then((res) => {
+      this.arr = res[0];
+      console.log(this.arr);
+    }).catch((err) => {
+      console.log(err);
+    });
+
     arrangementService.getRoles(this.id).then((result) => {
-      this.roller = result
+      this.roller = result;
+      console.log(this.roller);
       if (result && result[0]) {
         this.r = result[0].r_id;
       }
@@ -1777,6 +1780,8 @@ class Innkalling extends React.Component {
     VaktValg.lagListe3(this.id).then((res)=>{
       // console.log(res);
       this.ikkeValgte = res;
+      console.log('Got Kval');
+      console.log(res);
       this.forceUpdate();
     }).catch((err)=>{
       console.log('Feil med resultatet');
@@ -1786,6 +1791,8 @@ class Innkalling extends React.Component {
     VaktValg.getReg(this.id).then((res)=>{
       // console.log(res);
       this.valgte = res;
+      console.log('Got Reg');
+      console.log(res);
       this.forceUpdate();
     }).catch((err)=>{
       console.log('Feil med resultatet');
@@ -1828,7 +1835,8 @@ class Innkalling extends React.Component {
           }
           leggTil.push({
             m_id: item.m_id,
-            r_id: item.opptatt
+            r_id: item.opptatt,
+            epost: item.epost
           });
         }
       }
@@ -1865,10 +1873,31 @@ class Innkalling extends React.Component {
         proms.push(VaktValg.removeVakt(item.m_id, this.id, item.r_id));
       }
       Promise.all(proms).then(() => {
+        let proms = [];
         for(let item of leggTil) {
           console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
-          VaktValg.setVakt(item.m_id, this.id, item.r_id);
+          proms.push(VaktValg.setVakt(item.m_id, this.id, item.r_id).then((res) => {
+            emailService.innkalling(item.epost, this.getRollName(item.r_id), this.arr.navn, this.arr.oppmootetidspunkt).then((res) => {
+              console.log('EPOST SUKSE: ');
+              console.log(res);
+            }).catch((err) => {
+              console.log('EPOST FEIL: ');
+              console.log(err);
+              console.log(item.epost);
+              console.log(this.getRollName(item.r_id));
+              console.log(this.arr.navn);
+              console.log(this.arr.oppmootetidspunkt);
+            })
+          }).catch((err) => {
+            console.log(err);
+          }));
         }
+        Promise.all(proms).then((res) => {
+          console.log('SUKKSSEEE!!');
+          this.componentDidMount();
+        }).catch((err) => {
+          console.log('FEEILLL!!!');
+        })
       }).catch((err)=>{
         console.log('Something went wrong.');
         console.log(err);
@@ -2170,47 +2199,7 @@ class ArrangementUtstyr extends React.Component {
   }
 }
 
-class MineVakter extends React.Component {
-  constructor(){
-    super();
-    this.godkjente = [];
-    this.ikkeGodkjente = [];
-  }
-  render(){
-    let ikke = [];
-    let godtatt = [];
-    for(let yes of this.godkjente){
-      godtatt.push(<li>{yes.navn}</li>);
-    }
-    for(let not of this.ikkeGodkjente){
-      ikke.push(<li>{not.navn}</li>);
-    }
-    return(
-      <div>
-        <ul>
-          {godtatt}
-        </ul>
-        <ul>
-          {ikke}
-        </ul>
-      </div>
-    );
-  }
-  componentDidMount() {
-    arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
-      this.godkjente = result;
-      this.forceUpdate();
-    }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
-    });
-    arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
-      this.ikkeGodkjente = result;
-      this.forceUpdate();
-    }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
-    });
-  }
-}
+
 
 
 ReactDOM.render((
@@ -2241,7 +2230,6 @@ ReactDOM.render((
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
         <Route exact path='/inkalling/:id' component={Innkalling} />
         <Route exact path='/T-utstyr' component={Utstyr} />
-        <Route exact path='/mineVakter' component={MineVakter} />
       </Switch>
       <Popup />
     </div>
