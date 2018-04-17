@@ -2210,6 +2210,104 @@ class ArrangementUtstyr extends React.Component {
   }
 }
 
+
+class MineVakter extends React.Component {
+  constructor(){
+    super();
+    this.godkjente = [];
+    this.ikkeGodkjente = [];
+  }
+  render(){
+    let ikke = [];
+    let godtatt = [];
+    for(let yes of this.godkjente){
+      godtatt.push(<li key={yes.id}><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></li>);
+    }
+    for(let not of this.ikkeGodkjente){
+      ikke.push(<li key={not.id}><Link to={'/visArrangement/'+not.id}>{not.navn}</Link><button onClick={()=>{this.godta(not.id)}}>Godta vakt</button></li>);
+    }
+    return(
+      <div>
+        <table style={{width: '100%'}}>
+          <thead>
+
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <p><strong>Ikke godkjente</strong></p>
+              </td>
+              <td>
+                <p><strong>Godkjente</strong></p>
+              </td>
+            </tr>
+            <tr>
+              <td style={{width: '50%'}}>
+                <table >
+                  <tbody>
+                    <tr>
+                      <td>
+                        <ul>
+                          {ikke}
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+              <td style={{width: '50%'}}>
+                <table >
+                  <tbody>
+                    <tr>
+                      <td>
+                        <ul>
+                          {godtatt}
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    );
+  }
+  godta(value){
+    arrangementService.godtaVakt(new Date(),value,loginService.getSignedInUser().id);
+    arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
+      this.godkjente = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+    });
+    arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
+      this.ikkeGodkjente = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+    });
+  }
+  componentDidMount() {
+    arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
+      this.godkjente = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+    });
+    arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
+      this.ikkeGodkjente = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+    });
+  }
+}
+
+
+
 ReactDOM.render((
   <HashRouter>
     <div>

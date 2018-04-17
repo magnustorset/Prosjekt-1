@@ -298,9 +298,21 @@ class LoginService {
 }
 
 class ArrangementService {
+  godtaVakt(dato,a_id,m_id){
+    return new Promise((resolve, reject) =>{
+      connection.query('update vakt set bekreftelsestid = ? where a_id = ? and m_id = ?', [dato,a_id,m_id], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
   getGodkjenteArrangement(id){
     return new Promise((resolve, reject)=>{
-      connection.query('select a.navn from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
+      connection.query('select a.navn, a.id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
         if(error){
           reject(error);
           return;
@@ -312,7 +324,7 @@ class ArrangementService {
   }
   getUtkaltArrangement(id){
     return new Promise((resolve, reject) =>{
-      connection.query('select a.navn from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is ?', [id,null,null],(error, result)=>{
+      connection.query('select a.navn, a.id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is ?', [id,null,null],(error, result)=>{
         if(error){
           reject(error);
           return;
