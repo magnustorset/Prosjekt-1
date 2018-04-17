@@ -651,7 +651,46 @@ class UtstyrService {
   }
 
 
-
+  static getAllAU() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT a_id, u_id, a.navn AS "a_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN a_utstyr au ON u.id = au.u_id INNER JOIN arrangement a ON au.a_id = a.id', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static addAU(a_id, u_id, antall) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO a_utstyr (a_id, u_id, antall) VALUES(?, ?, ?)', [a_id, u_id, antall], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static alterAU(a_id, u_id, antall) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE a_utstyr SET antall = ? WHERE a_id = ? AND u_id = ?', [antall, a_id, u_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  static removeAU(a_id, u_id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM a_utstyr WHERE a_id = ? AND u_id = ?', [a_id, u_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
 
 }
 
