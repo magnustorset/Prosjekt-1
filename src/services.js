@@ -214,7 +214,7 @@ class UserService {
 class LoginService {
   checkLogin (brukernavn, passord, callback) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT * from medlem WHERE epost = ?', [brukernavn], (error, result) => {
+      connection.query('SELECT * from medlem WHERE epost = ? or brukernavn = ?', [brukernavn, brukernavn], (error, result) => {
         if(error){
           reject(error);
           return;
@@ -302,7 +302,7 @@ class ArrangementService {
           reject(error);
           return;
         }
-        
+
         resolve(result);
       })
     })

@@ -1668,6 +1668,7 @@ class Innkalling extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.match.params.id;
+    this.arrangement = []
     this.r = 1;
     this.roller = []
     this.ikkeValgte = []
@@ -1752,7 +1753,11 @@ class Innkalling extends React.Component {
   }
 
   componentDidMount() {
-    // console.log(this.id);
+    arrangementService.showArrangement(this.id).then((result)=>{
+      this.arrangement = result;
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke arrangement')
+    })
     arrangementService.getRoles(this.id).then((result) => {
       this.roller = result
       if (result && result[0]) {
