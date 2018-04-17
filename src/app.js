@@ -1669,9 +1669,11 @@ class Innkalling extends React.Component {
     super(props);
     this.id = props.match.params.id;
     this.r = 1;
-    this.roller = []
-    this.ikkeValgte = []
-    this.valgte = []
+    this.roller = [];
+    this.ikkeValgte = [];
+    this.valgte = [];
+
+    this.arr = {};
   }
 
   render() {
@@ -1679,6 +1681,7 @@ class Innkalling extends React.Component {
     let ikkeValgtePersoner = []
     let valgtePersoner = []
     // console.log(this.roller);
+    console.log('RENDER');
     console.log(this.ikkeValgte);
     console.log(this.valgte);
 
@@ -1752,9 +1755,18 @@ class Innkalling extends React.Component {
   }
 
   componentDidMount() {
+    console.log('DidMount');
     // console.log(this.id);
+    arrangementService.showArrangement(this.id).then((res) => {
+      this.arr = res[0];
+      console.log(this.arr);
+    }).catch((err) => {
+      console.log(err);
+    });
+
     arrangementService.getRoles(this.id).then((result) => {
-      this.roller = result
+      this.roller = result;
+      console.log(this.roller);
       if (result && result[0]) {
         this.r = result[0].r_id;
       }
@@ -1768,6 +1780,8 @@ class Innkalling extends React.Component {
     VaktValg.lagListe3(this.id).then((res)=>{
       // console.log(res);
       this.ikkeValgte = res;
+      console.log('Got Kval');
+      console.log(res);
       this.forceUpdate();
     }).catch((err)=>{
       console.log('Feil med resultatet');
@@ -1777,6 +1791,8 @@ class Innkalling extends React.Component {
     VaktValg.getReg(this.id).then((res)=>{
       // console.log(res);
       this.valgte = res;
+      console.log('Got Reg');
+      console.log(res);
       this.forceUpdate();
     }).catch((err)=>{
       console.log('Feil med resultatet');
@@ -1819,7 +1835,8 @@ class Innkalling extends React.Component {
           }
           leggTil.push({
             m_id: item.m_id,
-            r_id: item.opptatt
+            r_id: item.opptatt,
+            epost: item.epost
           });
         }
       }
@@ -1856,10 +1873,31 @@ class Innkalling extends React.Component {
         proms.push(VaktValg.removeVakt(item.m_id, this.id, item.r_id));
       }
       Promise.all(proms).then(() => {
+        let proms = [];
         for(let item of leggTil) {
           console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
-          VaktValg.setVakt(item.m_id, this.id, item.r_id);
+          proms.push(VaktValg.setVakt(item.m_id, this.id, item.r_id).then((res) => {
+            emailService.innkalling(item.epost, this.getRollName(item.r_id), this.arr.navn, this.arr.oppmootetidspunkt).then((res) => {
+              console.log('EPOST SUKSE: ');
+              console.log(res);
+            }).catch((err) => {
+              console.log('EPOST FEIL: ');
+              console.log(err);
+              console.log(item.epost);
+              console.log(this.getRollName(item.r_id));
+              console.log(this.arr.navn);
+              console.log(this.arr.oppmootetidspunkt);
+            })
+          }).catch((err) => {
+            console.log(err);
+          }));
         }
+        Promise.all(proms).then((res) => {
+          console.log('SUKKSSEEE!!');
+          this.componentDidMount();
+        }).catch((err) => {
+          console.log('FEEILLL!!!');
+        })
       }).catch((err)=>{
         console.log('Something went wrong.');
         console.log(err);
