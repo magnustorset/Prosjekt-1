@@ -1876,7 +1876,7 @@ class Innkalling extends React.Component {
         let proms = [];
         for(let item of leggTil) {
           console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
-          proms.push(VaktValg.setVakt(item.m_id, this.id, item.r_id).then((res) => {
+          proms.push(VaktValg.setVakt(item.m_id, this.id, item.r_id, new Date()).then((res) => {
             emailService.innkalling(item.epost, this.getRollName(item.r_id), this.arr.navn, this.arr.oppmootetidspunkt).then((res) => {
               console.log('EPOST SUKSE: ');
               console.log(res);
