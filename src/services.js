@@ -95,7 +95,7 @@ class UserService {
 
   searchUser(input){
     return new Promise((resolve, reject) =>{
-      connection.query('SELECT * FROM medlem where tlf = ? or epost = ? or brukernavn = ?', [input, input, input], (error, result)=>{
+      connection.query('SELECT * FROM medlem where tlf LIKE ? or epost LIKE ? or brukernavn LIKE ? or CONCAT(fornavn, " ", etternavn) LIKE ?', [input, input, input, input], (error, result)=>{
         if(error){
           reject(error);
           return;
