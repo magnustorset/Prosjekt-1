@@ -794,7 +794,7 @@ class Arrangement extends React.Component{
     let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
       a++;
     }
     let signedInUser = loginService.getSignedInUser();
@@ -810,7 +810,7 @@ class Arrangement extends React.Component{
                 <button className='btn btn-default' ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
                 </td>
                 <td>
-                  <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+                  <button className='btn btn-default' onClick={ () => {history.push('/nyttarrangement')}}>Nytt Arrangement</button>
                 </td>
               </tr>
             </thead>
