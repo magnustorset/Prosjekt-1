@@ -225,6 +225,7 @@ class LoginService {
         let login = false
         if (passwordHash.verify(passord,result[0].passord)) {
           login = true
+          localStorage.setItem('loggedIn', true);
           localStorage.setItem('signedInUser', JSON.stringify(result[0])); // Store User-object in browser
       }else{
           login = false
@@ -245,6 +246,7 @@ class LoginService {
  }
   signOut() {
   localStorage.removeItem('signedInUser');
+  localStorage.removeItem('loggedIn');
   }
 
   navn(kode, email) {

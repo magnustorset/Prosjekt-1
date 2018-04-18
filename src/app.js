@@ -34,8 +34,7 @@ const {
 } = require('react-google-maps');
 const { SearchBox } = require('react-google-maps/lib/components/places/SearchBox');
 
-let brukerid = null
-let administrator = false
+let brukerlogedin = false
 let klokke = 0
 let emailCode = false
 let latitude = ''
@@ -384,7 +383,7 @@ class Menu extends React.Component {
             <input  ref='serachFieldUser' type='text' className='form-control' />
           </li>
           <li>
-          <button  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}><span className='glyphicon glyphicon-search' /></button>
+          <button  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}><span className='glyphicon glyphicon-search' /></button>
           </li>
           <li className='spaceBetweenSearchAndLogout'>
           <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
@@ -442,27 +441,21 @@ class Menu extends React.Component {
   }
   }
 
-  componentDidMount(){
-    let signedInUser = loginService.getSignedInUser();
-    if(signedInUser){
-    this.refs.serachUsersButton.onclick = ()=>{
-      let userSearch = '%' + this.refs.serachFieldUser.value + '%'
-        userService.searchUser(userSearch).then((result) =>{
-          if(history.location.pathname === '/sokeResultat'){
-            vis = result;
-            sok.update();
-            this.refs.serachFieldUser.value = '';
-          }else{
-            vis = result;
-            this.refs.serachFieldUser.value = '';
-          }
-        }).catch((error)=>{
-          if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
-        });
-      }
-    }
-    }
-
+  searchUser(){
+    let userSearch = '%' + this.refs.serachFieldUser.value + '%'
+      userService.searchUser(userSearch).then((result) =>{
+        if(history.location.pathname === '/sokeResultat'){
+          vis = result;
+          sok.update();
+          this.refs.serachFieldUser.value = '';
+        }else{
+          vis = result;
+          this.refs.serachFieldUser.value = '';
+        }
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
+      });
+  }
   collapseNavbar(){
     let kollaps = document.getElementById('navbarSupportedContent');
     kollaps.style.display ='none';
@@ -516,13 +509,12 @@ class Innlogging extends React.Component {
         let signedInUser = loginService.getSignedInUser();
         if (login && signedInUser.admin === 1 && signedInUser.aktiv === 1) {
           console.log('Innlogget som admin');
-          brukerid = signedInUser.id;
-          administrator = true;
+          brukerlogedin = true;
           history.push('/start');
         }
         if(login && signedInUser.admin !=1 && signedInUser.aktiv === 1){
           console.log('Innlogget som bruker');
-          brukerid = signedInUser.id;
+          brukerlogedin = true;
           history.push('/start');
         }
         if(signedInUser.aktiv != 1){
@@ -753,8 +745,10 @@ class StartSide extends React.Component {
     return (
       <div className='startside'>
         <h1>Hei, {this.user.brukernavn}!</h1>
-        <textarea name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
-        <div className='calendar'>
+        <div className='adminMelding'>
+        <textarea rows='5' cols='50'id='adminMelding'name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
+        </div>
+        <div className='calendarStartside'>
         <MyCalendar />
         </div>
       </div>
@@ -764,7 +758,6 @@ class StartSide extends React.Component {
     eventen = [];
   }
   componentDidMount () {
-    console.log(moment(new Date()).format('YYYY-MM-DDTHH:mm:SS'));
     arrangementService.getAllArrangement().then((result)=>{
       this.eventer = result;
       for(let ting of this.eventer){
@@ -939,7 +932,7 @@ class MineSider extends React.Component {
     return(
       <div>
         <h1>Min Side</h1>
-
+        <div className='mineSider'>
         <table className='minsideTabell'>
           <tbody>
             <tr>
@@ -966,7 +959,8 @@ class MineSider extends React.Component {
             </tr>
           </tbody>
         </table>
-        <div className='calendar'>
+        </div>
+        <div className='calendarMinesider'>
         <MyCalendar />
         </div>
       </div>
