@@ -148,7 +148,7 @@ class UserService {
 
   getUserQualifications (id, callback) {
     return new Promise((resolve, reject) => {
-    connection.query('SELECT navn, `gyldig til` FROM kvalifikasjon, medlem_kvalifikasjon WHERE m_id = 18124 AND k_id = kvalifikasjon.id ', [id], (error, result) => {
+    connection.query('SELECT navn, varighet FROM kvalifikasjon, medlem_kvalifikasjon WHERE m_id = 18124 AND k_id = kvalifikasjon.id ', [id], (error, result) => {
 
       if(error){
         reject(error);

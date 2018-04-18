@@ -1204,7 +1204,7 @@ class SeKvalifikasjoner extends React.Component {
 
       this.forceUpdate();
     }).catch((error: Error) => {
-      if(errorMessage) errorMessage.set("Failed getting qualifications");
+      if(errorMessage) errorMessage.set("Failed getting qualifications" + error);
     });
     this.refs.tilbakeKnapp.onclick = () =>{
       this.props.history.goBack();
