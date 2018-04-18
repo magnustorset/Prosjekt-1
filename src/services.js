@@ -351,7 +351,7 @@ class ArrangementService {
 
   getYourArrangements(id){
     return new Promise((resolve, reject)=>{
-      connection.query('SELECT a.navn,a.beskrivelse,a.starttidspunkt,a.sluttidspunkt from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ?', [id] ,(error, result)=>{
+      connection.query('SELECT a.navn,a.beskrivelse,a.starttidspunkt,a.sluttidspunkt,a.id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ?', [id] ,(error, result)=>{
         if(error){
           reject(error);
           return;

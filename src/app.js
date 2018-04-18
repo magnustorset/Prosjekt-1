@@ -8,6 +8,9 @@ import BigCalendar from 'react-big-calendar';
 import Moment from 'moment'
 BigCalendar.momentLocalizer(moment);
 let eventen = []
+function push(eve){
+  history.push('/visArrangement/'+ eve);
+}
 const MyCalendar = props => (
   <div>
     <BigCalendar
@@ -17,7 +20,7 @@ const MyCalendar = props => (
       endAccessor='end'
       style={{height: '400px'}}
       defaultDate={new Date()}
-      onSelectEvent={event => Popup.alert(event.desc)}
+      onSelectEvent={event => push(event.id)}
     />
   </div>
 );
@@ -537,53 +540,51 @@ class Innlogging extends React.Component {
 class NyBruker extends React.Component {
   render () {
     return (
-      <div>
-        <table>
-          <tbody>
-          <tr>
-            <td>Fornavn: </td>
-            <td><input type="text" ref="fornavnInput" defaultValue="Peter" /></td>
-          </tr>
-          <tr>
-            <td>Etternavn: </td>
-            <td><input type="text" ref="etternavnInput" defaultValue="Peter" /></td>
-          </tr>
-            <tr>
-              <td>Brukernavn: </td>
-              <td><input type="text" ref="brukernavnInput" defaultValue="Peter" /></td>
-            </tr>
-            <tr>
-              <td>Epost: </td>
-              <td><input type="email" ref="epostInput" defaultValue='peter@test.no' /></td>
-            </tr>
-            <tr>
-              <td>Medlemsnr: </td>
-              <td><input type="number" ref="medlemsnrInput" defaultValue='18124'  /></td>
-            </tr>
-            <tr>
-              <td>Telefonnummer: </td>
-              <td><input type="number" ref="tlfInput" defaultValue='95485648' /></td>
-            </tr>
-            <tr>
-              <td>Gateadresse: </td>
-              <td><input type="text" ref="adresseInput" defaultValue='Brandhaugveita 4' /></td>
-            </tr>
-            <tr>
-              <td>Postnummer: </td>
-              <td><input type="text" ref="postnrInput" defaultValue='0000' /></td>
-            </tr>
-            <tr>
-              <td>Passord: </td>
-              <td><input type="password" ref="passwordInput1" defaultValue='12345' /></td>
-            </tr>
-            <tr>
-              <td>Gjenta passord: </td>
-              <td><input type="password" ref="passwordInput2" defaultValue='12345' /> </td>
-            </tr>
-          </tbody>
-        </table>
-        <button className='btn btn-default' ref="createuserButton">Ferdig</button>
-        <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
+      <div className='Rot_nybruker container'>
+         <div className='form-group'>
+            <label htmlFor='fornavn'>Fornavn:</label>
+            <input type="text" ref="fornavnInput" className='form-control col-6' defaultValue="Fornan" name='fornavn'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='etternavn'>Etternavn:</label>
+            <input type="text" ref="etternavnInput" className='form-control col-6' defaultValue="Etternavn" name='etternavn'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='brukernavn'>Brukernavn:</label>
+            <input type="text" ref="brukernavnInput" className='form-control col-6'  defaultValue="Brukernavn" name='brukernavn'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='epost'>Epost:</label>
+            <input type="email" ref="epostInput" className='form-control col-6' defaultValue='dinepost@dinepost.no' name='epost'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='medlemsnr'>Medlemsnr:</label>
+            <input type="number" ref="medlemsnrInput" className='form-control col-6' defaultValue='98123'  name='medlemsnr'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='telefon'>Telefonnummer:</label>
+            <input type="number" ref="tlfInput" className='form-control col-6' defaultValue='91909293' name='telefon'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='adresse'>Gateadresse:</label>
+            <input type="text" ref="adresseInput" className='form-control col-6' defaultValue='Brandhaugveita 4' name='adressse'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='postnr'>Postnummer:</label>
+            <input type="text" ref="postnrInput" className='form-control col-6' defaultValue='0000' name='postnr'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='passord'>Passord:</label>
+            <input type="password" ref="passwordInput1" className='form-control col-6' defaultValue='*****' name='passord'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='gpassord'>Gjenta passord:</label>
+            <input type="password" ref="passwordInput2" className='form-control col-6' defaultValue='*****' name='gpassord'/>
+        </div>
+        <div className='form-group'>
+            <button className='btn btn-default' ref="createuserButton">Ferdig</button>
+            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
+        </div>
       </div>
     )
   }
@@ -745,10 +746,12 @@ class StartSide extends React.Component {
     return (
       <div className='startside'>
         <h1>Hei, {this.user.brukernavn}!</h1>
-        <div className='adminMelding'>
-        <textarea rows='5' cols='50'id='adminMelding'name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
+        <div className='adminMelding form-group'>
+        <label htmlFor='adminMelding'>Melding fra administrator:</label>
+        <textarea rows='5' cols='50'id='adminMelding' className='form-control' name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
         </div>
-        <div className='calendarStartside'>
+        <div className='calendarStartside form-group'>
+        <div className='calendarLabel'>Kommende arrangement</div>
         <MyCalendar />
         </div>
       </div>
@@ -761,7 +764,7 @@ class StartSide extends React.Component {
     arrangementService.getAllArrangement().then((result)=>{
       this.eventer = result;
       for(let ting of this.eventer){
-        eventen.push({title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse});
+        eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse});
       }
 
     }).catch((error)=>{
@@ -806,9 +809,9 @@ class Arrangement extends React.Component{
             <thead>
               <tr>
                 <td>
-                <input type='text' ref='searchArrangement' />
-                <button className='btn btn-default' ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
-                </td>
+                <input type='text'className='form-control' ref='searchArrangement' /></td>
+                <td><button className='btn btn-default' ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button></td>
+
                 <td>
                   <button className='btn btn-default' onClick={ () => {history.push('/nyttarrangement')}}>Nytt Arrangement</button>
                 </td>
@@ -823,9 +826,13 @@ class Arrangement extends React.Component{
     }
     return(
       <div>
-        <input type='text' ref='searchArrangement'  />
-        <button className='btn btn-default' ref='searchButton'onClick={ () => {this.hentArrangement()}}>Søk arrangement</button>
         <table>
+          <thead>
+            <tr>
+              <td><input type='text' className='form-control' ref='searchArrangement'  /></td>
+              <td><button className='btn btn-default' ref='searchButton'onClick={ () => {this.hentArrangement()}}>Søk arrangement</button></td>
+            </tr>
+          </thead>
           <tbody>
             {tableItems}
           </tbody>
@@ -957,6 +964,7 @@ class MineSider extends React.Component {
         </table>
         </div>
         <div className='calendarMinesider'>
+        <div className='calendarLabel'>Mine arrangement</div>
         <MyCalendar />
         </div>
       </div>
@@ -965,7 +973,7 @@ class MineSider extends React.Component {
   componentDidMount(){
     arrangementService.getYourArrangements(loginService.getSignedInUser().id).then((result)=>{
       for(let ting of result){
-        eventen.push({title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
+        eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
       }
       console.log(eventen)
     }).catch((error)=>{
