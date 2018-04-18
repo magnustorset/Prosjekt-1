@@ -933,19 +933,19 @@ class MineSider extends React.Component {
       <div>
         <h1>Min Side</h1>
         <div className='mineSider'>
-        <table className='minsideTabell'>
+        <table >
           <tbody>
             <tr>
-              <td className='minsideTabell'>Medlemmsnummer: {this.user.id}</td>
-              <td className='minsideTabell'>Postnummer: {this.user.poststed_postnr}</td>
+              <td className='minsideTabell'><span className='tableText'>Medlemmsnummer:</span> {this.user.id}</td>
+              <td className='minsideTabell'><span className='tableText'>Postnummer:</span> {this.user.poststed_postnr}</td>
             </tr>
             <tr>
-              <td className='minsideTabell'>Epost: {this.user.epost}</td>
-              <td className='minsideTabell'>Poststed: {this.user.poststed}</td>
+              <td className='minsideTabell'><span className='tableText'>Epost:</span> {this.user.epost}</td>
+              <td className='minsideTabell'><span className='tableText'>Poststed:</span> {this.user.poststed}</td>
             </tr>
             <tr>
-              <td className='minsideTabell'>Telefonnummer: {this.user.tlf}</td>
-              <td className='minsideTabell'>Gateadresse: {this.user.adresse}</td>
+              <td className='minsideTabell'><span className='tableText'>Telefonnummer:</span> {this.user.tlf}</td>
+              <td className='minsideTabell'><span className='tableText'>Gateadresse:</span> {this.user.adresse}</td>
             </tr>
             <tr>
               <td className='minsideTabell'><button className='btn btn-default' ref='setPassive'>Meld deg passiv</button>
