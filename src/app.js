@@ -955,10 +955,6 @@ class MineSider extends React.Component {
               <td className='minsideTabell'>Gateadresse: {this.user.adresse}</td>
             </tr>
             <tr>
-              <td className='minsideTabell'>Passiv fra: <input type='date' ref='passivFra' /></td>
-              <td className='minsideTabell'>Passiv til: <input type='date' ref='passivTil' /></td>
-            </tr>
-            <tr>
               <td className='minsideTabell'><button className='btn btn-default' ref='setPassive'>Meld deg passiv</button>
               <button className='btn btn-default' ref='seeQualifications'>Se kvalifikasjoner</button></td>
               <td className='minsideTabell'><button className='btn btn-default' ref='changeInfo'>Endre personalia</button>
@@ -989,8 +985,41 @@ class MineSider extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+
+    this.refs.setPassive.onclick = () =>{
+      this.props.history.push('/passiv');
+    }
+
+    this.refs.changeInfo.onclick = () =>{
+      this.props.history.push('/forandreinfo');
+    }
+    this.refs.changePassword.onclick = () =>{
+      this.props.history.push('/forandrepassord');
+    }
+    this.refs.seeQualifications.onclick = () =>{
+      this.props.history.push('/sekvalifikasjoner');
+    }
+  }
+}
+
+class Passiv extends React.Component {
+  render() {
+    return(
+      <div>
+        <label htmlFor='passivFra'>Passiv fra: </label>
+        <input type='date' name='passivFra' ref='passivFra' />
+        <label htmlFor='passivTil'>Passiv til: </label>
+        <input type='date' name='passivTil' ref='passivTil' />
+        <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
+        <button className='btn btn-default' ref='tilbakeButton'>Tilbake</button>
+      </div>
+    )
+  }
+
+  componentDidMount() {
     this.refs.setPassive.onclick = () => {
-      let m_id = this.id
+      let m_id = loginService.getSignedInUser().id;
+      console.log(m_id);
       let start = this.refs.passivFra.value
       let slutt = this.refs.passivTil.value
       if(start <= slutt) {
@@ -1003,6 +1032,7 @@ class MineSider extends React.Component {
               console.log(error);
               if(errorMessage) errorMessage.set('Error');
             });
+            history.push('/minside')
           } else {
             console.log('Du er opptatt på denne tiden.');
           }
@@ -1010,17 +1040,14 @@ class MineSider extends React.Component {
           console.log(error);
           if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
         });
+      } else {
+        alert('Sluttdato må være senere enn startdato')
       }
     }
-    this.refs.changeInfo.onclick = () =>{
-      this.props.history.push('/forandreinfo');
+    this.refs.tilbakeButton.onclick = () => {
+      history.push('/minside')
     }
-    this.refs.changePassword.onclick = () =>{
-      this.props.history.push('/forandrepassord');
-    }
-    this.refs.seeQualifications.onclick = () =>{
-      this.props.history.push('/sekvalifikasjoner');
-    }
+
   }
 }
 
@@ -2512,6 +2539,7 @@ ReactDOM.render((
         <Route exact path='/resetpassord' component={NyttResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
+        <Route exact path='/passiv' component={Passiv} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
         <Route exact path='/bestemme' component={Administrator} />
 
