@@ -2254,14 +2254,14 @@ class MineVakter extends React.Component {
     let ikke = [];
     let godtatt = [];
     for(let yes of this.godkjente){
-      godtatt.push(<li key={yes.id}><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></li>);
+      godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default'>Bytt vakt</button></td></tr>);
     }
     for(let not of this.ikkeGodkjente){
-      ikke.push(<li key={not.id}><Link to={'/visArrangement/'+not.id}>{not.navn}</Link><button className='btn btn-default' onClick={()=>{this.godta(not.id)}}>Godta vakt</button></li>);
+      ikke.push(<tr key={not.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+not.id}>{not.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.godta(not.id)}}>Godta vakt</button></td></tr>);
     }
     return(
-      <div>
-        <table style={{width: '100%'}}>
+      <div className='mineVakterTabell'>
+        <table className='table-responsive-a' >
           <thead>
 
           </thead>
@@ -2275,29 +2275,21 @@ class MineVakter extends React.Component {
               </td>
             </tr>
             <tr>
-              <td style={{width: '50%'}}>
+              <td className='mineVakter'>
                 <table >
                   <tbody>
-                    <tr>
-                      <td>
-                        <ul>
-                          {ikke}
-                        </ul>
-                      </td>
-                    </tr>
+
+                      {ikke}
+
                   </tbody>
                 </table>
               </td>
-              <td style={{width: '50%'}}>
+              <td className='mineVakter'>
                 <table >
                   <tbody>
-                    <tr>
-                      <td>
-                        <ul>
-                          {godtatt}
-                        </ul>
-                      </td>
-                    </tr>
+
+                        {godtatt}
+
                   </tbody>
                 </table>
               </td>
