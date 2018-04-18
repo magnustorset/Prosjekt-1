@@ -1778,7 +1778,8 @@ class Innkalling extends React.Component {
 
   componentDidMount() {
     arrangementService.showArrangement(this.id).then((result)=>{
-      this.arrangement = result;
+      this.arrangement = result[0];
+      console.log(result[0]);
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Finner ikke arrangement')
     })
@@ -1848,7 +1849,8 @@ class Innkalling extends React.Component {
           }
           leggTil.push({
             m_id: item.m_id,
-            r_id: item.opptatt
+            r_id: item.opptatt,
+            epost: item.epost
           });
         }
       }
@@ -1885,10 +1887,38 @@ class Innkalling extends React.Component {
         proms.push(VaktValg.removeVakt(item.m_id, this.id, item.r_id));
       }
       Promise.all(proms).then(() => {
+        console.log('Middels sukse!');
+        let proms = []
         for(let item of leggTil) {
           console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
-          VaktValg.setVakt(item.m_id, this.id, item.r_id);
+          proms.push(VaktValg.setVakt(item.m_id, this.id, item.r_id, new Date()).then((res) => {
+            console.log('Mini sukse');
+            console.log(res);
+            console.log(item.epost);
+            console.log(this.getRollName(item.r_id));
+            console.log(this.arrangement.navn);
+            console.log(this.arrangement.oppmootetidspunkt);
+            console.log(moment(this.arrangement.oppmootetidspunkt).format('DD-MM-YYYY HH:mm'));
+            emailService.innkalling(item.epost, this.getRollName(item.r_id), this.arrangement.navn, moment(this.arrangement.oppmootetidspunkt).format('DD-MM-YYYY HH:mm')).then((res) => {
+              console.log('mikro sukse');
+              console.log(res);
+            }).catch((err) => {
+              console.log('mikro feil');
+              console.log(err);
+            });
+          }).catch((err) => {
+            console.log('Mini feil');
+            console.log(err);
+          }));
         }
+        console.log(proms);
+        Promise.all(proms).then((res) => {
+          console.log('MASSIV SUKSE!!!!');
+          this.componentDidMount();
+        }).catch((err) => {
+          console.log('MASSIV FEIL!!!');
+          console.log(err);
+        });
       }).catch((err)=>{
         console.log('Something went wrong.');
         console.log(err);

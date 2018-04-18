@@ -603,7 +603,7 @@ class VaktValg {
 
   static removeVakt(m_id, a_id, r_id) {
     return new Promise((resolve, reject) => {
-      connection.query('UPDATE vakt SET m_id = NULL, utkallingstid = NULL WHERE a_id = ? AND r_id = ? AND m_id = ? LIMIT 1', [a_id, r_id, m_id], (error, result) => {
+      connection.query('UPDATE vakt SET m_id = NULL, utkallingstid = NULL, bekreftelsestid = NULL WHERE a_id = ? AND r_id = ? AND m_id = ? LIMIT 1', [a_id, r_id, m_id], (error, result) => {
         if (error) {
           reject(error);
           return;
