@@ -58,10 +58,15 @@ margin-left: 5%;
 .arrangementTable {
   font-weight: bold;
 }
+.arrangementTableData {
+  padding-bottom: 10px;
+  border-bottom: 1px solid black;
+}
 
 .arrangementLink {
   color: red;
 }
+
 .table-responsive{
   padding-left: 10px;
 }
