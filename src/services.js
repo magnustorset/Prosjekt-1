@@ -389,7 +389,7 @@ class ArrangementService {
   //Henter arrangement som du har godtatt vakt til
   getGodkjenteArrangement(id){
     return new Promise((resolve, reject)=>{
-      connection.query('select a.navn, a.id, v.id as vakt_id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
+      connection.query('select a.navn, a.id, v.id as vakt_id, v.r_id as rolleid from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
         if(error){
           reject(error);
           return;
