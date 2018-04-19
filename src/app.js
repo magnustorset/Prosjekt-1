@@ -383,7 +383,7 @@ class Menu extends React.Component {
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
-            <input  ref='serachFieldUser' type='text' className='form-control' />
+            <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
           </li>
           <li>
           <button ref='serachUsersButton' className='form-control btn btn-default' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}><span className='glyphicon glyphicon-search' /></button>
@@ -870,30 +870,70 @@ class NyttArrangement extends React.Component{
     let vakter = [];
     for (let i in this.vakter) {
       let item = this.vakter[i];
-      vakter.push(<tr key={item.id}><td>Rolle: {item.navn}</td><td>Antall: <input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td><td><button onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td></tr>);
+      vakter.push(
+        <tr key={item.id} className='arrangementVaktTabell'>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Rolle:</span> {item.navn}</td>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td>
+          <td className='arrangementVaktTabellData'><button className='btn btn-deafult' onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td>
+        </tr>);
     }
 
     return(
       <div>
-        Navn: <input type="text" ref="a_name" defaultValue="Test" /> <br />
-        Startdato: <input type="datetime-local" ref="a_startdate" /> <br /> {/*Autofyll med dagens dato*/}
-        Sluttdato: <input type="datetime-local" ref="a_enddate" /> <br />
-        Oppmøtetidspunkt: <input type="datetime-local" ref="a_meetdate" /> <br />
-        Oppmøtested: <MapWithASearchBox /> <br />
-        Beskrivelse: <textarea rows="4" cols="20" ref="a_desc" defaultValue="En tekstlig beskrivelse"/> <br />
-        Kontaktperson: <br />
-        Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
-        Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
-
-        Rolle: <select ref='rolle'>{rolleList}</select>
-        <button onClick={() => {this.addVakt()}}>Legg til rolle</button>
-
-        <table>
-          <tbody>
-            {vakter}
-          </tbody>
-        </table>
-        <button ref="arrangementButton">Lag arrangement</button>
+        <div className='Rot_nyttArrangement'>
+          <div className='form-group break'>
+            <label htmlFor='navn'>Navn: </label>
+            <input type="text" name='navn' className="form-control col-8" ref="a_name" defaultValue="Test" />
+          </div>
+          <div className='form-group'>
+            <label htmlFor='startdato'>Startdato: </label>
+            <input type="datetime-local" className="form-control col-8" name='startdato' ref="a_startdate" /> {/*Autofyll med dagens dato*/}
+          </div>
+          <div className='form-group'>
+            <label htmlFor='sluttdato'>Sluttdato: </label>
+            <input type="datetime-local" className="form-control col-8" name='sluttdato' ref="a_enddate" />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='oppmotetid'>Oppmøtetidspunkt: </label>
+            <input type="datetime-local" className="form-control col-8" name='oppmotetid' ref="a_meetdate" />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='oppmotested'>Oppmøtested: </label>
+            <MapWithASearchBox name='oppmotested' />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='beskrivelse'>Beskrivelse: </label>
+            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8" defaultValue="En tekstlig beskrivelse"/>
+          </div>
+          <div className='form-group formFritekst'>
+            <label>Kontaktperson: </label>
+          </div>
+          <div className='form-row'>
+          <div className='col'>
+            <label htmlFor='k_navn'>Navn: </label>
+            <input type="text" name='k_name' className="form-control" ref="k_name" defaultValue="Lars" />
+          </div>
+          <div className='col break'>
+            <label htmlFor='k_tlf'>Telefon: </label>
+            <input type="number" name='k_tlf' className="form-control" ref="k_tlf" defaultValue="95485648" />
+          </div>
+          </div>
+          <div className='form-group'>
+            <label htmlFor='rolle'>Rolle: </label>
+            <select ref='rolle' name='rolle' className="form-control-lg">{rolleList}</select>
+          </div>
+          <div className='form-group'>
+            <button className='btn btn-deafult' onClick={() => {this.addVakt()}}>Legg til rolle</button>
+          </div>
+          <div className='form-group'>
+            <table>
+              <tbody>
+                {vakter}
+              </tbody>
+            </table>
+            <button className='btn btn-deafult' ref="arrangementButton">Lag arrangement</button>
+          </div>
+        </div>
       </div>
     )
   }
