@@ -446,25 +446,19 @@ class ArrangementService {
             return;
           }
           k_id = result[0].id
-          // console.log(result);
-          // console.log(k_id);
 
           connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute) values (?, ?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude], (error, result) => {
             if(error){
               console.log(error);
               return;
             }
-            // console.log(roller);
-            // console.log(result);
-            // console.log(result.insertId);
             for (var i = 0; i < roller.length; i++) {
               for (var o = 0; o < roller[i].antall; o++) {
-                // console.log(roller[i].id);
                 connection.query('INSERT INTO vakt (a_id, r_id) values (?, ?)', [result.insertId, roller[i].id], (error, result) => {
-                  // console.log(roller);
-                  // console.log(result);
-                  // console.log(result.insertId);
-
+                  if(error){
+                    console.log(error);
+                    return;
+                  }
                 });
               }
             }
@@ -1008,4 +1002,18 @@ class KvalifikasjonService {
 }
 
 
-export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService }
+class RolleService {
+  getAllRolle() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * FROM rolle', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+}
+let rolleService = new RolleService();
+
+export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService }
