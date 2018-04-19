@@ -300,6 +300,7 @@ class LoginService {
 }
 
 class ArrangementService {
+  //Administrator oppdaterer arrangement
   updateArrangement(text,oppmote,start,slutt,id){
     return new Promise((resolve, reject)=>{
       connection.query('UPDATE arrangement set beskrivelse = ?, oppmootetidspunkt = ?, starttidspunkt = ?, sluttidspunkt = ?  where id = ?', [text,oppmote,start,slutt,id], (error, result)=>{
@@ -312,6 +313,7 @@ class ArrangementService {
       });
     });
   }
+  //Godta vakt ukalt fra administrator
   godtaVakt(dato,a_id,m_id){
     return new Promise((resolve, reject) =>{
       connection.query('update vakt set bekreftelsestid = ? where a_id = ? and m_id = ?', [dato,a_id,m_id], (error, result)=>{
@@ -324,18 +326,80 @@ class ArrangementService {
       });
     });
   }
-  getGodkjenteArrangement(id){
+  //Ikke godta vaktbytte forespørsel fra annen bruker
+  ikkeGodtaVaktBytte(vaktid){
     return new Promise((resolve, reject)=>{
-      connection.query('select a.navn, a.id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
+      connection.query('update vaktBytte set godtatt = ? where id = ?',[true,vaktid],(error, result)=>{
         if(error){
           reject(error);
           return;
         }
+        resolve();
+      });
+    });
+  }
+  //Godta vaktbytte forespørsel
+  godtaVaktBytte(vaktid){
+  return new Promise((resolve, reject)=>{
+    connection.query('update vaktBytte set bekreftelse = ? where id = ?',[true,vaktid],(error, result)=>{
+      if(error){
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+  }
 
+  //Henter dine ubehandlede forspørsler
+  vaktBytter(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('SELECT vb.id, vb.aid, vb.om_id, vb.nm_id, vb.bekreftelse,vb.vakt_id, m.fornavn as byttenavn, md.fornavn as navn, a.navn as arrangement from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid where bekreftelse = ? and vb.nm_id = ? and godtatt = ?',[false, id, false],(error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result);
+        resolve(result);
+      });
+    });
+    }
+    //Sender forespørsel om og bytte vakt
+  byttVakt(vaktid,overtakerid){
+    return new Promise((resolve, reject)=>{
+      let vakt = [];
+      connection.query('select * from vakt where id = ?', [vaktid], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        vakt =result[0];
+        console.log(vakt);
+        connection.query('insert into vaktBytte (aid,om_id,nm_id,bekreftelse,vakt_id,godtatt) values (?,?,?,?,?,?)',[vakt.a_id,vakt.m_id,overtakerid,false,vakt.id,false],(error,result)=>{
+          if(error){
+            reject(error);
+            return;
+          }
+          console.log('vakt byttet');
+          resolve();
+        });
+      });
+    });
+  }
+  //Henter arrangement som du har godtatt vakt til
+  getGodkjenteArrangement(id){
+    return new Promise((resolve, reject)=>{
+      connection.query('select a.navn, a.id, v.id as vakt_id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is not ?', [id, null, null], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        console.log(result);
         resolve(result);
       });
     });
   }
+  //Henter arrangement som du har blit utkalt til
   getUtkaltArrangement(id){
     return new Promise((resolve, reject) =>{
       connection.query('select a.navn, a.id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ? and v.utkallingstid is not ? and v.bekreftelsestid is ?', [id,null,null],(error, result)=>{
@@ -466,6 +530,50 @@ class ArrangementService {
 }
 
 class AdministratorFunctions{
+  //Administrator avslår vaktbytte forespørselen
+  avsloVaktBytte(vaktid){
+    return new Promise((resolve, reject)=>{
+      connection.query('update vaktBytte set bekreftelse = ?, godtatt = ? where id = ?', [false,true,vaktid], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    });
+  }
+  //Administrator godtar vaktbytte forespørselen
+  godtaVaktBytte(vaktBytteid,personid,vakt_id){
+    return new Promise((resolve, reject)=>{
+      connection.query('update vaktBytte set godtatt = ? where id = ?',[true,vaktBytteid],(error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        connection.query('update vakt set m_id = ? where id = ?', [personid,vakt_id], (error,result)=>{
+          if(error){
+            reject(error);
+            return;
+          }
+          resolve();
+        });
+      });
+    });
+  }
+  //Henter vakter der brukerne har godtatt bytt vakt forespørselen
+  getVaktBytter(){
+    return new Promise((resolve, reject)=>{
+      connection.query('SELECT vb.id,vb.aid,vb.om_id,vb.nm_id,vb.bekreftelse,vb.vakt_id,vb.godtatt,m.fornavn as byttenavn,md.fornavn as navn,a.navn as arrangement from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid where bekreftelse = ? and godtatt = ?',[true, false], (error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
+
   deaktiverBruker(id){
     return new Promise((resolve, reject)=>{
       connection.query('UPDATE medlem set aktiv = ? where id = ?', [false, id], (error, result)=>{

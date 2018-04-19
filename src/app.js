@@ -1266,7 +1266,7 @@ class Administrator extends React.Component{
               <GodkjennBruker />
             </td>
             <td valign='top'>
-
+              <ByttVakt />
             </td>
             <td>
             </td>
@@ -1332,6 +1332,50 @@ class GodkjennBruker extends React.Component {
       this.forceUpdate();
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Kunne ikke laste ikke aktiv brukere' + error);
+    });
+  }
+}
+
+class ByttVakt extends React.Component{
+  constructor(){
+    super();
+    this.vaktbytter = []
+  }
+  render(){
+    let vakter = []
+    for(let bytte of this.vaktbytter){
+      vakter.push(<tr key={bytte.id}><td>{bytte.byttenavn}, vil bytte vakt med {bytte.navn} på arrangement {bytte.arrangement}</td><td><button onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
+    }
+    return(
+      <div>
+        <table>
+          <tbody>
+            {vakter}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  avsloVaktBytte(vaktid){
+    administratorFunctions.avsloVaktBytte(vaktid).then(()=>{
+      this.componentDidMount();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Fikk ikke avlått vaktbytte' + error);
+    });
+  }
+  godtaVaktBytte(vaktBytteid,personid,vakt_id){
+    administratorFunctions.godtaVaktBytte(vaktBytteid,personid,vakt_id).then(()=>{
+      this.componentDidMount();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Fikk ikke godtatt vakt' + error);
+    });
+  }
+  componentDidMount(){
+    administratorFunctions.getVaktBytter().then((result)=>{
+      this.vaktbytter = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
     });
   }
 }
@@ -2249,18 +2293,24 @@ class MineVakter extends React.Component {
     super();
     this.godkjente = [];
     this.ikkeGodkjente = [];
+    this.vaktbytter = []
   }
   render(){
     let ikke = [];
     let godtatt = [];
+    let vakter = []
+    for(let bytte of this.vaktbytter){
+      vakter.push(<tr key={bytte.id}><td className='arrangementTableDataa'>{bytte.byttenavn}, vil bytte vakt med deg på arrangement {bytte.arrangement}</td><td className='arrangementTableDataa'><button onClick={()=>{this.vaktGodtatt(bytte.id)}}>Ok</button><button onClick={()=>{this.vaktIkkeGodtatt(bytte.id)}}>Nei</button></td></tr>)
+    }
     for(let yes of this.godkjente){
-      godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default'>Bytt vakt</button></td></tr>);
+      godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.bytte(yes.vakt_id,this.refs.brukerid.value)}}>Bytt vakt</button></td></tr>);
     }
     for(let not of this.ikkeGodkjente){
       ikke.push(<tr key={not.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+not.id}>{not.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.godta(not.id)}}>Godta vakt</button></td></tr>);
     }
     return(
       <div className='mineVakterTabell'>
+      <input ref='brukerid' type='number' />
         <table className='table-responsive-a' >
           <thead>
 
@@ -2272,6 +2322,9 @@ class MineVakter extends React.Component {
               </td>
               <td>
                 <p><strong>Godkjente</strong></p>
+              </td>
+              <td>
+                <p><strong>Bytte forespørsler</strong></p>
               </td>
             </tr>
             <tr>
@@ -2293,6 +2346,15 @@ class MineVakter extends React.Component {
                   </tbody>
                 </table>
               </td>
+              <td className='mineVakter'>
+                <table >
+                  <tbody>
+
+                        {vakter}
+
+                  </tbody>
+                </table>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -2300,22 +2362,48 @@ class MineVakter extends React.Component {
       </div>
     );
   }
-  godta(value){
-    arrangementService.godtaVakt(new Date(),value,loginService.getSignedInUser().id);
-    arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
-      this.godkjente = result;
-      this.forceUpdate();
+  vaktIkkeGodtatt(vaktid){
+    arrangementService.ikkeGodtaVaktBytte(vaktid).then(()=>{
+      this.componentDidMount();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+      if(errorMessage) errorMessage.set('Du fikk ikke avslått vakten' + error);
     });
-    arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
-      this.ikkeGodkjente = result;
+  }
+  vaktGodtatt(vaktid){
+    arrangementService.godtaVaktBytte(vaktid).then(()=>{
+      arrangementService.vaktBytter(loginService.getSignedInUser().id).then((result)=>{
+        this.vaktbytter = result;
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
+      });
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Du fikk ikke godtatt vaktbytte' + error);
+    });
+  }
+  //Send forespørsel om vaktbytte
+  bytte(vaktid, personid){
+    arrangementService.byttVakt(vaktid, personid).then(()=>{
       this.forceUpdate();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+      if(errorMessage) errorMessage.set('Får ikke byttet vakt' + error);
+    });
+  }
+  //Godta vakt du er utkalt til
+  godta(value){
+    arrangementService.godtaVakt(new Date(),value,loginService.getSignedInUser().id).then(()=>{
+      this.componentDidMount();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Karte ikke godta vakt' + error);
     });
   }
   componentDidMount() {
+    arrangementService.vaktBytter(loginService.getSignedInUser().id).then((result)=>{
+      this.vaktbytter = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
+    });
     arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
       this.godkjente = result;
       this.forceUpdate();
