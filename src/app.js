@@ -46,6 +46,7 @@ let mapLat = ''
 let mapLng = ''
 let brukerEpost;
 let vis = []
+let velgBytteBruker = []
 
 const MapWithASearchBox = compose(
   withProps({
@@ -300,10 +301,11 @@ class Prompt extends React.Component {
     render() {
         return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
     }
-}
+ }
 
   /** Prompt plugin */
-  Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
+
+Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
     let promptValue = null;
 
     let promptChange = function (value) {
@@ -333,8 +335,75 @@ class Prompt extends React.Component {
             }]
         }
     });
-});
+  });
+class Prompt2 extends React.Component {
+      constructor(props) {
+          super(props);
 
+          this.brukere = velgBytteBruker;
+          this.state = {
+              value: this.props.defaultValue
+          };
+
+          this.onChange = (e) => this._onChange(e);
+      }
+
+      componentDidUpdate(prevProps, prevState) {
+          if (prevState.value !== this.state.value) {
+              this.props.onChange(this.state.value);
+          }
+      }
+
+      _onChange(e) {
+          let value = e.target.value;
+
+          this.setState({value: value});
+      }
+
+      render() {
+        let bruker = [];
+        bruker.push(<option key='11111111' value='0'>Velg bruker:</option>);
+        for(let item of this.brukere){
+          bruker.push(<option key={item.Id} value={item.Id}>{item.Navn}</option>)
+        }
+          return <select ref='selectField' className="mm-popup__input" placeholder={this.props.placeholder} value={this.state.value} onChange={this.onChange}>{bruker}</select>;
+      }
+  }
+Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
+      let promptValue = 0;
+
+      let promptChange = function (value) {
+          promptValue = value;
+          console.log(value);
+      };
+
+      this.create({
+          title: 'Skriv in medlemsnr til den du skal skifte med:',
+          content: <Prompt2 onChange={promptChange} placeholder={placeholder} value={defaultValue} />,
+          buttons: {
+              left: [{
+                text: 'Avbryt',
+                classname: 'abort',
+                action: function() {
+                  Popup.close();
+                }
+              }],
+              right: [{
+                  text: 'Send forespørsel',
+                  key: '⌘+s',
+                  className: 'success',
+                  action: function () {
+                    if(promptValue!=0){
+                      callback(promptValue);
+                      Popup.close();
+                    }else{
+                      alert('Du må velge noen');
+                    }
+                  }
+              }]
+          }
+      });
+    });
 
 
 
@@ -2319,14 +2388,13 @@ class MineVakter extends React.Component {
       vakter.push(<tr key={bytte.id}><td className='arrangementTableDataa'>{bytte.byttenavn}, vil bytte vakt med deg på arrangement {bytte.arrangement}</td><td className='arrangementTableDataa'><button onClick={()=>{this.vaktGodtatt(bytte.id)}}>Ok</button><button onClick={()=>{this.vaktIkkeGodtatt(bytte.id)}}>Nei</button></td></tr>)
     }
     for(let yes of this.godkjente){
-      godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.bytte(yes.vakt_id,this.refs.brukerid.value)}}>Bytt vakt</button></td></tr>);
+      godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.bytte(yes.vakt_id, yes.rolleid, yes.id)}}>Bytt vakt</button></td></tr>);
     }
     for(let not of this.ikkeGodkjente){
       ikke.push(<tr key={not.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+not.id}>{not.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.godta(not.id)}}>Godta vakt</button></td></tr>);
     }
     return(
       <div className='mineVakterTabell'>
-      <input ref='brukerid' type='number' />
         <table className='table-responsive-a' >
           <thead>
 
@@ -2398,12 +2466,27 @@ class MineVakter extends React.Component {
     });
   }
   //Send forespørsel om vaktbytte
-  bytte(vaktid, personid){
-    arrangementService.byttVakt(vaktid, personid).then(()=>{
-      this.forceUpdate();
+  bytte(vaktid, rolleid,arrangementid){
+    VaktValg.lagListe3(arrangementid).then((result)=>{
+      let søl = []
+      for(let item of result){
+        if(item.r_id === rolleid){
+          søl.push({Navn: item.brukernavn, Id:item.m_id})
+        }
+      }
+      velgBytteBruker = søl;
+      Popup.plugins(vaktid).prompt2('', 'Velg bruker', function (value,signedInUser) {
+        arrangementService.byttVakt(vaktid,value).then(()=>{
+          console.log(value);
+          history.push('/mineVakter');
+        }).catch((error)=>{
+          if(errorMessage) errorMessage.set('Får ikke byttet vakt' + error);
+        });
+      });
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Får ikke byttet vakt' + error);
+      if(errorMessage) errorMessage.set('Finner ikke det du leter etter' + error);
     });
+
   }
   //Godta vakt du er utkalt til
   godta(value){
