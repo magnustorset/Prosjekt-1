@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -852,20 +852,27 @@ class Arrangement extends React.Component{
   }
   }
 
+
 class NyttArrangement extends React.Component{
   constructor() {
     super();
-    this.linjer = 1
+    this.linjer = 1;
+    this.roller = [];
+    this.vakter = [];
   }
   render(){
-    let table = [];
-    for (let i = 0; i < this.linjer; i++) {
-      table.push(<tr>
-        <td>Rolle id: <input type="number" step="1"/></td>
-        <td>Antall: <input type="number" step="1"/></td>
-      </tr>);
+    let rolleList = [];
+    rolleList.push(<option key="0" value="0"></option>);
+    for(let item of this.roller) {
+      rolleList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
     }
-    console.log(table);
+
+    let vakter = [];
+    for (let i in this.vakter) {
+      let item = this.vakter[i];
+      vakter.push(<tr key={item.id}><td>Rolle: {item.navn}</td><td>Antall: <input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td><td><button onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td></tr>);
+    }
+
     return(
       <div>
         Navn: <input type="text" ref="a_name" defaultValue="Test" /> <br />
@@ -877,54 +884,63 @@ class NyttArrangement extends React.Component{
         Kontaktperson: <br />
         Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
         Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
+
+        Rolle: <select ref='rolle'>{rolleList}</select>
+        <button onClick={() => {this.addVakt()}}>Legg til rolle</button>
+
         <table>
-          <tbody id="rolleTable">
-            {table}
+          <tbody>
+            {vakter}
           </tbody>
         </table>
-        <button className='btn btn-default' ref="tableTest">Tabell test</button>
-        <button className='btn btn-default' ref="tableAdd">Tabell add</button><br />
-        <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
+        <button ref="arrangementButton">Lag arrangement</button>
       </div>
     )
   }
-  tabelGreie() { //Må endre navn senere
-    let table = document.getElementById("rolleTable").children;
-    console.log(table);
-    let id;
-    let count;
-    let arr = [];
-    for (let tab of table) {
-      id = (tab.children[0].children[0].value === "") ? -1 : +tab.children[0].children[0].value;
-      count = (tab.children[1].children[0].value === "") ? -1 : +tab.children[1].children[0].value;
-      if(id >= 0 && count >= 0){
-        arr.push({id: id, antall: count});
-      }
-    }
-    return arr;
-  }
+
+
   componentDidMount(){
+    rolleService.getAllRolle().then((res) => {
+      this.roller = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log('ERROR: ROLLE_SQL_FAIL');
+      console.log(err);
+    })
+
     this.refs.arrangementButton.onclick = () => {
-      console.log(this.refs.a_startdate.value);
-      let roller = this.tabelGreie();
-      console.log(roller);
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, roller, longitude,latitude).then(() => {
-        console.log('Arrangement laget')
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude).then(() => {
+
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
     }
-    //document.getElementById("rolleTable").children
+  }
 
-    this.refs.tableTest.onclick = () => {
-      this.tabelGreie();
-    };
+  addVakt() {
+    let r_id = +this.refs.rolle.value;
+    let navn = 'Tomt';
 
-    this.refs.tableAdd.onclick = () => {
-      this.linjer++;
+
+
+    if(r_id && this.vaktValgt(r_id)) {
+      for (let item of this.roller) {
+        if (r_id === item.id) {
+          navn = item.navn;
+        }
+      }
+
+      this.vakter.push({id: r_id, navn: navn, antall: 1});
       this.forceUpdate();
-    };
-
+    }
+  }
+  vaktValgt(r_id) {
+    for (let item of this.vakter) {
+      if (r_id === item.id) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
