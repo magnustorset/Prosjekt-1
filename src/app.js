@@ -1,13 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
 import Moment from 'moment'
 BigCalendar.momentLocalizer(moment);
 let eventen = []
+function push(eve){
+  history.push('/visArrangement/'+ eve);
+}
 const MyCalendar = props => (
   <div>
     <BigCalendar
@@ -17,7 +20,7 @@ const MyCalendar = props => (
       endAccessor='end'
       style={{height: '400px'}}
       defaultDate={new Date()}
-      onSelectEvent={event => Popup.alert(event.desc)}
+      onSelectEvent={event => push(event.id)}
     />
   </div>
 );
@@ -247,7 +250,7 @@ class ErrorMessage extends React.Component {
     return (
       <div style={{display: displayValue}}>
         <b><font color='red'>{this.message}</font></b>
-        <button ref='closeButton'>Close</button>
+        <button className='btn btn-default' ref='closeButton'>Close</button>
       </div>
     );
   }
@@ -348,7 +351,7 @@ class Menu extends React.Component {
         Røde Kors</div>
 
       <div className='navbar-header'>
-        <button onClick={()=>{this.collapseNavbar()}}
+        <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}
         className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
         <span className="navbar-toggler-icon"></span>
         </button>
@@ -383,10 +386,10 @@ class Menu extends React.Component {
             <input  ref='serachFieldUser' type='text' className='form-control' />
           </li>
           <li>
-          <button  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}><span className='glyphicon glyphicon-search' /></button>
+          <button ref='serachUsersButton' className='form-control btn btn-default' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}><span className='glyphicon glyphicon-search' /></button>
           </li>
           <li className='spaceBetweenSearchAndLogout'>
-          <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
+          <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
           </li>
         </ul>
       </div>
@@ -400,7 +403,7 @@ class Menu extends React.Component {
     <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
     Røde Kors</div>
     <div className='navbar-header'>
-    <button onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+    <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
     <span className="navbar-toggler-icon"></span>
     </button>
     </div>
@@ -424,10 +427,10 @@ class Menu extends React.Component {
       <input  ref='serachFieldUser' type='text' className='form-control' />
     </li>
     <li>
-  <button  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
+  <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
     </li>
     <li className='spaceBetweenSearchAndLogout'>
-    <button  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
+    <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
     </li>
   </ul>
   </div>
@@ -488,11 +491,11 @@ class Innlogging extends React.Component {
           <input type="password" ref="pwInput" className="form-control col-4" defaultValue="passord" name='passord'/>
         </div>
         <div className='form-group'>
-          <button className="btn btn-primary" ref="innlogginButton">Logg inn</button>
+          <button className="btn btn-primary btn-lg" ref="innlogginButton">Logg inn</button>
         </div>
         <div className='form-group'>
-          <button className='btn-default' ref="newUserButton">Ny bruker</button>
-          <button className='btn-default' ref="newPasswordButton">Glemt passord?</button>
+          <button className='btn btn-default' ref="newUserButton">Ny bruker</button>
+          <button className='btn btn-default' ref="newPasswordButton">Glemt passord?</button>
         </div>
 
       </div>
@@ -537,53 +540,51 @@ class Innlogging extends React.Component {
 class NyBruker extends React.Component {
   render () {
     return (
-      <div>
-        <table>
-          <tbody>
-          <tr>
-            <td>Fornavn: </td>
-            <td><input type="text" ref="fornavnInput" defaultValue="Peter" /></td>
-          </tr>
-          <tr>
-            <td>Etternavn: </td>
-            <td><input type="text" ref="etternavnInput" defaultValue="Peter" /></td>
-          </tr>
-            <tr>
-              <td>Brukernavn: </td>
-              <td><input type="text" ref="brukernavnInput" defaultValue="Peter" /></td>
-            </tr>
-            <tr>
-              <td>Epost: </td>
-              <td><input type="email" ref="epostInput" defaultValue='peter@test.no' /></td>
-            </tr>
-            <tr>
-              <td>Medlemsnr: </td>
-              <td><input type="number" ref="medlemsnrInput" defaultValue='18124'  /></td>
-            </tr>
-            <tr>
-              <td>Telefonnummer: </td>
-              <td><input type="number" ref="tlfInput" defaultValue='95485648' /></td>
-            </tr>
-            <tr>
-              <td>Gateadresse: </td>
-              <td><input type="text" ref="adresseInput" defaultValue='Brandhaugveita 4' /></td>
-            </tr>
-            <tr>
-              <td>Postnummer: </td>
-              <td><input type="text" ref="postnrInput" defaultValue='0000' /></td>
-            </tr>
-            <tr>
-              <td>Passord: </td>
-              <td><input type="password" ref="passwordInput1" defaultValue='12345' /></td>
-            </tr>
-            <tr>
-              <td>Gjenta passord: </td>
-              <td><input type="password" ref="passwordInput2" defaultValue='12345' /> </td>
-            </tr>
-          </tbody>
-        </table>
-        <button ref="createuserButton">Ferdig</button>
-        <button onClick={()=>{history.goBack()} }>Tilbake</button>
+      <div className='Rot_nybruker container'>
+         <div className='form-group'>
+            <label htmlFor='fornavn'>Fornavn:</label>
+            <input type="text" ref="fornavnInput" className='form-control col-6' defaultValue="Fornan" name='fornavn'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='etternavn'>Etternavn:</label>
+            <input type="text" ref="etternavnInput" className='form-control col-6' defaultValue="Etternavn" name='etternavn'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='brukernavn'>Brukernavn:</label>
+            <input type="text" ref="brukernavnInput" className='form-control col-6'  defaultValue="Brukernavn" name='brukernavn'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='epost'>Epost:</label>
+            <input type="email" ref="epostInput" className='form-control col-6' defaultValue='dinepost@dinepost.no' name='epost'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='medlemsnr'>Medlemsnr:</label>
+            <input type="number" ref="medlemsnrInput" className='form-control col-6' defaultValue='98123'  name='medlemsnr'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='telefon'>Telefonnummer:</label>
+            <input type="number" ref="tlfInput" className='form-control col-6' defaultValue='91909293' name='telefon'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='adresse'>Gateadresse:</label>
+            <input type="text" ref="adresseInput" className='form-control col-6' defaultValue='Brandhaugveita 4' name='adressse'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='postnr'>Postnummer:</label>
+            <input type="text" ref="postnrInput" className='form-control col-6' defaultValue='0000' name='postnr'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='passord'>Passord:</label>
+            <input type="password" ref="passwordInput1" className='form-control col-6' defaultValue='*****' name='passord'/>
+        </div>
+        <div className='form-group'>
+            <label htmlFor='gpassord'>Gjenta passord:</label>
+            <input type="password" ref="passwordInput2" className='form-control col-6' defaultValue='*****' name='gpassord'/>
+        </div>
+        <div className='form-group'>
+            <button className='btn btn-default' ref="createuserButton">Ferdig</button>
+            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
+        </div>
       </div>
     )
   }
@@ -612,8 +613,8 @@ class NyttPassord extends React.Component {
             <input type='email' name='epost' className='form-control col-6' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
           </div>
           <div className='form-group'>
-            <button className='btn-default' ref='newPasswordButton'>Be om nytt passord</button>
-            <button className='btn-default' ref='backButton'>Tilbake</button>
+            <button className='btn btn-default' ref='newPasswordButton'>Be om nytt passord</button>
+            <button className='btn btn-default' ref='backButton'>Tilbake</button>
           </div>
           <div>
             <ErrorMessage />
@@ -655,7 +656,7 @@ class ResetPassord extends React.Component {
           <div className='form-group'>
             <label htmlFor='kode'>Kode:</label>
             <input type='text' name='kode' className='form-control col-2' ref='kodeInput' />
-            <button className='btn-default' ref='kodeButton'>Sjekk kode</button>
+            <button className='btn btn-default' ref='kodeButton'>Sjekk kode</button>
           </div>
           <ErrorMessage />
         </div>
@@ -695,7 +696,7 @@ class NyttResetPassord extends React.Component {
             <input type='password' name='passord2' className='form-control col-4' ref='passordInput2' />
           </div>
           <div className='form-group'>
-            <button className='btn-default' ref='byttPassordButton'>Bytt passord</button>
+            <button className='btn btn-default' ref='byttPassordButton'>Bytt passord</button>
           </div>
         </div>
       </div>
@@ -745,10 +746,12 @@ class StartSide extends React.Component {
     return (
       <div className='startside'>
         <h1>Hei, {this.user.brukernavn}!</h1>
-        <div className='adminMelding'>
-        <textarea rows='5' cols='50'id='adminMelding'name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
+        <div className='adminMelding form-group'>
+        <label htmlFor='adminMelding'>Melding fra administrator:</label>
+        <textarea rows='5' cols='50'id='adminMelding' className='form-control' name='adminMelding' value={this.state.melding} onChange={this.handleChange} />
         </div>
-        <div className='calendarStartside'>
+        <div className='calendarStartside form-group'>
+        <div className='calendarLabel'>Kommende arrangement</div>
         <MyCalendar />
         </div>
       </div>
@@ -761,7 +764,7 @@ class StartSide extends React.Component {
     arrangementService.getAllArrangement().then((result)=>{
       this.eventer = result;
       for(let ting of this.eventer){
-        eventen.push({title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse});
+        eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse});
       }
 
     }).catch((error)=>{
@@ -794,7 +797,7 @@ class Arrangement extends React.Component{
     let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
       a++;
     }
     let signedInUser = loginService.getSignedInUser();
@@ -806,11 +809,11 @@ class Arrangement extends React.Component{
             <thead>
               <tr>
                 <td>
-                <input type='text' ref='searchArrangement' />
-                <button ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button>
-                </td>
+                <input type='text'className='form-control' ref='searchArrangement' /></td>
+                <td><button className='btn btn-default' ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button></td>
+
                 <td>
-                  <Link to='/nyttarrangement'>Nytt Arrangement</Link>
+                  <button className='btn btn-default' onClick={ () => {history.push('/nyttarrangement')}}>Nytt Arrangement</button>
                 </td>
               </tr>
             </thead>
@@ -823,9 +826,13 @@ class Arrangement extends React.Component{
     }
     return(
       <div>
-        <input type='text' ref='searchArrangement'  />
-        <button ref='searchButton'onClick={ () => {this.hentArrangement()}}>Søk arrangement</button>
         <table>
+          <thead>
+            <tr>
+              <td><input type='text' className='form-control' ref='searchArrangement'  /></td>
+              <td><button className='btn btn-default' ref='searchButton'onClick={ () => {this.hentArrangement()}}>Søk arrangement</button></td>
+            </tr>
+          </thead>
           <tbody>
             {tableItems}
           </tbody>
@@ -848,23 +855,17 @@ class Arrangement extends React.Component{
 class NyttArrangement extends React.Component{
   constructor() {
     super();
-    this.linjer = 1;
-    this.roller = [];
-    this.vakter = [];
+    this.linjer = 1
   }
   render(){
-    let rolleList = [];
-    rolleList.push(<option key="0" value="0"></option>);
-    for(let item of this.roller) {
-      rolleList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
+    let table = [];
+    for (let i = 0; i < this.linjer; i++) {
+      table.push(<tr>
+        <td>Rolle id: <input type="number" step="1"/></td>
+        <td>Antall: <input type="number" step="1"/></td>
+      </tr>);
     }
-
-    let vakter = [];
-    for (let i in this.vakter) {
-      let item = this.vakter[i];
-      vakter.push(<tr key={item.id}><td>Rolle: {item.navn}</td><td>Antall: <input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td><td><button onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td></tr>);
-    }
-
+    console.log(table);
     return(
       <div>
         Navn: <input type="text" ref="a_name" defaultValue="Test" /> <br />
@@ -876,63 +877,54 @@ class NyttArrangement extends React.Component{
         Kontaktperson: <br />
         Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
         Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
-        <tr>
-          <td>Rolle: <select ref='rolle'>{rolleList}</select></td>
-          <td><button onClick={() => {this.addVakt()}}>Legg til rolle</button></td>
-        </tr>
         <table>
-          <tbody>
-            {vakter}
+          <tbody id="rolleTable">
+            {table}
           </tbody>
         </table>
-        <button ref="arrangementButton">Lag arrangement</button>
+        <button className='btn btn-default' ref="tableTest">Tabell test</button>
+        <button className='btn btn-default' ref="tableAdd">Tabell add</button><br />
+        <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
       </div>
     )
   }
-
-
+  tabelGreie() { //Må endre navn senere
+    let table = document.getElementById("rolleTable").children;
+    console.log(table);
+    let id;
+    let count;
+    let arr = [];
+    for (let tab of table) {
+      id = (tab.children[0].children[0].value === "") ? -1 : +tab.children[0].children[0].value;
+      count = (tab.children[1].children[0].value === "") ? -1 : +tab.children[1].children[0].value;
+      if(id >= 0 && count >= 0){
+        arr.push({id: id, antall: count});
+      }
+    }
+    return arr;
+  }
   componentDidMount(){
-    rolleService.getAllRolle().then((res) => {
-      this.roller = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log('ERROR: ROLLE_SQL_FAIL');
-      console.log(err);
-    })
-
     this.refs.arrangementButton.onclick = () => {
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude).then(() => {
-
+      console.log(this.refs.a_startdate.value);
+      let roller = this.tabelGreie();
+      console.log(roller);
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, roller, longitude,latitude).then(() => {
+        console.log('Arrangement laget')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
     }
-  }
+    //document.getElementById("rolleTable").children
 
-  addVakt() {
-    let r_id = +this.refs.rolle.value;
-    let navn = 'Tomt';
+    this.refs.tableTest.onclick = () => {
+      this.tabelGreie();
+    };
 
-
-
-    if(r_id && this.vaktValgt(r_id)) {
-      for (let item of this.roller) {
-        if (r_id === item.id) {
-          navn = item.navn;
-        }
-      }
-
-      this.vakter.push({id: r_id, navn: navn, antall: 1});
+    this.refs.tableAdd.onclick = () => {
+      this.linjer++;
       this.forceUpdate();
-    }
-  }
-  vaktValgt(r_id) {
-    for (let item of this.vakter) {
-      if (r_id === item.id) {
-        return false;
-      }
-    }
-    return true;
+    };
+
   }
 }
 
@@ -948,34 +940,31 @@ class MineSider extends React.Component {
       <div>
         <h1>Min Side</h1>
         <div className='mineSider'>
-        <table className='minsideTabell'>
+        <table >
           <tbody>
             <tr>
-              <td className='minsideTabell'>Medlemmsnummer: {this.user.id}</td>
-              <td className='minsideTabell'>Postnummer: {this.user.poststed_postnr}</td>
+              <td className='minsideTabell'><span className='tableText'>Medlemmsnummer:</span> {this.user.id}</td>
+              <td className='minsideTabell'><span className='tableText'>Postnummer:</span> {this.user.poststed_postnr}</td>
             </tr>
             <tr>
-              <td className='minsideTabell'>Epost: {this.user.epost}</td>
-              <td className='minsideTabell'>Poststed: {this.user.poststed}</td>
+              <td className='minsideTabell'><span className='tableText'>Epost:</span> {this.user.epost}</td>
+              <td className='minsideTabell'><span className='tableText'>Poststed:</span> {this.user.poststed}</td>
             </tr>
             <tr>
-              <td className='minsideTabell'>Telefonnummer: {this.user.tlf}</td>
-              <td className='minsideTabell'>Gateadresse: {this.user.adresse}</td>
+              <td className='minsideTabell'><span className='tableText'>Telefonnummer:</span> {this.user.tlf}</td>
+              <td className='minsideTabell'><span className='tableText'>Gateadresse:</span> {this.user.adresse}</td>
             </tr>
             <tr>
-              <td className='minsideTabell'>Passiv fra: <input type='date' ref='passivFra' /></td>
-              <td className='minsideTabell'>Passiv til: <input type='date' ref='passivTil' /></td>
-            </tr>
-            <tr>
-              <td className='minsideTabell'><button ref='setPassive'>Meld deg passiv</button>
-              <button ref='seeQualifications'>Se kvalifikasjoner</button></td>
-              <td className='minsideTabell'><button ref='changeInfo'>Endre personalia</button>
-              <button ref='changePassword'>Endre passord</button></td>
+              <td className='minsideTabell'><button className='btn btn-default' ref='setPassive'>Meld deg passiv</button>
+              <button className='btn btn-default' ref='seeQualifications'>Se kvalifikasjoner</button></td>
+              <td className='minsideTabell'><button className='btn btn-default' ref='changeInfo'>Endre personalia</button>
+              <button className='btn btn-default' ref='changePassword'>Endre passord</button></td>
             </tr>
           </tbody>
         </table>
         </div>
         <div className='calendarMinesider'>
+        <div className='calendarLabel'>Mine arrangement</div>
         <MyCalendar />
         </div>
       </div>
@@ -984,7 +973,7 @@ class MineSider extends React.Component {
   componentDidMount(){
     arrangementService.getYourArrangements(loginService.getSignedInUser().id).then((result)=>{
       for(let ting of result){
-        eventen.push({title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
+        eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
       }
       console.log(eventen)
     }).catch((error)=>{
@@ -998,8 +987,41 @@ class MineSider extends React.Component {
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
+
+    this.refs.setPassive.onclick = () =>{
+      this.props.history.push('/passiv');
+    }
+
+    this.refs.changeInfo.onclick = () =>{
+      this.props.history.push('/forandreinfo');
+    }
+    this.refs.changePassword.onclick = () =>{
+      this.props.history.push('/forandrepassord');
+    }
+    this.refs.seeQualifications.onclick = () =>{
+      this.props.history.push('/sekvalifikasjoner');
+    }
+  }
+}
+
+class Passiv extends React.Component {
+  render() {
+    return(
+      <div>
+        <label htmlFor='passivFra'>Passiv fra: </label>
+        <input type='date' name='passivFra' ref='passivFra' />
+        <label htmlFor='passivTil'>Passiv til: </label>
+        <input type='date' name='passivTil' ref='passivTil' />
+        <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
+        <button className='btn btn-default' ref='tilbakeButton'>Tilbake</button>
+      </div>
+    )
+  }
+
+  componentDidMount() {
     this.refs.setPassive.onclick = () => {
-      let m_id = this.id
+      let m_id = loginService.getSignedInUser().id;
+      console.log(m_id);
       let start = this.refs.passivFra.value
       let slutt = this.refs.passivTil.value
       if(start <= slutt) {
@@ -1012,6 +1034,7 @@ class MineSider extends React.Component {
               console.log(error);
               if(errorMessage) errorMessage.set('Error');
             });
+            history.push('/minside')
           } else {
             console.log('Du er opptatt på denne tiden.');
           }
@@ -1019,17 +1042,14 @@ class MineSider extends React.Component {
           console.log(error);
           if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
         });
+      } else {
+        alert('Sluttdato må være senere enn startdato')
       }
     }
-    this.refs.changeInfo.onclick = () =>{
-      this.props.history.push('/forandreinfo');
+    this.refs.tilbakeButton.onclick = () => {
+      history.push('/minside')
     }
-    this.refs.changePassword.onclick = () =>{
-      this.props.history.push('/forandrepassord');
-    }
-    this.refs.seeQualifications.onclick = () =>{
-      this.props.history.push('/sekvalifikasjoner');
-    }
+
   }
 }
 
@@ -1055,8 +1075,8 @@ class ForandreBrukerInfo extends React.Component {
             <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
           </tbody>
         </table>
-        <button ref='saveButton'>Lagre forandringer</button>
-        <button ref='cancelButton'>Forkast forandringer</button>
+        <button className='btn btn-default' ref='saveButton'>Lagre forandringer</button>
+        <button className='btn btn-default' ref='cancelButton'>Forkast forandringer</button>
       </div>
     )
   }
@@ -1133,8 +1153,8 @@ class ForandrePassord extends React.Component {
 
       Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
 
-      <button ref='saveButton'>Lagre nytt passord</button>
-      <button ref='cancelButton'>Ikke lagre</button>
+      <button className='btn btn-default' ref='saveButton'>Lagre nytt passord</button>
+      <button className='btn btn-default' ref='cancelButton'>Ikke lagre</button>
       </div>
     )
   }
@@ -1203,7 +1223,7 @@ class SeKvalifikasjoner extends React.Component {
       <div>
         <h2>Kvalifikasjoner</h2>
         <ul>{kvalList}</ul>
-        <button ref='tilbakeKnapp'>Gå tilbake</button>
+        <button className='btn btn-default' ref='tilbakeKnapp'>Gå tilbake</button>
       </div>
     )
   }
@@ -1254,7 +1274,7 @@ class Administrator extends React.Component{
           <tr>
             <td>
             <textarea ref='adminMelding' />
-            <button ref='RegistrerAdminMelding'>Commit</button>
+            <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
             </td>
             <td>
             </td>
@@ -1282,7 +1302,7 @@ class GodkjennBruker extends React.Component {
   render(){
     let brukerListe = [];
     for(let bruker of this.ikkeAktive){
-      brukerListe.push(<li key={bruker.id}><Link to={'/bruker/'+bruker.id}>{bruker.fornavn},{bruker.etternavn}</Link> <button onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
+      brukerListe.push(<li key={bruker.id}><Link to={'/bruker/'+bruker.id}>{bruker.fornavn},{bruker.etternavn}</Link> <button className='btn btn-default' onClick={() =>{this.godkjenneBruker(bruker.id)}} >Godkjenne</button></li>)
     }
     return(
       <div>
@@ -1332,7 +1352,7 @@ class VisSøkeResultat extends React.Component {
       <ul>
       {resultat}
       </ul>
-      <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+      <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
       </div>
     );
   }
@@ -1359,38 +1379,36 @@ class BrukerSide extends React.Component {
       return(
         <div>
           <div className="brukerSideTabell">
-          <table>
+          <table className="brukerSideTabell">
             <thead>
               <tr>
-                <th>{this.user.fornavn}, {this.user.etternavn}</th>
-                <th>{this.user.id}</th>
+                <th className="brukerSideHead">{this.user.fornavn} {this.user.etternavn}</th>
+                <th className="brukerSideHead">{this.user.id}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Telefon: </td>
-                <td>{this.user.tlf}</td>
-                <td>E-post:</td>
-                <td>{this.user.epost}</td>
-                <td>Vaktpoeng: </td>
-                <td>{this.user.vaktpoeng}</td>
+                <td className="brukerSideData"><span className='tableText'>E-post: </span> {this.user.epost}</td>
+                <td className="brukerSideData"><span className='tableText'>Adresse: </span> {this.user.adresse}</td>
+
               </tr>
               <tr>
-                <td>Adresse: </td>
-                <td>{this.user.adresse}</td>
-                <td>Postnr:</td>
-                <td>{this.user.postnr}</td>
-                <td>Poststed:</td>
-                <td>{this.user.poststed}</td>
+                <td className="brukerSideData"><span className='tableText'>Telefon: </span>{this.user.tlf}</td>
+                <td className="brukerSideData"><span className='tableText'>Postnummer: </span>{this.user.postnr}</td>
+
               </tr>
               <tr>
-              <td><button onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
-              <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
-              <td><button onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
+                <td className="brukerSideData"><span className='tableText'>Vaktpoeng: </span> {this.user.vaktpoeng}</td>
+                <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
+              </tr>
+              <tr>
+              <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
+              <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+              <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
               </tr>
             </tbody>
           </table>
-            <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+            <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1398,63 +1416,60 @@ class BrukerSide extends React.Component {
       if(signedInUser.admin === 1 && this.user.admin === 1){
         return(
           <div>
-            <div className="table-responsive">
-            <table className='table'>
+            <div className="brukerSideTabell">
+            <table className="brukerSideTabell">
               <thead>
                 <tr>
-                  <th>{this.user.fornavn}, {this.user.etternavn}</th>
-                  <th>{this.user.id}</th>
+                  <th className="brukerSideHead">{this.user.fornavn} {this.user.etternavn}</th>
+                  <th className="brukerSideHead">{this.user.id}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>Telefon: </td>
-                  <td>{this.user.tlf}</td>
-                  <td>E-post:</td>
-                  <td>{this.user.epost}</td>
-                  <td>Vaktpoeng: </td>
-                  <td>{this.user.vaktpoeng}</td>
-                </tr>
-                <tr>
-                  <td>Adresse: </td>
-                  <td>{this.user.adresse}</td>
-                  <td>Postnr:</td>
-                  <td>{this.user.postnr}</td>
-                  <td>Poststed:</td>
-                  <td>{this.user.poststed}</td>
-                </tr>
-                <tr>
-                <td><button onClick={() =>{this.deleteAdmin()}}>Fjern bruker som admin</button></td>
-                <td><button onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
-                <td><button onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
+                  <td className="brukerSideData"><span className='tableText'>E-post: </span> {this.user.epost}</td>
+                  <td className="brukerSideData"><span className='tableText'>Adresse: </span> {this.user.adresse}</td>
 
+                </tr>
+                <tr>
+                  <td className="brukerSideData"><span className='tableText'>Telefon: </span>{this.user.tlf}</td>
+                  <td className="brukerSideData"><span className='tableText'>Postnummer: </span>{this.user.postnr}</td>
+
+                </tr>
+                <tr>
+                  <td className="brukerSideData"><span className='tableText'>Vaktpoeng: </span> {this.user.vaktpoeng}</td>
+                  <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
+                </tr>
+                <tr>
+                  <td className="brukerSideButtons"><button className='btn btn-deafult' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
+                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
                 </tr>
               </tbody>
             </table>
-              <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+              <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
             </div>
           </div>
         )
     }else{
       return(
         <div>
-          <div className="table-responsive">
-          <table className='table'>
+          <div>
+          <table className='brukerSideTabell'>
             <thead>
               <tr>
-                <th>{this.user.fornavn}, {this.user.etternavn}</th>
+                <th className='brukerSideHead'>{this.user.fornavn} {this.user.etternavn}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Telefon: </td>
-                <td>{this.user.tlf}</td>
-                <td>E-post:</td>
-                <td>{this.user.epost}</td>
+                <td className='brukerSideData'><span className='bold'>Telefon:</span> </td>
+                <td className='brukerSideData'>{this.user.tlf}</td>
+                <td className='brukerSideData'>E-post:</td>
+                <td className='brukerSideData'>{this.user.epost}</td>
               </tr>
             </tbody>
           </table>
-            <button onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+            <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1522,8 +1537,8 @@ class VisArrangement extends React.Component {
               <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
-              <td><button onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button></td>
-              <td><button onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button></td>
+              <td><button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button></td>
+              <td><button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button></td>
             </tr>
           </tbody>
         </table>
@@ -1562,7 +1577,7 @@ class VisArrangement extends React.Component {
               <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
-              <td><button onClick={()=>{history.goBack()}}>Tilbake</button></td>
+              <td><button className='btn btn-default' onClick={()=>{history.goBack()}}>Tilbake</button></td>
             </tr>
           </tbody>
         </table>
@@ -1654,8 +1669,8 @@ class EndreArrangement extends React.Component {
               <td><div><MapWithAMarker /></div></td>
             </tr>
             <tr>
-              <td><button onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
-              <td><button ref='lagreEndringer'>Lagre endringene</button></td>
+              <td><button className='btn btn-default' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
+              <td><button className='btn btn-default' ref='lagreEndringer'>Lagre endringene</button></td>
             </tr>
           </tbody>
         </table>
@@ -1719,13 +1734,13 @@ class Innkalling extends React.Component {
     for(let i in this.ikkeValgte){
       let item = this.ikkeValgte[i];
       if (item.r_id === this.r) {
-        ikkeValgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn} - {(item.interesse) ? 'Ja':'Nei'} - {item.vaktpoeng} - {this.getRollName(item.registrert)} - {this.getRollName(item.opptatt)}<button onClick={() => {this.leggTil(+i)}}>Flytt over</button></li>)
+        ikkeValgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn} - {(item.interesse) ? 'Ja':'Nei'} - {item.vaktpoeng} - {this.getRollName(item.registrert)} - {this.getRollName(item.opptatt)}<button className='btn btn-default' onClick={() => {this.leggTil(+i)}}>Flytt over</button></li>)
       }
     }
     for(let i in this.valgte){
       let item = this.valgte[i];
       if (item.r_id === this.r) {
-        valgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn} - {(item.interesse) ? 'Ja':'Nei'} - {item.vaktpoeng} - {this.getRollName(item.registrert)} - {this.getRollName(item.opptatt)}<button onClick={() => {this.taVekk(+i)}}>Flytt over</button></li>)
+        valgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn} - {(item.interesse) ? 'Ja':'Nei'} - {item.vaktpoeng} - {this.getRollName(item.registrert)} - {this.getRollName(item.opptatt)}<button className='btn btn-default' onClick={() => {this.taVekk(+i)}}>Flytt over</button></li>)
       }
     }
     for (let roll of this.roller) {
@@ -1738,7 +1753,7 @@ class Innkalling extends React.Component {
           <thead>
             <tr>
               <td><select ref='r'>{rolle}</select>
-              <button ref='button'>Button</button>{this.r}</td>
+              <button className='btn btn-default' ref='button'>Button</button>{this.r}</td>
             </tr>
           </thead>
           <tbody>
@@ -1780,7 +1795,7 @@ class Innkalling extends React.Component {
             </tr>
           </tbody>
         </table>
-        <button ref="save">Save</button>
+        <button className='btn btn-default' ref="save">Save</button>
       </div>
     )
   }
@@ -2023,7 +2038,7 @@ class Utstyr extends React.Component {
 
     utstyrsListe.push(<tr key={'utstyrsListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
     for (let item of this.utstyr) {
-      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
+      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
     }
 
     return(
@@ -2034,7 +2049,7 @@ class Utstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Navn: <input ref='utNavn'/> <button ref='lagUt'>Legg til</button>
+          Navn: <input ref='utNavn'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
         </div>
         <RolleUtstyr />
         <ArrangementUtstyr />
@@ -2095,7 +2110,7 @@ class RolleUtstyr extends React.Component {
 
     utstyrsListe.push(<tr key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
     for (let item of this.rolleUtstyr) {
-      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
+      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
     }
 
     return(
@@ -2108,7 +2123,7 @@ class RolleUtstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Rolle: <input ref='rolle'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button ref='lagUt'>Legg til</button>
+          Rolle: <input ref='rolle'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2167,7 +2182,7 @@ class ArrangementUtstyr extends React.Component {
 
     utstyrsListe.push(<tr key={'a_utstyrsListe'}><td>Arrangement</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
     for (let item of this.arrangememtUtstyr) {
-      utstyrsListe.push(<tr key={item.a_id + ' - ' + item.u_id}><td>{item.a_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
+      utstyrsListe.push(<tr key={item.a_id + ' - ' + item.u_id}><td>{item.a_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
     }
 
     return(
@@ -2180,7 +2195,7 @@ class ArrangementUtstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Arrangement: <input ref='arrangement'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button ref='lagUt'>Legg til</button>
+          Arrangement: <input ref='arrangement'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2239,14 +2254,14 @@ class MineVakter extends React.Component {
     let ikke = [];
     let godtatt = [];
     for(let yes of this.godkjente){
-      godtatt.push(<li key={yes.id}><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></li>);
+      godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default'>Bytt vakt</button></td></tr>);
     }
     for(let not of this.ikkeGodkjente){
-      ikke.push(<li key={not.id}><Link to={'/visArrangement/'+not.id}>{not.navn}</Link><button onClick={()=>{this.godta(not.id)}}>Godta vakt</button></li>);
+      ikke.push(<tr key={not.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+not.id}>{not.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.godta(not.id)}}>Godta vakt</button></td></tr>);
     }
     return(
-      <div>
-        <table style={{width: '100%'}}>
+      <div className='mineVakterTabell'>
+        <table className='table-responsive-a' >
           <thead>
 
           </thead>
@@ -2260,29 +2275,21 @@ class MineVakter extends React.Component {
               </td>
             </tr>
             <tr>
-              <td style={{width: '50%'}}>
+              <td className='mineVakter'>
                 <table >
                   <tbody>
-                    <tr>
-                      <td>
-                        <ul>
-                          {ikke}
-                        </ul>
-                      </td>
-                    </tr>
+
+                      {ikke}
+
                   </tbody>
                 </table>
               </td>
-              <td style={{width: '50%'}}>
+              <td className='mineVakter'>
                 <table >
                   <tbody>
-                    <tr>
-                      <td>
-                        <ul>
-                          {godtatt}
-                        </ul>
-                      </td>
-                    </tr>
+
+                        {godtatt}
+
                   </tbody>
                 </table>
               </td>
@@ -2335,7 +2342,7 @@ class Kvalifikasjoner extends React.Component {
 
     kvalListe.push(<tr key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet</td><td>Knapper</td></tr>);
     for (let item of this.kvalifikasjon) {
-      kvalListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td>{item.varighet}</td><td><button onClick={() => {this.changeKval(item.id)}}>Endre</button><button onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
+      kvalListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td>{item.varighet}</td><td><button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
     }
 
     return(
@@ -2346,7 +2353,7 @@ class Kvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Navn: <input ref='kvNavn'/> Varighet: <input ref='kvVar'/> <button ref='lagKv'>Legg til</button>
+          Navn: <input ref='kvNavn'/> Varighet: <input ref='kvVar'/> <button className='btn btn-default' ref='lagKv'>Legg til</button>
         </div>
         <RolleKvalifikasjoner />
         <MedlemKvalifikasjoner />
@@ -2407,7 +2414,7 @@ class RolleKvalifikasjoner extends React.Component {
 
     kvalListe.push(<tr key={'RKListe'}><td>Rolle</td><td>Kvalifikasjon</td><td>Knapper</td></tr>);
     for (let item of this.rolleKval) {
-      kvalListe.push(<tr key={item.r_id + ' - ' + item.k_id}><td>{item.r_navn}</td><td>{item.k_navn}</td><td><button onClick={() => {this.removeKval(item.r_id, item.k_id)}}>Fjern</button></td></tr>);
+      kvalListe.push(<tr key={item.r_id + ' - ' + item.k_id}><td>{item.r_navn}</td><td>{item.k_navn}</td><td><button className='btn btn-default' onClick={() => {this.removeKval(item.r_id, item.k_id)}}>Fjern</button></td></tr>);
     }
 
     return(
@@ -2420,7 +2427,7 @@ class RolleKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Rolle: <input ref='rolle'/> Kvalifikasjon: <input ref='kval'/> <button ref='lagRK'>Legg til</button>
+          Rolle: <input ref='rolle'/> Kvalifikasjon: <input ref='kval'/> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2479,7 +2486,7 @@ class MedlemKvalifikasjoner extends React.Component {
 
     kvalListe.push(<tr key={'medKval'}><td>Medlem</td><td>Kvalifikasjon</td><td>Gyldig til</td><td>Knapper</td></tr>);
     for (let item of this.medKval) {
-      kvalListe.push(<tr key={item.m_id + ' - ' + item.k_id}><td>{item.m_navn}</td><td>{item.k_navn}</td><td>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td><button onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
+      kvalListe.push(<tr key={item.m_id + ' - ' + item.k_id}><td>{item.m_navn}</td><td>{item.k_navn}</td><td>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
     }
 
     return(
@@ -2492,7 +2499,7 @@ class MedlemKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Medlem: <input ref='med'/> Kvalifikasjon: <input ref='kval'/> Gyldig til: <input ref='gyldig'/> <button ref='lagMK'>Legg til</button>
+          Medlem: <input ref='med'/> Kvalifikasjon: <input ref='kval'/> Gyldig til: <input ref='gyldig'/> <button className='btn btn-default' ref='lagMK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2556,6 +2563,7 @@ ReactDOM.render((
         <Route exact path='/resetpassord' component={NyttResetPassord} />
         <Route exact path='/arrangement' component={Arrangement} />
         <Route exact path='/minside' component={MineSider} />
+        <Route exact path='/passiv' component={Passiv} />
         <Route exact path='/nyttarrangement' component={NyttArrangement} />
         <Route exact path='/bestemme' component={Administrator} />
 
