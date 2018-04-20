@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -40,10 +40,11 @@ const { SearchBox } = require('react-google-maps/lib/components/places/SearchBox
 let brukerlogedin = false
 let klokke = 0
 let emailCode = false
-let latitude = ''
-let longitude = ''
-let mapLat = ''
-let mapLng = ''
+let latitude = 63.4123278
+let longitude = 10.404471000000058
+let address = ''
+let mapLat = 63.4123278
+let mapLng = 10.404471000000058
 let brukerEpost;
 let vis = []
 let velgBytteBruker = []
@@ -57,8 +58,8 @@ const MapWithASearchBox = compose(
   }),
   lifecycle({
     componentWillMount() {
-      let sted = 63.426387
-      let stad = 10.392680
+      let sted = latitude;
+      let stad = longitude;
       const refs = {}
 
       this.setState({
@@ -99,6 +100,7 @@ const MapWithASearchBox = compose(
           let a = this.getPosition();
           console.log(a.lat(),a.lng());
         },
+
         onPlacesChanged: () => {
           const places = refs.searchBox.getPlaces();
           const bounds = new google.maps.LatLngBounds();
@@ -122,8 +124,13 @@ const MapWithASearchBox = compose(
           let k = refs.marker.getPosition();
           latitude = k.lat();
           longitude = k.lng();
-          console.log(latitude);
-          console.log(longitude);
+          let geocoder = new google.maps.Geocoder();
+          let latlng = {lat: k.lat(), lng: k.lng()};
+          geocoder.geocode({'location': latlng},function(results,status){
+            if(status === 'OK'){
+              address = results[0].formatted_address;
+            }
+          });
           // refs.map.fitBounds(bounds);
         },
       })
@@ -146,6 +153,7 @@ const MapWithASearchBox = compose(
       onPlacesChanged={props.onPlacesChanged}
       >
         <input
+          className='sokeFelt'
           type="text"
           placeholder="Søk etter plass"
           style={{
@@ -299,7 +307,7 @@ class Prompt extends React.Component {
     }
 
     render() {
-        return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+        return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input sokeFelt" value={this.state.value} onChange={this.onChange} />;
     }
  }
 
@@ -366,7 +374,7 @@ class Prompt2 extends React.Component {
         for(let item of this.brukere){
           bruker.push(<option key={item.Id} value={item.Id}>{item.Navn}</option>)
         }
-          return <select ref='selectField' className="mm-popup__input" placeholder={this.props.placeholder} value={this.state.value} onChange={this.onChange}>{bruker}</select>;
+          return <select ref='selectField' className="mm-popup__input sokeFelt" placeholder={this.props.placeholder} value={this.state.value} onChange={this.onChange}>{bruker}</select>;
       }
   }
 
@@ -494,6 +502,9 @@ class Menu extends React.Component {
             <Link to='/T-kvalifikasjon' className="nav-link">Kvalifikasjoner</Link>
           </li>
           <li className='nav-item'>
+            <Link to='/T-rolle' className="nav-link">Roller</Link>
+          </li>
+          <li className='nav-item'>
             <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
           </li>
           <li className='nav-item'>
@@ -502,7 +513,7 @@ class Menu extends React.Component {
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
-            <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
+            <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control sokeFelt' />
           </li>
           <li>
           <button ref='serachUsersButton' className='form-control btn btn-default' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}><span className='glyphicon glyphicon-search' /></button>
@@ -547,7 +558,7 @@ class Menu extends React.Component {
           </ul>
           <ul className="nav navbar-nav navbar-right">
             <li className='hopp'>
-              <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
+              <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control sokeFelt' />
             </li>
             <li>
               <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
@@ -607,11 +618,11 @@ class Innlogging extends React.Component {
       </div>
         <div className='form-group'>
           <label htmlFor='brukernavn'>Brukernavn:</label>
-          <input type="text" ref="unInput" className="form-control col-6" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
+          <input type="text" ref="unInput" className="form-control col-6 sokeFelt" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
         </div>
         <div className='form-group'>
           <label htmlFor='passord'>Passord:</label>
-          <input type="password" ref="pwInput" className="form-control col-4" defaultValue="passord" name='passord'/>
+          <input type="password" ref="pwInput" className="form-control col-4 sokeFelt" defaultValue="passord" name='passord'/>
         </div>
         <div className='form-group'>
           <button className="btn btn-primary btn-lg" ref="innlogginButton">Logg inn</button>
@@ -666,43 +677,43 @@ class NyBruker extends React.Component {
       <div className='Rot_nybruker container'>
          <div className='form-group'>
             <label htmlFor='fornavn'>Fornavn:</label>
-            <input type="text" ref="fornavnInput" className='form-control col-6' defaultValue="Fornan" name='fornavn'/>
+            <input type="text" ref="fornavnInput" className='form-control col-6 sokeFelt' defaultValue="Fornan" name='fornavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='etternavn'>Etternavn:</label>
-            <input type="text" ref="etternavnInput" className='form-control col-6' defaultValue="Etternavn" name='etternavn'/>
+            <input type="text" ref="etternavnInput" className='form-control col-6 sokeFelt' defaultValue="Etternavn" name='etternavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='brukernavn'>Brukernavn:</label>
-            <input type="text" ref="brukernavnInput" className='form-control col-6'  defaultValue="Brukernavn" name='brukernavn'/>
+            <input type="text" ref="brukernavnInput" className='form-control col-6 sokeFelt'  defaultValue="Brukernavn" name='brukernavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='epost'>Epost:</label>
-            <input type="email" ref="epostInput" className='form-control col-6' defaultValue='dinepost@dinepost.no' name='epost'/>
+            <input type="email" ref="epostInput" className='form-control col-6 sokeFelt' defaultValue='dinepost@dinepost.no' name='epost'/>
         </div>
         <div className='form-group'>
             <label htmlFor='medlemsnr'>Medlemsnr:</label>
-            <input type="number" ref="medlemsnrInput" className='form-control col-6' defaultValue='98123'  name='medlemsnr'/>
+            <input type="number" ref="medlemsnrInput" className='form-control col-6 sokeFelt' defaultValue='98123'  name='medlemsnr'/>
         </div>
         <div className='form-group'>
             <label htmlFor='telefon'>Telefonnummer:</label>
-            <input type="number" ref="tlfInput" className='form-control col-6' defaultValue='91909293' name='telefon'/>
+            <input type="number" ref="tlfInput" className='form-control col-6 sokeFelt' defaultValue='91909293' name='telefon'/>
         </div>
         <div className='form-group'>
             <label htmlFor='adresse'>Gateadresse:</label>
-            <input type="text" ref="adresseInput" className='form-control col-6' defaultValue='Brandhaugveita 4' name='adressse'/>
+            <input type="text" ref="adresseInput" className='form-control col-6 sokeFelt' defaultValue='Brandhaugveita 4' name='adressse'/>
         </div>
         <div className='form-group'>
             <label htmlFor='postnr'>Postnummer:</label>
-            <input type="text" ref="postnrInput" className='form-control col-6' defaultValue='0000' name='postnr'/>
+            <input type="text" ref="postnrInput" className='form-control col-6 sokeFelt' defaultValue='0000' name='postnr'/>
         </div>
         <div className='form-group'>
             <label htmlFor='passord'>Passord:</label>
-            <input type="password" ref="passwordInput1" className='form-control col-6' defaultValue='*****' name='passord'/>
+            <input type="password" ref="passwordInput1" className='form-control col-6 sokeFelt' defaultValue='*****' name='passord'/>
         </div>
         <div className='form-group'>
             <label htmlFor='gpassord'>Gjenta passord:</label>
-            <input type="password" ref="passwordInput2" className='form-control col-6' defaultValue='*****' name='gpassord'/>
+            <input type="password" ref="passwordInput2" className='form-control col-6 sokeFelt' defaultValue='*****' name='gpassord'/>
         </div>
         <div className='form-group'>
             <button className='btn btn-default' ref="createuserButton">Ferdig</button>
@@ -733,7 +744,7 @@ class NyttPassord extends React.Component {
         <div className='Rot container'>
           <div className='form-group'>
             <label htmlFor='epost'>E-post: </label>
-            <input type='email' name='epost' className='form-control col-6' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
+            <input type='email' name='epost' className='form-control col-6 sokeFelt' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
           </div>
           <div className='form-group'>
             <button className='btn btn-default' ref='newPasswordButton'>Be om nytt passord</button>
@@ -781,7 +792,7 @@ class ResetPassord extends React.Component {
           </p>
           <div className='form-group'>
             <label htmlFor='kode'>Kode:</label>
-            <input type='text' name='kode' className='form-control col-2' ref='kodeInput' />
+            <input type='text' name='kode' className='form-control col-2 sokeFelt' ref='kodeInput' />
             <button className='btn btn-default' ref='kodeButton'>Sjekk kode</button>
           </div>
           <ErrorMessage />
@@ -815,11 +826,11 @@ class NyttResetPassord extends React.Component {
         <div className='Rot container'>
           <div className='form-group'>
             <label htmlFor='passord1'>Nytt passord</label>
-            <input type='password' name='passord1' className='form-control col-4' ref='passordInput1' />
+            <input type='password' name='passord1' className='form-control col-4 sokeFelt' ref='passordInput1' />
           </div>
           <div className='form-group'>
             <label htmlFor='passord2'>Gjenta passord</label>
-            <input type='password' name='passord2' className='form-control col-4' ref='passordInput2' />
+            <input type='password' name='passord2' className='form-control col-4 sokeFelt' ref='passordInput2' />
           </div>
           <div className='form-group'>
             <button className='btn btn-default' ref='byttPassordButton'>Bytt passord</button>
@@ -935,7 +946,7 @@ class Arrangement extends React.Component{
             <thead>
               <tr>
                 <td>
-                <input type='text'className='form-control' ref='searchArrangement' /></td>
+                <input type='text'className='form-control sokeFelt' ref='searchArrangement' /></td>
                 <td><button className='btn btn-default' ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button></td>
 
                 <td>
@@ -955,7 +966,7 @@ class Arrangement extends React.Component{
         <table>
           <thead>
             <tr>
-              <td><input type='text' className='form-control' ref='searchArrangement'  /></td>
+              <td><input type='text' className='form-control sokeFelt' ref='searchArrangement'  /></td>
               <td><button className='btn btn-default' ref='searchButton'onClick={ () => {this.hentArrangement()}}>Søk arrangement</button></td>
             </tr>
           </thead>
@@ -985,43 +996,53 @@ class NyttArrangement extends React.Component{
     this.linjer = 1;
     this.roller = [];
     this.vakter = [];
+    this.maler = [];
   }
   render(){
     let rolleList = [];
+    let vakter = [];
+    let malList = [];
+
     rolleList.push(<option key="0" value="0"></option>);
     for(let item of this.roller) {
       rolleList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
     }
 
-    let vakter = [];
     for (let i in this.vakter) {
       let item = this.vakter[i];
       vakter.push(
         <tr key={item.id} className='arrangementVaktTabell'>
           <td className='arrangementVaktTabellData'><span className='tableText'>Rolle:</span> {item.navn}</td>
-          <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" defaultValue={item.antall} onChange={(event) => {item.antall = +event.target.value}} /></td>
           <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td>
         </tr>);
     }
 
+    for(let item of this.maler) {
+      malList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
+    }
+
     return(
       <div>
+      <div>
+        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
         <div className='Rot_nyttArrangement'>
           <div className='form-group break'>
             <label htmlFor='navn'>Navn: </label>
-            <input type="text" name='navn' className="form-control col-8" ref="a_name" defaultValue="Test" />
+            <input type="text" name='navn' className="form-control col-8 sokeFelt" ref="a_name" defaultValue="Test" />
           </div>
           <div className='form-group'>
             <label htmlFor='startdato'>Startdato: </label>
-            <input type="datetime-local" className="form-control col-8" name='startdato' ref="a_startdate" /> {/*Autofyll med dagens dato*/}
+            <input type="datetime-local" className="form-control col-8 sokeFelt" name='startdato' ref="a_startdate" /> {/*Autofyll med dagens dato*/}
           </div>
           <div className='form-group'>
             <label htmlFor='sluttdato'>Sluttdato: </label>
-            <input type="datetime-local" className="form-control col-8" name='sluttdato' ref="a_enddate" />
+            <input type="datetime-local" className="form-control col-8 sokeFelt" name='sluttdato' ref="a_enddate" />
           </div>
           <div className='form-group break'>
             <label htmlFor='oppmotetid'>Oppmøtetidspunkt: </label>
-            <input type="datetime-local" className="form-control col-8" name='oppmotetid' ref="a_meetdate" />
+            <input type="datetime-local" className="form-control col-8 sokeFelt" name='oppmotetid' ref="a_meetdate" />
           </div>
           <div className='form-group break'>
             <label htmlFor='oppmotested'>Oppmøtested: </label>
@@ -1029,7 +1050,7 @@ class NyttArrangement extends React.Component{
           </div>
           <div className='form-group break'>
             <label htmlFor='beskrivelse'>Beskrivelse: </label>
-            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8" defaultValue="En tekstlig beskrivelse"/>
+            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8 sokeFelt" defaultValue="En tekstlig beskrivelse"/>
           </div>
           <div className='form-group formFritekst'>
             <label>Kontaktperson: </label>
@@ -1037,16 +1058,18 @@ class NyttArrangement extends React.Component{
           <div className='form-row'>
             <div className='col'>
               <label htmlFor='k_navn'>Navn: </label>
-              <input type="text" name='k_name' className="form-control" ref="k_name" defaultValue="Lars" />
+              <input type="text" name='k_name' className="form-control sokeFelt" ref="k_name" defaultValue="Lars" />
             </div>
             <div className='col break'>
               <label htmlFor='k_tlf'>Telefon: </label>
-              <input type="number" name='k_tlf' className="form-control" ref="k_tlf" defaultValue="95485648" />
+              <input type="number" name='k_tlf' className="form-control sokeFelt" ref="k_tlf" defaultValue="95485648" />
             </div>
           </div>
           <div className='form-group'>
             <label htmlFor='rolle'>Rolle: </label>
-            <select ref='rolle' name='rolle' className="form-control-lg">{rolleList}</select>
+            <select ref='rolle' name='rolle' className="form-control-lg sokeFelt">{rolleList}</select>
+          </div>
+          <div className='form-group'>
             <button className='btn btn-default' onClick={() => {this.addVakt()}}>Legg til rolle</button>
             <button className='btn btn-default' id='aHelpButton' ref='helpButton'>Hjelp</button>
           </div>
@@ -1056,9 +1079,16 @@ class NyttArrangement extends React.Component{
                 {vakter}
               </tbody>
             </table>
-            <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
-            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
+
+            <br />
+            <div>
+              Vakt mal <br />
+              Mal: <select ref='mal'>{malList}</select> <button className='btn btn-default' ref='velgMal'>Velg</button> <button className='btn btn-default'ref='slettMal'>Slett</button>
+              <br /><br />
+              Navn: <input ref='malNavn'/> <button className='btn btn-default' ref='endreMal'>Endre</button> <button className='btn btn-default' ref='leggTilMal'>Legg til</button>
+            </div>
           </div>
+          <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
         </div>
       </div>
     )
@@ -1074,18 +1104,109 @@ class NyttArrangement extends React.Component{
       console.log(err);
     })
 
-    this.refs.arrangementButton.onclick = () => {
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude).then(() => {
+    malService.getMals().then((res) => { //Finnished
+      console.log('getMals Sukse!');
+      console.log(res);
+      this.maler = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log('getMals feil!');
+      console.log(err);
+    });
 
+    this.refs.arrangementButton.onclick = () => {
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude, address).then(() => {
+        address = ''
+        longitude = ''
+        latitude = ''
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
     }
 
+
     this.refs.helpButton.onclick = () => {
       Popup.plugins().popover('Velg rollen du vil legge til fra rullegardinmenyen og klikk legg til rolle. Skriv deretter inn antall. Hvis du vil legge til flere roller velger du en ny rolle fra menyen og skriver inn antall igjen.', aHelpButton);
-
     }
+
+
+    this.refs.velgMal.onclick = () => {
+      let id = this.refs.mal.value;
+
+      malService.getMalRolls(id).then((res) => {
+        console.log(res);
+
+        let vakter = [];
+        for(let item of res) {
+          vakter.push({id: item.r_id, navn: this.addify(item.r_id), antall: item.antall});
+        }
+        console.log(vakter);
+        this.vakter = vakter;
+
+        this.componentDidMount();
+      }).catch((err) => {
+        console.log('getMalRolls error!');
+      });
+    }
+    this.refs.slettMal.onclick = () => {
+      let id = this.refs.mal.value;
+
+      malService.removeMalRolls(id).then((res) => {
+        console.log('removeMalRolls sukse!');
+        malService.removeMal(id).then((res) => {
+          console.log('removeMal sukse!');
+          this.componentDidMount();
+        }).catch((err) => {
+          console.log('removeMal feil!');
+        });
+      }).catch((err) => {
+        console.log('removeMalRolls feil!');
+      });
+    }
+    this.refs.endreMal.onclick = () => { //Finnished
+      let id = this.refs.mal.value;
+      let navn = this.refs.malNavn.value;
+      console.log(id, navn);
+
+      malService.alterMal(id, navn).then((res) => {
+        console.log('alterMal sukse!');
+        malService.removeMalRolls(id).then((res) => {
+          console.log('removeMalRolls sukse!');
+          malService.addMalRolls(id, this.vakter).then((res) => {
+            console.log('addMalRolls sukse!');
+            this.componentDidMount();
+          }).catch((err) => {
+            console.log('addMalRolls Feil!');
+
+          })
+        }).catch((err) => {
+          console.log('removeMalRolls error!');
+        })
+      }).catch((err) => {
+        console.log('alterMal error!');
+      })
+    }
+    this.refs.leggTilMal.onclick = () => { //Finnished
+      let navn = this.refs.malNavn.value;
+      console.log(navn);
+      malService.addMal(navn).then((res) => {
+        console.log('addMal Sukse!');
+        console.log(res);
+
+        malService.addMalRolls(res.insertId, this.vakter).then((res) => {
+          console.log('addMalRolls sukse!');
+          console.log(res);
+          this.componentDidMount();
+        }).catch((err) => {
+          console.log('addMalRolls Feil!');
+          console.log(err);
+        })
+      }).catch((err) => {
+        console.log('addMal Feil!');
+        console.log(err);
+      })
+    }
+    
 
   }
 
@@ -1113,6 +1234,14 @@ class NyttArrangement extends React.Component{
       }
     }
     return true;
+  }
+  addify(id) {
+    for(let item of this.roller) {
+      if (item.id === id) {
+        return item.navn;
+      }
+    }
+    return 'Inngen rolle funnet';
   }
 }
 
@@ -1197,9 +1326,9 @@ class Passiv extends React.Component {
     return(
       <div>
         <label htmlFor='passivFra'>Passiv fra: </label>
-        <input type='date' name='passivFra' ref='passivFra' />
+        <input type='date' name='passivFra' className='sokeFelt' ref='passivFra' />
         <label htmlFor='passivTil'>Passiv til: </label>
-        <input type='date' name='passivTil' ref='passivTil' />
+        <input type='date' name='passivTil' className='sokeFelt' ref='passivTil' />
         <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
         <button className='btn btn-default' ref='tilbakeButton'>Tilbake</button>
       </div>
@@ -1258,9 +1387,9 @@ class ForandreBrukerInfo extends React.Component {
 
         <table>
           <tbody>
-            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
-            <tr><td>Epost: <input ref='emailInput' /></td><td>Poststed:</td></tr>
-            <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
+            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer:<input type='number' className='sokeFelt' ref='zipInput' /></td></tr>
+            <tr><td>Epost: <input ref='emailInput' className='sokeFelt'/></td><td>Poststed:</td></tr>
+            <tr><td>Telefonnummer: <input className='sokeFelt' type='number' ref='tlfInput' /></td><td>Gateadresse: <input className='sokeFelt' ref='adressInput' /></td></tr>
           </tbody>
         </table>
         <button className='btn btn-default' ref='saveButton'>Lagre forandringer</button>
@@ -1337,9 +1466,9 @@ class ForandrePassord extends React.Component {
       <div>
       <h2>Lag nytt passord</h2>
 
-      Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
+      Skriv inn nytt et passord:<input type='password' className='sokeFelt' ref='passwordInput1' />
 
-      Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
+      Skriv på nytt igjen:<input type='password' className='sokeFelt' ref='passwordInput2' />
 
       <button className='btn btn-default' ref='saveButton'>Lagre nytt passord</button>
       <button className='btn btn-default' ref='cancelButton'>Ikke lagre</button>
@@ -1457,12 +1586,15 @@ class Administrator extends React.Component{
               <ByttVakt />
             </td>
             <td>
+              <div className='form-group'>
+                <label htmlFor='adminMelding'>Skriv melding til brukerne:</label>
+                <textarea ref='adminMelding' className='form-control col-8 sokeFelt' name='adminMelding'/>
+                <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
+              </div>
             </td>
           </tr>
           <tr>
             <td>
-            <textarea ref='adminMelding' />
-            <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
             </td>
             <td>
             </td>
@@ -1477,6 +1609,7 @@ class Administrator extends React.Component{
   componentDidMount(){
     this.refs.RegistrerAdminMelding.onclick = ()=> {
       administratorFunctions.updateAdminMelding(this.refs.adminMelding.value);
+      this.refs.adminMelding.value = '';
     }
   }
 }
@@ -1532,7 +1665,7 @@ class ByttVakt extends React.Component{
   render(){
     let vakter = []
     for(let bytte of this.vaktbytter){
-      vakter.push(<tr key={bytte.id}><td>{bytte.byttenavn}, vil bytte vakt med {bytte.navn} på arrangement {bytte.arrangement}</td><td><button onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
+      vakter.push(<tr key={bytte.id}><td><Link to={'/bruker/'+bytte.om_id}>{bytte.byttenavn}</Link>, vil bytte vakt med <Link to={'/bruker/'+bytte.nm_id}>{bytte.navn}</Link> på arrangement <Link to={'/visArrangement/'+bytte.aid}>{bytte.arrangement} </Link>som {bytte.rollenavn}</td><td><button className='btn btn-default' onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button className='btn btn-default' onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
     }
     return(
       <div>
@@ -1739,80 +1872,83 @@ class VisArrangement extends React.Component {
 
     return(
       <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button></td>
-              <td><button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+          <label htmlFor='navn'>Arragnemnet navn:</label>
+           <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='beskrivelse'>Arragnemnet beskrivelse:</label>
+              <p name='beskrivelse'>{this.arrangement.beskrivelse}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='oppmote'>Oppmøtetidspunkt:</label>
+              <p name='oppmote'>{this.changeDate(this.arrangement.oppmootetidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='start'>Starttidspunkt:</label>
+              <p name='start'>{this.changeDate(this.arrangement.starttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='slutt'>Sluttidspunkt:</label>
+            <p name='slutt'>{this.changeDate(this.arrangement.sluttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.arrangement.address}</p>
+              <MapWithAMarker name='kart'/>
+            </div>
+            <div className='form-group'>
+              <button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button>
+              <button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button>
+            </div>
+          </div>
       </div>
     )
   }if(signedInUser.admin === 0){
     return(
       <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{history.goBack()}}>Tilbake</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+          <label htmlFor='navn'>Arragnemnet navn:</label>
+           <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='beskrivelse'>Arragnemnet beskrivelse:</label>
+              <p name='beskrivelse'>{this.arrangement.beskrivelse}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='oppmote'>Oppmøtetidspunkt:</label>
+              <p name='oppmote'>{this.changeDate(this.arrangement.oppmootetidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='start'>Starttidspunkt:</label>
+              <p name='start'>{this.changeDate(this.arrangement.starttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='slutt'>Sluttidspunkt:</label>
+            <p name='slutt'>{this.changeDate(this.arrangement.sluttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.arrangement.address}</p>
+              <MapWithAMarker name='kart'/>
+            </div>
+          </div>
       </div>
     )
   }
@@ -1822,10 +1958,7 @@ class VisArrangement extends React.Component {
     return a;
   }
 
-  componentWillUnmount(){
-    mapLat = '';
-    mapLng = '';
-    }
+
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
@@ -1854,7 +1987,8 @@ class EndreArrangement extends React.Component {
     this.state = {beskrivelse: '',
                   oppmootetidspunkt: '',
                   starttidspunkt: '',
-                  sluttidspunkt: ''
+                  sluttidspunkt: '',
+                  oppmotested: ''
                   };
 
     this.handleChange = this.handleChange.bind(this);
@@ -1871,41 +2005,43 @@ class EndreArrangement extends React.Component {
   render(){
     return(
       <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' ref='text' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td><input type='datetime-local'name='oppmootetidspunkt' ref='oppmøte' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/></td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td><input type='datetime-local' name='starttidspunkt' ref='start' value={this.state.starttidspunkt} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td><input type='datetime-local' name='sluttidspunkt' ref='slutt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
-              <td><button className='btn btn-default' ref='lagreEndringer'>Lagre endringene</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+      <button className='btn btn-default tilbakeKnapp' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+              <label htmlFor='navn'>Arrangement navn:</label>
+              <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='beskrivelse'>Arrangement beskrivelse:</label>
+              <textarea name='beskrivelse' className='form-control col-8' ref='text' value={this.state.beskrivelse} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='oppmootetidspunkt'>Oppmøtetidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local'name='oppmootetidspunkt' ref='oppmøte' className='form-control col-8' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='starttidspunkt'>Starttidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local' name='starttidspunkt' ref='start' className='form-control col-8' value={this.state.starttidspunkt} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='sluttidspunkt'>Sluttidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local' name='sluttidspunkt' ref='slutt' className='form-control col-8' value={this.state.sluttidspunkt} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.state.oppmotested}</p>
+              <MapWithAMarker name='kart' />
+            </div>
+            <div className='form-group'>
+              <button className='btn btn-default' ref='lagreEndringer'>Lagre endringene</button>
+            </div>
+          </div>
       </div>
     )
   }
@@ -1921,6 +2057,7 @@ class EndreArrangement extends React.Component {
       this.state.oppmootetidspunkt = this.changeDate(this.arrangement.oppmootetidspunkt);
       this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
       this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
+      this.state.oppmotested = this.arrangement.address;
       mapLat = this.arrangement.latitude;
       mapLng = this.arrangement.longitute;
       this.forceUpdate();
@@ -2281,7 +2418,7 @@ class Utstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Navn: <input ref='utNavn'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          Navn: <input className='sokeFelt' ref='utNavn'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
         </div>
         <RolleUtstyr />
         <ArrangementUtstyr />
@@ -2355,7 +2492,7 @@ class RolleUtstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Rolle: <input ref='rolle'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          Rolle: <input className='sokeFelt' ref='rolle'/> Utstyr: <input className='sokeFelt' ref='utstyr'/> Antall: <input className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2427,7 +2564,7 @@ class ArrangementUtstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Arrangement: <input ref='arrangement'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          Arrangement: <input className='sokeFelt' ref='arrangement'/> Utstyr: <input className='sokeFelt' ref='utstyr'/> Antall: <input className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2488,7 +2625,7 @@ class MineVakter extends React.Component {
     let godtatt = [];
     let vakter = []
     for(let bytte of this.vaktbytter){
-      vakter.push(<tr key={bytte.id}><td className='arrangementTableDataa'>{bytte.byttenavn}, vil bytte vakt med deg på arrangement {bytte.arrangement}</td><td className='arrangementTableDataa'><button onClick={()=>{this.vaktGodtatt(bytte.id)}}>Ok</button><button onClick={()=>{this.vaktIkkeGodtatt(bytte.id)}}>Nei</button></td></tr>)
+      vakter.push(<tr key={bytte.id}><td className='arrangementTableDataa'><Link to={'/bruker/'+ bytte.om_id}>{bytte.byttenavn}</Link>, vil bytte vakt med deg på arrangement <Link to={'/visArrangement/'+bytte.aid}>{bytte.arrangement}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.vaktGodtatt(bytte.id)}}>Ok</button><button className='btn btn-default' onClick={()=>{this.vaktIkkeGodtatt(bytte.id)}}>Nei</button></td></tr>)
     }
     for(let yes of this.godkjente){
       godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.bytte(yes.vakt_id, yes.rolleid, yes.id)}}>Bytt vakt</button></td></tr>);
@@ -2643,7 +2780,7 @@ class Kvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Navn: <input ref='kvNavn'/> Varighet: <input ref='kvVar'/> <button className='btn btn-default' ref='lagKv'>Legg til</button>
+          Navn: <input className='sokeFelt' ref='kvNavn'/> Varighet: <input className='sokeFelt'  ref='kvVar'/> <button className='btn btn-default' ref='lagKv'>Legg til</button>
         </div>
         <RolleKvalifikasjoner />
         <MedlemKvalifikasjoner />
@@ -2717,7 +2854,7 @@ class RolleKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Rolle: <input ref='rolle'/> Kvalifikasjon: <input ref='kval'/> <button className='btn btn-default' ref='lagRK'>Legg til</button>
+          Rolle: <input className='sokeFelt' ref='rolle'/> Kvalifikasjon: <input className='sokeFelt' ref='kval'/> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2789,7 +2926,7 @@ class MedlemKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Medlem: <input ref='med'/> Kvalifikasjon: <input ref='kval'/> Gyldig til: <input ref='gyldig'/> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+          Medlem: <input className='sokeFelt' ref='med'/> Kvalifikasjon: <input className='sokeFelt' ref='kval'/> Gyldig til: <input className='sokeFelt' ref='gyldig'/> <button className='btn btn-default' ref='lagMK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2837,6 +2974,77 @@ class MedlemKvalifikasjoner extends React.Component {
     });
   }
 }
+
+
+class Rolle extends React.Component {
+  constructor() {
+    super();
+    this.roller = [];
+  }
+  render() {
+    let rolleListe = [];
+
+    rolleListe.push(<tr key={'rolleListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    for (let item of this.roller) {
+      rolleListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeRolle(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeRolle(item.id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {rolleListe}
+            </tbody>
+          </table>
+          Navn: <input ref='roNavn'/> <button className='btn btn-default' ref='lagRo'>Legg til</button>
+        </div>
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagRo.onclick = () => {
+      console.log(this.refs.roNavn.value);
+      rolleService.addRolle(this.refs.roNavn.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    rolleService.getAllRolle().then((res) => {
+      console.log(res);
+      this.roller = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeRolle(id) {
+    console.log('Endre: ' + id);
+    rolleService.alterRolle(id, this.refs.roNavn.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeRolle(id) {
+    console.log('Fjern: ' + id);
+    rolleService.removeRolle(id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
 
 class Hjelp extends React.Component {
   render() {
@@ -2904,6 +3112,7 @@ ReactDOM.render((
         <Route exact path='/inkalling/:id' component={Innkalling} />
         <Route exact path='/T-utstyr' component={Utstyr} />
         <Route exact path='/T-kvalifikasjon' component={Kvalifikasjoner} />
+        <Route exact path='/T-rolle' component={Rolle} />
         <Route exact path='/mineVakter' component={MineVakter} />
         <Route exact path='/hjelp' component={Hjelp} />
       </Switch>
