@@ -2069,7 +2069,6 @@ class VisArrangement extends React.Component {
               <button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button>
               <button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button>
             </div>
-              {b}
           </div>
       </div>
     )
@@ -2305,6 +2304,9 @@ class Innkalling extends React.Component {
 
     return(
       <div>
+      <div>
+        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
         <table style={{width: '100%'}}>
           <thead>
             <tr>
