@@ -41,11 +41,32 @@ background-color: white;
 }
 .mineSider{
   float:left;
-  margin: 3%;
+  margin-left: 3%;
   background-color: #f7ffef;
   border:1px solid black;
   width: 600px;
 }
+
+.minsideTitle{
+  position: relative;
+  margin-left: 3%;
+  margin-top: 25px;
+
+
+}
+
+.endrePersonalia {
+  float: none;
+  margin-left: 3%;
+  background-color: #f7ffef;
+  border:1px solid black;
+  width: 600px;
+}
+
+.personaliaTable {
+  padding: 7px;
+}
+
 /* Ny bruker */
 .Rot_nybruker {
   position: absolute;
@@ -133,6 +154,10 @@ background-color: white;
   margin-bottom: 30px;
 }
 
+.sentrer {
+  margin-left: auto;
+  margin-right: auto;
+}
 
 .formFritekst {
   margin-bottom: 0
