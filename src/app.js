@@ -1204,7 +1204,7 @@ class NyttArrangement extends React.Component{
         console.log(err);
       })
     }
-    
+
 
   }
 
@@ -1863,9 +1863,12 @@ class VisArrangement extends React.Component {
     this.id = props.match.params.id;
     this.arrangement = [];
     this.user = [];
+    this.interesse = [];
   }
   render(){
     let signedInUser = loginService.getSignedInUser();
+
+
     if(signedInUser.admin === 1){
 
     return(
@@ -1907,10 +1910,18 @@ class VisArrangement extends React.Component {
               <button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button>
               <button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button>
             </div>
+              {b}
           </div>
       </div>
     )
+
   }if(signedInUser.admin === 0){
+    let b;
+    if(this.interesse.length === 0){
+      b =  (<button className='btn btn-default' onClick={()=>{this.meldInteresse()}}>Meld interesse</button>)
+    }else{
+      b = (<button className='btn btn-default' onClick={()=>{this.avmeldInteresse()}}>Avmeld interesse</button>)
+    }
     return(
       <div>
       <div>
@@ -1946,10 +1957,19 @@ class VisArrangement extends React.Component {
               <p>{this.arrangement.address}</p>
               <MapWithAMarker name='kart'/>
             </div>
+              {b}
           </div>
       </div>
     )
   }
+  }
+  avmeldInteresse(){
+    arrangementService.removeIntrest(loginService.getSignedInUser().id,this.id);
+    this.componentDidMount()
+  }
+  meldInteresse(){
+    arrangementService.iAmInterested(loginService.getSignedInUser().id,this.id);
+    this.componentDidMount()
   }
   changeDate(variabel){
     let a = moment(variabel).format('DD.MM.YY HH:mm');
@@ -1958,6 +1978,12 @@ class VisArrangement extends React.Component {
 
 
   componentDidMount(){
+    arrangementService.getInterest(loginService.getSignedInUser().id,this.id).then((result)=>{
+      this.interesse = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Noe gikk galt' + error);
+    });
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
       mapLat = this.arrangement.latitute;

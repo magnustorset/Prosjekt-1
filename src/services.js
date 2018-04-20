@@ -300,6 +300,42 @@ class LoginService {
 }
 
 class ArrangementService {
+  //Sjekke om personen alt er interresert i arrangementet
+  getInterest(mid,aid){
+    return new Promise((resolve, reject)=>{
+      connection.query('select * from interesse where m_id = ? and a_id = ?',[mid,aid],(error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
+  //Fjerne interesse fra arrangement
+  removeIntrest(mid,aid){
+    return new Promise((resolve, reject)=>{
+      connection.query('delete from interesse where m_id = ? and a_id = ?',[mid,aid],(error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
+  //Melde interesse for arrangement
+  iAmInterested(mid,aid){
+    return new Promise((resolve, reject)=>{
+      connection.query('insert into interesse (m_id,a_id) values (?,?)',[mid,aid],(error,result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
   //Administrator oppdaterer arrangement
   updateArrangement(text,oppmote,start,slutt,latitude,longitude,address,id){
     return new Promise((resolve, reject)=>{
