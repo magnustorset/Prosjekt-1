@@ -378,6 +378,8 @@ class ArrangementService {
       return new Promise((resolve, reject) =>{
         connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
           if(error){
+            console.log('tlf err');
+            console.log(error);
             reject(error);
             return;
           }
@@ -385,16 +387,23 @@ class ArrangementService {
 
           connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute) values (?, ?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude], (error, result) => {
             if(error){
+              console.log('arrangement err');
               console.log(error);
+              reject(error);
+
               return;
             }
             for (var i = 0; i < roller.length; i++) {
               for (var o = 0; o < roller[i].antall; o++) {
                 connection.query('INSERT INTO vakt (a_id, r_id) values (?, ?)', [result.insertId, roller[i].id], (error, result) => {
                   if(error){
+                    console.log('vakt err');
                     console.log(error);
+                    reject(error);
+
                     return;
                   }
+                  resolve(result);
                 });
               }
             }
@@ -906,6 +915,106 @@ class RolleService {
     });
   }
 }
-let rolleService = new RolleService();
 
-export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService }
+class MalService {
+  getMals() {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * FROM vakt_mal', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  getMalRolls(id) {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT * FROM mal_roller WHERE ml_id = ?', [id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+  addMal(navn) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO vakt_mal (navn) VALUES(?)', [navn], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  addMalRolls(id, rolls) {
+    return new Promise((resolve, reject) => {
+      let mr = [];
+      for(let item of rolls) {
+        mr.push([id, item.id, item.antall]);
+      }
+      console.log(mr);
+      connection.query('INSERT INTO mal_roller (ml_id, r_id, antall) VALUES ?', [mr], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+  alterMal(id, navn) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE vakt_mal SET navn = ? WHERE id = ?', [navn, id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  // alterMalRolls(id, rolls) {
+  //   return new Promise((resolve, reject) => {
+  //     let mr = [];
+  //     for(let item of rolls) {
+  //       mr.push([id, item.id, item.antall]);
+  //     }
+  //     console.log(mr);
+  //     connection.query('INSERT INTO mal_roller (ml_id, r_id, antall) VALUES ?', [mr], (error, result) => {
+  //       if(error) {
+  //         reject(error);
+  //       }
+  //       resolve(result);
+  //     });
+  //   });
+  // }
+
+  removeMal(id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM vakt_mal WHERE id = ?', [id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  removeMalRolls(id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM mal_roller WHERE ml_id = ?', [id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+}
+
+
+
+let rolleService = new RolleService();
+let malService = new MalService();
+
+export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService }
