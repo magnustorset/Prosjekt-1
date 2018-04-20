@@ -30,7 +30,7 @@ margin-left: 5%;
 /* Mine Sider */
 .calendarMinesider{
 clear: left;
-width: 600px;
+width: 620px;
 margin: 3%;
 border: 1px solid black;
 padding: 10px;
@@ -41,11 +41,63 @@ background-color: white;
 }
 .mineSider{
   float:left;
-  margin: 3%;
+  margin-left: 3%;
+  background-color: #f7ffef;
+  border:1px solid black;
+  width: 620px;
+}
+
+.title{
+  position: relative;
+  margin-left: 3%;
+  margin-top: 25px;
+  width: 50%;
+}
+
+/*
+
+******IKKE I BRUK******
+
+
+.endrePersonalia {
+  float: none;
+  margin-left: 3%;
   background-color: #f7ffef;
   border:1px solid black;
   width: 600px;
 }
+
+*/
+
+.personaliaTable {
+  padding: 7px;
+}
+
+/*
+
+******IKKE I BRUK******
+
+.Rot_passiv {
+  position: relative;
+  top:25px;;
+  margin-left: 5%;
+  background-color: #f9f9f9;
+  padding: 30px;
+  width: 300px;
+  border: 2px solid black;
+  border-radius: 8px;
+}
+
+*/
+
+/* Brukes av: Passiv, ForandrePassord, ForandreBrukerInfo, SeKvalifikasjoner */
+.enkelContainer {
+  position: relative;
+  width: 500px;
+  left: 3%;
+  top: 10px;
+}
+
 /* Ny bruker */
 .Rot_nybruker {
   position: absolute;
@@ -85,6 +137,16 @@ background-color: white;
   background-color: #848587;
   border: 1px solid black;
 }
+
+.btn-warning {
+  background-color: #5165ff;
+  margin-right: 15px;
+}
+.btn-warning:hover{
+  background-color: #282ecc;
+
+}
+
 .sokeFelt:focus{
   background-color: #c8e5f7;
   border: 1px solid black;
@@ -133,6 +195,10 @@ background-color: white;
   margin-bottom: 30px;
 }
 
+.sentrer {
+  margin-left: auto;
+  margin-right: auto;
+}
 
 .formFritekst {
   margin-bottom: 0
@@ -195,5 +261,6 @@ background-color: white;
 }
 
 .tilbakeKnapp{
+  position: relative;
   float: right;
 }

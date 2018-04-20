@@ -181,6 +181,7 @@ const MapWithASearchBox = compose(
           )}
           </GoogleMap>
 );
+
 const MapWithAMarker = compose(
   withProps({
     googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
@@ -280,6 +281,7 @@ class ErrorMessage extends React.Component {
   }
 }
 let errorMessage; // ErrorMessage-instance
+
 class Prompt extends React.Component {
     constructor(props) {
         super(props);
@@ -342,6 +344,7 @@ Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
         }
     });
   });
+
 class Prompt2 extends React.Component {
       constructor(props) {
           super(props);
@@ -455,6 +458,104 @@ Popup.registerPlugin('popover', function (content, target) {
 
             box.style.top  = (btnOffsetTop - box.offsetHeight - 10) - scroll + 'px';
             box.style.left = (btnOffsetLeft + (target.offsetWidth / 2) - (box.offsetWidth / 2)) + 'px';
+            box.style.margin = 0;
+            box.style.opacity = 1;
+        }
+    });
+});
+
+class popunder extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            value: this.props.defaultValue
+        };
+
+        this.onChange = (e) => this._onChange(e);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.value !== this.state.value) {
+            this.props.onChange(this.state.value);
+        }
+    }
+
+    _onChange(e) {
+        let value = e.target.value;
+
+        this.setState({value: value});
+    }
+
+    render() {
+        return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+    }
+}
+
+Popup.registerPlugin('popunder', function (content, target) {
+    this.create({
+        content: content,
+        className: 'popunder',
+        noOverlay: true,
+
+        position: function (box) {
+            let bodyRect      = document.getElementById('root').getBoundingClientRect();
+            let btnRect       = target.getBoundingClientRect();
+            let btnOffsetTop  = btnRect.top - bodyRect.top;
+            let btnOffsetLeft = btnRect.left - bodyRect.left;
+            let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+            box.style.top  = (btnOffsetTop + btnRect.height) - scroll + 'px';
+            box.style.left = (btnOffsetLeft + (target.offsetWidth / 2) - (box.offsetWidth / 2)) + 'px';
+            box.style.margin = 0;
+            box.style.opacity = 1;
+        }
+    });
+});
+
+class popright extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            value: this.props.defaultValue
+        };
+
+        this.onChange = (e) => this._onChange(e);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.value !== this.state.value) {
+            this.props.onChange(this.state.value);
+        }
+    }
+
+    _onChange(e) {
+        let value = e.target.value;
+
+        this.setState({value: value});
+    }
+
+    render() {
+        return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+    }
+}
+
+Popup.registerPlugin('popright', function (content, target) {
+    this.create({
+        content: content,
+        className: 'popright',
+        noOverlay: true,
+
+        position: function (box) {
+            let bodyRect      = document.getElementById('root').getBoundingClientRect();
+            let btnRect       = target.getBoundingClientRect();
+            let btnOffsetTop  = btnRect.top - bodyRect.top;
+            let btnOffsetLeft = btnRect.left - bodyRect.left;
+            let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+            box.style.top  = (btnOffsetTop) - scroll + 'px';
+            box.style.left = (btnOffsetLeft + btnRect.width) + 'px';
             box.style.margin = 0;
             box.style.opacity = 1;
         }
@@ -852,7 +953,6 @@ class NyttResetPassord extends React.Component {
   }
 }
 
-
 class StartSide extends React.Component {
   constructor() {
 
@@ -922,7 +1022,6 @@ class StartSide extends React.Component {
   }
 }
 
-
 class Arrangement extends React.Component{
   constructor(){
     super();
@@ -987,7 +1086,6 @@ class Arrangement extends React.Component{
   }
   }
 
-
 class NyttArrangement extends React.Component{
   constructor() {
     super();
@@ -1022,9 +1120,9 @@ class NyttArrangement extends React.Component{
 
     return(
       <div>
-      <div>
-        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
-      </div>
+        <div>
+          <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
         <div className='Rot_nyttArrangement'>
           <div className='form-group break'>
             <label htmlFor='navn'>Navn: </label>
@@ -1066,10 +1164,8 @@ class NyttArrangement extends React.Component{
           <div className='form-group'>
             <label htmlFor='rolle'>Rolle: </label>
             <select ref='rolle' name='rolle' className="form-control-lg sokeFelt">{rolleList}</select>
-          </div>
-          <div className='form-group'>
             <button className='btn btn-default' onClick={() => {this.addVakt()}}>Legg til rolle</button>
-            <button className='btn btn-default' id='aHelpButton' ref='helpButton'>Hjelp</button>
+            <button className='btn btn-xs btn-default' id='aHelpButton' ref='helpButton'><span className="glyphicon glyphicon-info-sign"></span></button>
           </div>
           <div className='form-group'>
             <table>
@@ -1077,16 +1173,32 @@ class NyttArrangement extends React.Component{
                 {vakter}
               </tbody>
             </table>
-
-            <br />
-            <div>
-              Vakt mal <br />
-              Mal: <select ref='mal'>{malList}</select> <button className='btn btn-default' ref='velgMal'>Velg</button> <button className='btn btn-default'ref='slettMal'>Slett</button>
-              <br /><br />
-              Navn: <input ref='malNavn'/> <button className='btn btn-default' ref='endreMal'>Endre</button> <button className='btn btn-default' ref='leggTilMal'>Legg til</button>
+          </div>
+          <div className='form-group formFritekst'>
+            <label>Vakt mal: </label>
+          </div>
+          <div className='form-group'>
+            <label htmlFor='mal'>Mal: </label>
+            <select ref='mal' name='mal' className="form-control-lg sokeFelt">{malList}</select>
+            <button className='btn btn-default' ref='velgMal'>Velg</button>
+            <button className='btn btn-default'ref='slettMal'>Slett</button>
+          </div>
+          <div className='form-group row'>
+            <div className='col-1'>
+              <label htmlFor="malNavn">Navn: </label>
+            </div>
+            <div className='col-5'>
+              <input ref='malNavn' name='malNavn' className="form-control sokeFelt" />
+            </div>
+            <div className='col'>
+              <button className='btn btn-default' ref='endreMal'>Endre</button>
+              <button className='btn btn-default' ref='leggTilMal'>Legg til</button>
             </div>
           </div>
-          <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
+          <div className='form-group'>
+            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
+            <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
+          </div>
         </div>
       </div>
     )
@@ -1253,7 +1365,7 @@ class MineSider extends React.Component {
   render(){
     return(
       <div>
-        <h1>Min Side</h1>
+        <h1 className='title'>Min Side</h1>
         <div className='mineSider'>
         <table >
           <tbody>
@@ -1323,12 +1435,27 @@ class Passiv extends React.Component {
   render() {
     return(
       <div>
-        <label htmlFor='passivFra'>Passiv fra: </label>
-        <input type='date' name='passivFra' className='sokeFelt' ref='passivFra' />
-        <label htmlFor='passivTil'>Passiv til: </label>
-        <input type='date' name='passivTil' className='sokeFelt' ref='passivTil' />
-        <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
-        <button className='btn btn-default' ref='tilbakeButton'>Tilbake</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <div>
+          <h1 className='title'>Meld deg passiv </h1>
+        </div>
+
+
+        <div className='enkelContainer'>
+          <div className='form-group'>
+            <label htmlFor='passivFra'>Passiv fra: </label>
+            <input type='date' name='passivFra' className='form-control col-4 sokeFelt' ref='passivFra' />
+          </div>
+          <div className='form-group'>
+            <label htmlFor='passivTil'>Passiv til: </label>
+            <input type='date' name='passivTil' className='form-control col-4 sokeFelt' ref='passivTil' />
+          </div>
+          <div className='form-group'>
+            <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -1361,9 +1488,6 @@ class Passiv extends React.Component {
         alert('Sluttdato må være senere enn startdato')
       }
     }
-    this.refs.tilbakeButton.onclick = () => {
-      history.push('/minside')
-    }
 
   }
 }
@@ -1381,17 +1505,34 @@ class ForandreBrukerInfo extends React.Component {
   render(){
     return(
       <div>
-        <h1>Min Side </h1>
-
-        <table>
-          <tbody>
-            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer:<input type='number' className='sokeFelt' ref='zipInput' /></td></tr>
-            <tr><td>Epost: <input ref='emailInput' className='sokeFelt'/></td><td>Poststed:</td></tr>
-            <tr><td>Telefonnummer: <input className='sokeFelt' type='number' ref='tlfInput' /></td><td>Gateadresse: <input className='sokeFelt' ref='adressInput' /></td></tr>
-          </tbody>
-        </table>
-        <button className='btn btn-default' ref='saveButton'>Lagre forandringer</button>
-        <button className='btn btn-default' ref='cancelButton'>Forkast forandringer</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <div>
+          <h1 className='title'>Endre personalia </h1>
+        </div>
+        <div className='enkelContainer'>
+          <table className='personaliaTable'>
+            <tbody>
+              <tr>
+                <td className='personaliaTable'><fieldset disabled><label htmlFor='medlemsnr'>Medlemmsnummer: </label> <input type='text' name='medlemsnr' className='form-control sokeFelt' placeholder={this.user.id} /></fieldset></td>
+                <td className='personaliaTable'><label htmlFor='postnr'>Postnummer: </label><input type='number' maxLength='4' name='postnr' className='form-control sokeFelt' ref='zipInput' /></td>
+              </tr>
+              <tr>
+                <td className='personaliaTable'><label htmlFor='epost'>Epost: </label><input ref='emailInput' className='form-control sokeFelt'/></td>
+                <td className='personaliaTable'><label htmlFor='postnr'>Poststed: </label><fieldset disabled><input type='text' name='medlemsnr' className='form-control sokeFelt' /></fieldset></td>
+              </tr>
+              <tr className='break'>
+                <td className='personaliaTable'><label htmlFor='tlf'>Telefonnummer: </label><input className='form-control sokeFelt' name='tlf' type='number' ref='tlfInput' /></td>
+                <td className='personaliaTable'><label htmlFor='addr'>Gateadresse: </label><input className='form-control sokeFelt' name='addr' ref='adressInput' /></td>
+              </tr>
+              <tr className='break'>
+                <td className='personaliaTable'><button className='btn btn-default' ref='saveButton'>Lagre forandringer</button></td>
+                <td className='personaliaTable'><button className='btn btn-default' ref='cancelButton'>Forkast forandringer</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     )
   }
@@ -1459,62 +1600,65 @@ class ForandrePassord extends React.Component {
     this.user = [];
     this.id = signedInUser.id;
   }
+
   render(){
     return(
       <div>
-      <h2>Lag nytt passord</h2>
-
-      Skriv inn nytt et passord:<input type='password' className='sokeFelt' ref='passwordInput1' />
-
-      Skriv på nytt igjen:<input type='password' className='sokeFelt' ref='passwordInput2' />
-
-      <button className='btn btn-default' ref='saveButton'>Lagre nytt passord</button>
-      <button className='btn btn-default' ref='cancelButton'>Ikke lagre</button>
+      <div>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+      <h1 className='title'>Lag nytt passord</h1>
+      <div className='enkelContainer'>
+        <div className='form-group'>
+          <label htmlFor='nyttPassord'> Nytt passord: </label>
+          <input type='password' className='form-control col-5 sokeFelt' name='nyttPassord' ref='passwordInput1' />
+        </div>
+        <div className='form-group'>
+          <label htmlFor='gjentaPassord'> Gjenta nytt passord: </label>
+          <input type='password' className='form-control col-5 sokeFelt' name='gjentaPassord' ref='passwordInput2' />
+        </div>
+        <div className='form-group'>
+          <button className='btn btn-default' ref='saveButton'>Lagre nytt passord</button>
+        </div>
+      </div>
       </div>
     )
   }
-    componentDidMount() {
-      userService.getUser(this.id).then((result) =>{
-        console.log(this.id);
-        this.user = result[0];
-        console.log(this.user);
-        this.forceUpdate();
-      }).catch((error) =>{
-        if(errorMessage) errorMessage.set('Finner ikke bruker');
-      });
 
-      this.refs.saveButton.onclick = () =>{
-        let password1 = this.refs.passwordInput1.value;
-        let password2 = this.refs.passwordInput2.value;
+  componentDidMount() {
+    userService.getUser(this.id).then((result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
 
-        let thePassword = this.user.passord;
-        let currentId = this.user.id;
-        if (password1 === password2){
-          Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
-              if(passwordHash.verify(value,thePassword)){
-                userService.editPassword(password1, currentId).then(() =>{
-                  history.push('/minside');
-              }).catch((error) =>{
-                if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
-              });
+    this.refs.saveButton.onclick = () =>{
+      let password1 = this.refs.passwordInput1.value;
+      let password2 = this.refs.passwordInput2.value;
 
-             }
-             else{
-               alert('Passordet stemte ikke.');
-             }
-          });
+      let thePassword = this.user.passord;
+      let currentId = this.user.id;
+      if (password1 === password2){
+        Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
+            if(passwordHash.verify(value,thePassword)){
+              userService.editPassword(password1, currentId).then(() =>{
+                history.push('/minside');
+            }).catch((error) =>{
+              if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
+            });
 
-        }
-        else{
-          alert('Passordfeltene må være like!')
-        }
-  }
-
-
-      this.refs.cancelButton.onclick = () =>{
-        this.props.history.push('/minside');
+           } else {
+             alert('Passordet stemte ikke.');
+           }
+        });
+      } else {
+        alert('Passordfeltene må være like!')
       }
     }
+  }
 }
 
 class SeKvalifikasjoner extends React.Component {
@@ -1531,14 +1675,18 @@ class SeKvalifikasjoner extends React.Component {
     let kvalList = [];
     for(let kval of this.kvalifikasjoner){
       console.log(kval);
-      kvalList.push(<li key={counter}>{kval.navn}</li>);
+      kvalList.push(<li className='list-group-item col-5' key={counter}>{kval.navn}</li>);
       counter++;
     }
     return(
       <div>
-        <h2>Kvalifikasjoner</h2>
-        <ul>{kvalList}</ul>
-        <button className='btn btn-default' ref='tilbakeKnapp'>Gå tilbake</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <h1 className='title'>Mine kvalifikasjoner</h1>
+        <div className='enkelContainer'>
+          <ul className='list-group'>{kvalList}</ul>
+        </div>
       </div>
     )
   }
@@ -1550,9 +1698,6 @@ class SeKvalifikasjoner extends React.Component {
     }).catch((error: Error) => {
       if(errorMessage) errorMessage.set("Failed getting qualifications" + error);
     });
-    this.refs.tilbakeKnapp.onclick = () =>{
-      this.props.history.goBack();
-    }
 
   }
 }
@@ -1565,10 +1710,16 @@ class Administrator extends React.Component{
         <thead>
           <tr>
             <td style={{width: '30%'}}>
-              <div><strong>Brukere som må godkjennes</strong></div>
+              <div>
+              <strong>Brukere som må godkjennes</strong>
+              <button className='btn btn-xs btn-default' id='godkjennBrukerHelpButton' ref='godkjennBrukerHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
             <td style={{width: '30%'}}>
-              <div><strong>Godkjenn vaktbytter</strong></div>
+              <div>
+              <strong>Godkjenn vaktbytter</strong>
+              <button className='btn btn-xs btn-default' id='godkjennVaktHelpButton' ref='godkjennVaktHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
             <td style={{width: '30%'}}>
               <div><strong>Annet</strong></div>
@@ -1585,7 +1736,8 @@ class Administrator extends React.Component{
             </td>
             <td>
               <div className='form-group'>
-                <label htmlFor='adminMelding'>Skriv melding til brukerne:</label>
+                <label htmlFor='adminMelding'>Skriv melding til brukerne:</label> <button className='btn btn-xs btn-default' id='adminMeldingHelpButton' ref='adminMeldingHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+
                 <textarea ref='adminMelding' className='form-control col-8 sokeFelt' name='adminMelding'/>
                 <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
               </div>
@@ -1609,9 +1761,17 @@ class Administrator extends React.Component{
       administratorFunctions.updateAdminMelding(this.refs.adminMelding.value);
       this.refs.adminMelding.value = '';
     }
+    this.refs.godkjennBrukerHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises brukere som er laget, men ikke godkjent. Klikk et navn for å se info om bruker. Klikk "Godkjenn" for å godkjenne en bruker.', godkjennBrukerHelpButton);
+    }
+    this.refs.godkjennVaktHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises vakter som en bruker ønsker å bytte, men som ikke er godkjent. Klikk et navn for å se info om bruker. Klikk på arrangementet for mer info om arrangementet. Klikk "Godta" eller "Avslå" for å godkjenne eller avslå byttet.', godkjennVaktHelpButton);
+    }
+    this.refs.adminMeldingHelpButton.onclick = () => {
+      Popup.plugins().popunder('Her kan du skrive en melding som vil dukke opp på fremsiden for alle brukere', adminMeldingHelpButton);
+    }
   }
 }
-
 
 class GodkjennBruker extends React.Component {
   constructor(){
@@ -1855,7 +2015,6 @@ class BrukerSide extends React.Component {
 
   }
 }
-
 
 class VisArrangement extends React.Component {
   constructor(props) {
@@ -2423,8 +2582,6 @@ class Innkalling extends React.Component {
   // }
 }
 
-
-
 class Utstyr extends React.Component {
   constructor() {
     super();
@@ -2786,7 +2943,6 @@ class MineVakter extends React.Component {
   }
 }
 
-
 class Kvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -3003,7 +3159,6 @@ class MedlemKvalifikasjoner extends React.Component {
   }
 }
 
-
 class Rolle extends React.Component {
   constructor() {
     super();
@@ -3072,7 +3227,6 @@ class Rolle extends React.Component {
     });
   }
 }
-
 
 class Hjelp extends React.Component {
   render() {
