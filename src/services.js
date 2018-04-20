@@ -1022,6 +1022,37 @@ class RolleService {
       });
     });
   }
+  addRolle(navn) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO rolle (navn) VALUES(?)', [navn], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  alterRolle(id, navn) {
+    return new Promise((resolve, reject) => {
+      connection.query('UPDATE rolle SET navn = ? WHERE id = ?', [navn, id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  removeRolle(id) {
+    return new Promise((resolve, reject) => {
+      connection.query('DELETE FROM rolle WHERE id = ?', [id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
 }
 
 class MalService {

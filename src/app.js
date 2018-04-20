@@ -447,6 +447,9 @@ class Menu extends React.Component {
             <Link to='/T-kvalifikasjon' className="nav-link">Kvalifikasjoner</Link>
           </li>
           <li className='nav-item'>
+            <Link to='/T-rolle' className="nav-link">Roller</Link>
+          </li>
+          <li className='nav-item'>
             <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
           </li>
           <li className='nav-item'>
@@ -2895,6 +2898,77 @@ class MedlemKvalifikasjoner extends React.Component {
   }
 }
 
+
+class Rolle extends React.Component {
+  constructor() {
+    super();
+    this.roller = [];
+  }
+  render() {
+    let rolleListe = [];
+
+    rolleListe.push(<tr key={'rolleListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    for (let item of this.roller) {
+      rolleListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeRolle(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeRolle(item.id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {rolleListe}
+            </tbody>
+          </table>
+          Navn: <input ref='roNavn'/> <button className='btn btn-default' ref='lagRo'>Legg til</button>
+        </div>
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagRo.onclick = () => {
+      console.log(this.refs.roNavn.value);
+      rolleService.addRolle(this.refs.roNavn.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    rolleService.getAllRolle().then((res) => {
+      console.log(res);
+      this.roller = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeRolle(id) {
+    console.log('Endre: ' + id);
+    rolleService.alterRolle(id, this.refs.roNavn.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeRolle(id) {
+    console.log('Fjern: ' + id);
+    rolleService.removeRolle(id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+
 class Hjelp extends React.Component {
   render() {
     let signedInUser = loginService.getSignedInUser();
@@ -2961,6 +3035,7 @@ ReactDOM.render((
         <Route exact path='/inkalling/:id' component={Innkalling} />
         <Route exact path='/T-utstyr' component={Utstyr} />
         <Route exact path='/T-kvalifikasjon' component={Kvalifikasjoner} />
+        <Route exact path='/T-rolle' component={Rolle} />
         <Route exact path='/mineVakter' component={MineVakter} />
         <Route exact path='/hjelp' component={Hjelp} />
       </Switch>
