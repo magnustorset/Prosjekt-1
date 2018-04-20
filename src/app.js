@@ -449,6 +449,9 @@ class Menu extends React.Component {
           <li className='nav-item'>
             <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
           </li>
+          <li className='nav-item'>
+            <Link to='/hjelp' className="nav-link">Hjelp</Link>
+          </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
@@ -467,43 +470,47 @@ class Menu extends React.Component {
   }
    if(signedInUser){
      return(
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div className="navbar-brand">
-    <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
-    Røde Kors</div>
-    <div className='navbar-header'>
-    <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
-    <span className="navbar-toggler-icon"></span>
-    </button>
-    </div>
-    <div className="navbar-collapse collapse" id="navbarSupportedContent">
-  <ul className="navbar-nav mr-auto">
-    <li className="nav-item active">
-    <Link to='/start' className='nav-link'>Start</Link>
-    </li>
-    <li className="nav-item">
-      <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-    </li>
-    <li className='nav-item'>
-    <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-    </li>
-    <li className='nav-item'>
-      <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
-    </li>
-  </ul>
-  <ul className="nav navbar-nav navbar-right">
-    <li className='hopp'>
-      <input  ref='serachFieldUser' type='text' className='form-control' />
-    </li>
-    <li>
-  <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
-    </li>
-    <li className='spaceBetweenSearchAndLogout'>
-    <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
-    </li>
-  </ul>
-  </div>
-  </nav>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div className="navbar-brand">
+          <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+          Røde Kors
+        </div>
+        <div className='navbar-header'>
+          <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+          <span className="navbar-toggler-icon"></span>
+          </button>
+        </div>
+        <div className="navbar-collapse collapse" id="navbarSupportedContent">
+          <ul className="navbar-nav mr-auto">
+            <li className="nav-item active">
+              <Link to='/start' className='nav-link'>Start</Link>
+            </li>
+            <li className="nav-item">
+              <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/hjelp' className="nav-link">Hjelp</Link>
+            </li>
+          </ul>
+          <ul className="nav navbar-nav navbar-right">
+            <li className='hopp'>
+              <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
+            </li>
+            <li>
+              <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
+            </li>
+            <li className='spaceBetweenSearchAndLogout'>
+              <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
+            </li>
+          </ul>
+        </div>
+      </nav>
   );
   }
   else{
@@ -943,7 +950,7 @@ class NyttArrangement extends React.Component{
         <tr key={item.id} className='arrangementVaktTabell'>
           <td className='arrangementVaktTabellData'><span className='tableText'>Rolle:</span> {item.navn}</td>
           <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td>
-          <td className='arrangementVaktTabellData'><button className='btn btn-deafult' onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td>
+          <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td>
         </tr>);
     }
 
@@ -992,7 +999,7 @@ class NyttArrangement extends React.Component{
             <select ref='rolle' name='rolle' className="form-control-lg">{rolleList}</select>
           </div>
           <div className='form-group'>
-            <button className='btn btn-deafult' onClick={() => {this.addVakt()}}>Legg til rolle</button>
+            <button className='btn btn-default' onClick={() => {this.addVakt()}}>Legg til rolle</button>
           </div>
           <div className='form-group'>
             <table>
@@ -1000,7 +1007,8 @@ class NyttArrangement extends React.Component{
                 {vakter}
               </tbody>
             </table>
-            <button className='btn btn-deafult' ref="arrangementButton">Lag arrangement</button>
+            <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
+            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
           </div>
         </div>
       </div>
@@ -1609,7 +1617,7 @@ class BrukerSide extends React.Component {
                   <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
                 </tr>
                 <tr>
-                  <td className="brukerSideButtons"><button className='btn btn-deafult' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
+                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
                   <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
                   <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
                 </tr>
@@ -2775,6 +2783,41 @@ class MedlemKvalifikasjoner extends React.Component {
   }
 }
 
+class Hjelp extends React.Component {
+  render() {
+    let signedInUser = loginService.getSignedInUser();
+    if (signedInUser.admin === 1) {
+      return(
+        <div className='bd-content col-12'>
+          <div className='row'>
+            <div className='col'>
+              <h3 className='display-4'>Opprette arrangement</h3>
+              <p>
+                For å lage et nytt arrangement gå til arrangement-fanen og klikk knappen hvor det står «Opprett arrangement».
+                Deretter fyller du inn nødvendig informasjon.
+              </p>
+            </div>
+            <div className='col'>
+              <h3 className='display-4'>Kalle inn til arrangement</h3>
+              <p>
+              </p>
+            </div>
+            <div className='col'>
+              <h3 className='display-4'>Godkjenne bruker</h3>
+              <p>
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    } else {
+      return(
+        <div>
+        </div>
+      )
+    }
+  }
+}
 
 ReactDOM.render((
   <HashRouter>
@@ -2807,6 +2850,7 @@ ReactDOM.render((
         <Route exact path='/T-utstyr' component={Utstyr} />
         <Route exact path='/T-kvalifikasjon' component={Kvalifikasjoner} />
         <Route exact path='/mineVakter' component={MineVakter} />
+        <Route exact path='/hjelp' component={Hjelp} />
       </Switch>
       <Popup />
     </div>
