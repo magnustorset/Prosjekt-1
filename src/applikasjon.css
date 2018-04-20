@@ -108,6 +108,33 @@ background-color: white;
   color: red;
 }
 
+/* Nytt Arrangement */
+.Rot_nyttArrangement {
+  position: relative;
+  top:25px;;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #f9f9f9;
+  padding: 30px;
+  width: 500px;
+  border: 2px solid black;
+  border-radius: 8px;
+}
+
+.break {
+  margin-bottom: 30px;
+}
+
+
+.formFritekst {
+  margin-bottom: 0
+}
+
+.arrangementVaktTabellData {
+  padding-right: 10px;
+  padding-bottom: 15px;
+}
+
 .table-responsive{
   padding-left: 10px;
 }
@@ -152,7 +179,7 @@ background-color: white;
   padding-left: 30px;
 }
 .mineVakter{
-  width: 50%;
+  width: 30%;
 }
 .table-responsive-a{
   padding: 10px;

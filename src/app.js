@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -46,6 +46,7 @@ let mapLat = ''
 let mapLng = ''
 let brukerEpost;
 let vis = []
+let velgBytteBruker = []
 
 const MapWithASearchBox = compose(
   withProps({
@@ -300,10 +301,11 @@ class Prompt extends React.Component {
     render() {
         return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
     }
-}
+ }
 
   /** Prompt plugin */
-  Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
+
+Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
     let promptValue = null;
 
     let promptChange = function (value) {
@@ -333,8 +335,75 @@ class Prompt extends React.Component {
             }]
         }
     });
-});
+  });
+class Prompt2 extends React.Component {
+      constructor(props) {
+          super(props);
 
+          this.brukere = velgBytteBruker;
+          this.state = {
+              value: this.props.defaultValue
+          };
+
+          this.onChange = (e) => this._onChange(e);
+      }
+
+      componentDidUpdate(prevProps, prevState) {
+          if (prevState.value !== this.state.value) {
+              this.props.onChange(this.state.value);
+          }
+      }
+
+      _onChange(e) {
+          let value = e.target.value;
+
+          this.setState({value: value});
+      }
+
+      render() {
+        let bruker = [];
+        bruker.push(<option key='11111111' value='0'>Velg bruker:</option>);
+        for(let item of this.brukere){
+          bruker.push(<option key={item.Id} value={item.Id}>{item.Navn}</option>)
+        }
+          return <select ref='selectField' className="mm-popup__input" placeholder={this.props.placeholder} value={this.state.value} onChange={this.onChange}>{bruker}</select>;
+      }
+  }
+Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
+      let promptValue = 0;
+
+      let promptChange = function (value) {
+          promptValue = value;
+          console.log(value);
+      };
+
+      this.create({
+          title: 'Skriv in medlemsnr til den du skal skifte med:',
+          content: <Prompt2 onChange={promptChange} placeholder={placeholder} value={defaultValue} />,
+          buttons: {
+              left: [{
+                text: 'Avbryt',
+                classname: 'abort',
+                action: function() {
+                  Popup.close();
+                }
+              }],
+              right: [{
+                  text: 'Send forespørsel',
+                  key: '⌘+s',
+                  className: 'success',
+                  action: function () {
+                    if(promptValue!=0){
+                      callback(promptValue);
+                      Popup.close();
+                    }else{
+                      alert('Du må velge noen');
+                    }
+                  }
+              }]
+          }
+      });
+    });
 
 
 
@@ -380,10 +449,13 @@ class Menu extends React.Component {
           <li className='nav-item'>
             <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
           </li>
+          <li className='nav-item'>
+            <Link to='/hjelp' className="nav-link">Hjelp</Link>
+          </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
-            <input  ref='serachFieldUser' type='text' className='form-control' />
+            <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
           </li>
           <li>
           <button ref='serachUsersButton' className='form-control btn btn-default' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}><span className='glyphicon glyphicon-search' /></button>
@@ -398,43 +470,47 @@ class Menu extends React.Component {
   }
    if(signedInUser){
      return(
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div className="navbar-brand">
-    <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
-    Røde Kors</div>
-    <div className='navbar-header'>
-    <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
-    <span className="navbar-toggler-icon"></span>
-    </button>
-    </div>
-    <div className="navbar-collapse collapse" id="navbarSupportedContent">
-  <ul className="navbar-nav mr-auto">
-    <li className="nav-item active">
-    <Link to='/start' className='nav-link'>Start</Link>
-    </li>
-    <li className="nav-item">
-      <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-    </li>
-    <li className='nav-item'>
-    <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-    </li>
-    <li className='nav-item'>
-      <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
-    </li>
-  </ul>
-  <ul className="nav navbar-nav navbar-right">
-    <li className='hopp'>
-      <input  ref='serachFieldUser' type='text' className='form-control' />
-    </li>
-    <li>
-  <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
-    </li>
-    <li className='spaceBetweenSearchAndLogout'>
-    <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
-    </li>
-  </ul>
-  </div>
-  </nav>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div className="navbar-brand">
+          <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+          Røde Kors
+        </div>
+        <div className='navbar-header'>
+          <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+          <span className="navbar-toggler-icon"></span>
+          </button>
+        </div>
+        <div className="navbar-collapse collapse" id="navbarSupportedContent">
+          <ul className="navbar-nav mr-auto">
+            <li className="nav-item active">
+              <Link to='/start' className='nav-link'>Start</Link>
+            </li>
+            <li className="nav-item">
+              <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/hjelp' className="nav-link">Hjelp</Link>
+            </li>
+          </ul>
+          <ul className="nav navbar-nav navbar-right">
+            <li className='hopp'>
+              <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
+            </li>
+            <li>
+              <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
+            </li>
+            <li className='spaceBetweenSearchAndLogout'>
+              <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
+            </li>
+          </ul>
+        </div>
+      </nav>
   );
   }
   else{
@@ -859,54 +935,81 @@ class NyttArrangement extends React.Component{
     this.linjer = 1;
     this.roller = [];
     this.vakter = [];
-    this.maler = [];
   }
   render(){
     let rolleList = [];
-    let vakter = [];
-    let malList = [];
-
     rolleList.push(<option key="0" value="0"></option>);
     for(let item of this.roller) {
       rolleList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
     }
 
+    let vakter = [];
     for (let i in this.vakter) {
       let item = this.vakter[i];
-      vakter.push(<tr key={item.id}><td>Rolle: {item.navn}</td><td>Antall: <input type="number" step="1" min="1" max="25" defaultValue={item.antall} onChange={(event) => {item.antall = +event.target.value}} /></td><td><button onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td></tr>);
-    }
-
-    for(let item of this.maler) {
-      malList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
+      vakter.push(
+        <tr key={item.id} className='arrangementVaktTabell'>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Rolle:</span> {item.navn}</td>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td>
+          <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td>
+        </tr>);
     }
 
     return(
       <div>
-        Navn: <input type="text" ref="a_name" defaultValue="Test" /> <br />
-        Startdato: <input type="datetime-local" ref="a_startdate" /> <br /> {/*Autofyll med dagens dato*/}
-        Sluttdato: <input type="datetime-local" ref="a_enddate" /> <br />
-        Oppmøtetidspunkt: <input type="datetime-local" ref="a_meetdate" /> <br />
-        Oppmøtested: <MapWithASearchBox /> <br />
-        Beskrivelse: <textarea rows="4" cols="20" ref="a_desc" defaultValue="En tekstlig beskrivelse"/> <br />
-        Kontaktperson: <br />
-        Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
-        Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
-        <br />
-        Rolle: <select ref='rolle'>{rolleList}</select>
-        <button onClick={() => {this.addVakt()}}>Legg til rolle</button>
-
-        <table>
-          <tbody>
-            {vakter}
-          </tbody>
-        </table>
-        <br /><button ref="arrangementButton">Lag arrangement</button><br />
-        <br />
-        <div>
-          Vakt mal <br />
-          Mal: <select ref='mal'>{malList}</select> <button ref='velgMal'>Velg</button> <button ref='slettMal'>Slet</button>
-          <br /><br />
-          Navn: <input ref='malNavn'/> <button ref='endreMal'>Endre</button> <button ref='leggTilMal'>Legg til</button>
+        <div className='Rot_nyttArrangement'>
+          <div className='form-group break'>
+            <label htmlFor='navn'>Navn: </label>
+            <input type="text" name='navn' className="form-control col-8" ref="a_name" defaultValue="Test" />
+          </div>
+          <div className='form-group'>
+            <label htmlFor='startdato'>Startdato: </label>
+            <input type="datetime-local" className="form-control col-8" name='startdato' ref="a_startdate" /> {/*Autofyll med dagens dato*/}
+          </div>
+          <div className='form-group'>
+            <label htmlFor='sluttdato'>Sluttdato: </label>
+            <input type="datetime-local" className="form-control col-8" name='sluttdato' ref="a_enddate" />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='oppmotetid'>Oppmøtetidspunkt: </label>
+            <input type="datetime-local" className="form-control col-8" name='oppmotetid' ref="a_meetdate" />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='oppmotested'>Oppmøtested: </label>
+            <MapWithASearchBox name='oppmotested' />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='beskrivelse'>Beskrivelse: </label>
+            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8" defaultValue="En tekstlig beskrivelse"/>
+          </div>
+          <div className='form-group formFritekst'>
+            <label>Kontaktperson: </label>
+          </div>
+          <div className='form-row'>
+          <div className='col'>
+            <label htmlFor='k_navn'>Navn: </label>
+            <input type="text" name='k_name' className="form-control" ref="k_name" defaultValue="Lars" />
+          </div>
+          <div className='col break'>
+            <label htmlFor='k_tlf'>Telefon: </label>
+            <input type="number" name='k_tlf' className="form-control" ref="k_tlf" defaultValue="95485648" />
+          </div>
+          </div>
+          <div className='form-group'>
+            <label htmlFor='rolle'>Rolle: </label>
+            <select ref='rolle' name='rolle' className="form-control-lg">{rolleList}</select>
+          </div>
+          <div className='form-group'>
+            <button className='btn btn-default' onClick={() => {this.addVakt()}}>Legg til rolle</button>
+          </div>
+          <div className='form-group'>
+            <table>
+              <tbody>
+                {vakter}
+              </tbody>
+            </table>
+            <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
+            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
+          </div>
         </div>
       </div>
     )
@@ -922,103 +1025,12 @@ class NyttArrangement extends React.Component{
       console.log(err);
     })
 
-    malService.getMals().then((res) => { //Finnished
-      console.log('getMals Sukse!');
-      console.log(res);
-      this.maler = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log('getMals feil!');
-      console.log(err);
-    })
-
-
-
     this.refs.arrangementButton.onclick = () => {
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude).then((res) => {
-        console.log(res);
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude).then(() => {
+
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
-    }
-
-
-
-    this.refs.velgMal.onclick = () => {
-      let id = this.refs.mal.value;
-
-      malService.getMalRolls(id).then((res) => {
-        console.log(res);
-
-        let vakter = [];
-        for(let item of res) {
-          vakter.push({id: item.r_id, navn: this.addify(item.r_id), antall: item.antall});
-        }
-        console.log(vakter);
-        this.vakter = vakter;
-
-        this.componentDidMount();
-      }).catch((err) => {
-        console.log('getMalRolls error!');
-      });
-    }
-    this.refs.slettMal.onclick = () => {
-      let id = this.refs.mal.value;
-
-      malService.removeMalRolls(id).then((res) => {
-        console.log('removeMalRolls sukse!');
-        malService.removeMal(id).then((res) => {
-          console.log('removeMal sukse!');
-          this.componentDidMount();
-        }).catch((err) => {
-          console.log('removeMal feil!');
-        });
-      }).catch((err) => {
-        console.log('removeMalRolls feil!');
-      });
-    }
-    this.refs.endreMal.onclick = () => { //Finnished
-      let id = this.refs.mal.value;
-      let navn = this.refs.malNavn.value;
-      console.log(id, navn);
-
-      malService.alterMal(id, navn).then((res) => {
-        console.log('alterMal sukse!');
-        malService.removeMalRolls(id).then((res) => {
-          console.log('removeMalRolls sukse!');
-          malService.addMalRolls(id, this.vakter).then((res) => {
-            console.log('addMalRolls sukse!');
-            this.componentDidMount();
-          }).catch((err) => {
-            console.log('addMalRolls Feil!');
-
-          })
-        }).catch((err) => {
-          console.log('removeMalRolls error!');
-        })
-      }).catch((err) => {
-        console.log('alterMal error!');
-      })
-    }
-    this.refs.leggTilMal.onclick = () => { //Finnished
-      let navn = this.refs.malNavn.value;
-      console.log(navn);
-      malService.addMal(navn).then((res) => {
-        console.log('addMal Sukse!');
-        console.log(res);
-
-        malService.addMalRolls(res.insertId, this.vakter).then((res) => {
-          console.log('addMalRolls sukse!');
-          console.log(res);
-          this.componentDidMount();
-        }).catch((err) => {
-          console.log('addMalRolls Feil!');
-          console.log(err);
-        })
-      }).catch((err) => {
-        console.log('addMal Feil!');
-        console.log(err);
-      })
     }
   }
 
@@ -1046,15 +1058,6 @@ class NyttArrangement extends React.Component{
       }
     }
     return true;
-  }
-
-  addify(id) {
-    for(let item of this.roller) {
-      if (item.id === id) {
-        return item.navn;
-      }
-    }
-    return 'Inngen rolle funnet';
   }
 }
 
@@ -1396,7 +1399,7 @@ class Administrator extends React.Component{
               <GodkjennBruker />
             </td>
             <td valign='top'>
-
+              <ByttVakt />
             </td>
             <td>
             </td>
@@ -1462,6 +1465,50 @@ class GodkjennBruker extends React.Component {
       this.forceUpdate();
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Kunne ikke laste ikke aktiv brukere' + error);
+    });
+  }
+}
+
+class ByttVakt extends React.Component{
+  constructor(){
+    super();
+    this.vaktbytter = []
+  }
+  render(){
+    let vakter = []
+    for(let bytte of this.vaktbytter){
+      vakter.push(<tr key={bytte.id}><td>{bytte.byttenavn}, vil bytte vakt med {bytte.navn} på arrangement {bytte.arrangement}</td><td><button onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
+    }
+    return(
+      <div>
+        <table>
+          <tbody>
+            {vakter}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  avsloVaktBytte(vaktid){
+    administratorFunctions.avsloVaktBytte(vaktid).then(()=>{
+      this.componentDidMount();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Fikk ikke avlått vaktbytte' + error);
+    });
+  }
+  godtaVaktBytte(vaktBytteid,personid,vakt_id){
+    administratorFunctions.godtaVaktBytte(vaktBytteid,personid,vakt_id).then(()=>{
+      this.componentDidMount();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Fikk ikke godtatt vakt' + error);
+    });
+  }
+  componentDidMount(){
+    administratorFunctions.getVaktBytter().then((result)=>{
+      this.vaktbytter = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
     });
   }
 }
@@ -1570,7 +1617,7 @@ class BrukerSide extends React.Component {
                   <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
                 </tr>
                 <tr>
-                  <td className="brukerSideButtons"><button className='btn btn-deafult' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
+                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
                   <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
                   <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
                 </tr>
@@ -2379,12 +2426,17 @@ class MineVakter extends React.Component {
     super();
     this.godkjente = [];
     this.ikkeGodkjente = [];
+    this.vaktbytter = []
   }
   render(){
     let ikke = [];
     let godtatt = [];
+    let vakter = []
+    for(let bytte of this.vaktbytter){
+      vakter.push(<tr key={bytte.id}><td className='arrangementTableDataa'>{bytte.byttenavn}, vil bytte vakt med deg på arrangement {bytte.arrangement}</td><td className='arrangementTableDataa'><button onClick={()=>{this.vaktGodtatt(bytte.id)}}>Ok</button><button onClick={()=>{this.vaktIkkeGodtatt(bytte.id)}}>Nei</button></td></tr>)
+    }
     for(let yes of this.godkjente){
-      godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default'>Bytt vakt</button></td></tr>);
+      godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.bytte(yes.vakt_id, yes.rolleid, yes.id)}}>Bytt vakt</button></td></tr>);
     }
     for(let not of this.ikkeGodkjente){
       ikke.push(<tr key={not.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+not.id}>{not.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.godta(not.id)}}>Godta vakt</button></td></tr>);
@@ -2402,6 +2454,9 @@ class MineVakter extends React.Component {
               </td>
               <td>
                 <p><strong>Godkjente</strong></p>
+              </td>
+              <td>
+                <p><strong>Bytte forespørsler</strong></p>
               </td>
             </tr>
             <tr>
@@ -2423,6 +2478,15 @@ class MineVakter extends React.Component {
                   </tbody>
                 </table>
               </td>
+              <td className='mineVakter'>
+                <table >
+                  <tbody>
+
+                        {vakter}
+
+                  </tbody>
+                </table>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -2430,22 +2494,63 @@ class MineVakter extends React.Component {
       </div>
     );
   }
-  godta(value){
-    arrangementService.godtaVakt(new Date(),value,loginService.getSignedInUser().id);
-    arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
-      this.godkjente = result;
-      this.forceUpdate();
+  vaktIkkeGodtatt(vaktid){
+    arrangementService.ikkeGodtaVaktBytte(vaktid).then(()=>{
+      this.componentDidMount();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+      if(errorMessage) errorMessage.set('Du fikk ikke avslått vakten' + error);
     });
-    arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
-      this.ikkeGodkjente = result;
-      this.forceUpdate();
+  }
+  vaktGodtatt(vaktid){
+    arrangementService.godtaVaktBytte(vaktid).then(()=>{
+      arrangementService.vaktBytter(loginService.getSignedInUser().id).then((result)=>{
+        this.vaktbytter = result;
+        this.forceUpdate();
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
+      });
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+      if(errorMessage) errorMessage.set('Du fikk ikke godtatt vaktbytte' + error);
+    });
+  }
+  //Send forespørsel om vaktbytte
+  bytte(vaktid, rolleid,arrangementid){
+    VaktValg.lagListe3(arrangementid).then((result)=>{
+      let søl = []
+      for(let item of result){
+        if(item.r_id === rolleid){
+          søl.push({Navn: item.brukernavn, Id:item.m_id})
+        }
+      }
+      velgBytteBruker = søl;
+      Popup.plugins(vaktid).prompt2('', 'Velg bruker', function (value,signedInUser) {
+        arrangementService.byttVakt(vaktid,value).then(()=>{
+          console.log(value);
+          history.push('/mineVakter');
+        }).catch((error)=>{
+          if(errorMessage) errorMessage.set('Får ikke byttet vakt' + error);
+        });
+      });
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke det du leter etter' + error);
+    });
+
+  }
+  //Godta vakt du er utkalt til
+  godta(value){
+    arrangementService.godtaVakt(new Date(),value,loginService.getSignedInUser().id).then(()=>{
+      this.componentDidMount();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Karte ikke godta vakt' + error);
     });
   }
   componentDidMount() {
+    arrangementService.vaktBytter(loginService.getSignedInUser().id).then((result)=>{
+      this.vaktbytter = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
+    });
     arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
       this.godkjente = result;
       this.forceUpdate();
@@ -2678,6 +2783,41 @@ class MedlemKvalifikasjoner extends React.Component {
   }
 }
 
+class Hjelp extends React.Component {
+  render() {
+    let signedInUser = loginService.getSignedInUser();
+    if (signedInUser.admin === 1) {
+      return(
+        <div className='bd-content col-12'>
+          <div className='row'>
+            <div className='col'>
+              <h3 className='display-4'>Opprette arrangement</h3>
+              <p>
+                For å lage et nytt arrangement gå til arrangement-fanen og klikk knappen hvor det står «Opprett arrangement».
+                Deretter fyller du inn nødvendig informasjon.
+              </p>
+            </div>
+            <div className='col'>
+              <h3 className='display-4'>Kalle inn til arrangement</h3>
+              <p>
+              </p>
+            </div>
+            <div className='col'>
+              <h3 className='display-4'>Godkjenne bruker</h3>
+              <p>
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    } else {
+      return(
+        <div>
+        </div>
+      )
+    }
+  }
+}
 
 ReactDOM.render((
   <HashRouter>
@@ -2710,6 +2850,7 @@ ReactDOM.render((
         <Route exact path='/T-utstyr' component={Utstyr} />
         <Route exact path='/T-kvalifikasjon' component={Kvalifikasjoner} />
         <Route exact path='/mineVakter' component={MineVakter} />
+        <Route exact path='/hjelp' component={Hjelp} />
       </Switch>
       <Popup />
     </div>
