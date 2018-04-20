@@ -354,7 +354,7 @@ class ArrangementService {
   //Henter dine ubehandlede forspørsler
   vaktBytter(id){
     return new Promise((resolve, reject)=>{
-      connection.query('SELECT vb.id, vb.aid, vb.om_id, vb.nm_id, vb.bekreftelse,vb.vakt_id, m.fornavn as byttenavn, md.fornavn as navn, a.navn as arrangement from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid where bekreftelse = ? and vb.nm_id = ? and godtatt = ?',[false, id, false],(error,result)=>{
+      connection.query('SELECT vb.id,vb.aid,vb.om_id,vb.nm_id,vb.bekreftelse,vb.vakt_id,vb.godtatt,m.fornavn as byttenavn,md.fornavn as navn,a.navn as arrangement, r.navn as rollenavn from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid inner join vakt v on v.id = vb.vakt_id inner join rolle r on r.id = v.r_id where bekreftelse = ? and vb.nm_id = ? and godtatt = ?',[false, id, false],(error,result)=>{
         if(error){
           reject(error);
           return;
@@ -437,7 +437,7 @@ class ArrangementService {
       })
     })
   }
-  addArrangement (tlf, navn, meetdate, startdate, enddate, desc, roller, longitude, latitude) {
+  addArrangement (tlf, navn, meetdate, startdate, enddate, desc, roller, longitude, latitude, address) {
       let k_id;
       return new Promise((resolve, reject) =>{
         connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
@@ -447,7 +447,7 @@ class ArrangementService {
           }
           k_id = result[0].id
 
-          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute) values (?, ?, ?, ?, ?, ?, ?, ?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude], (error, result) => {
+          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute, address) values (?, ?, ?, ?, ?, ?, ?, ?,?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude, address], (error, result) => {
             if(error){
               console.log(error);
               return;
@@ -558,7 +558,7 @@ class AdministratorFunctions{
   //Henter vakter der brukerne har godtatt bytt vakt forespørselen
   getVaktBytter(){
     return new Promise((resolve, reject)=>{
-      connection.query('SELECT vb.id,vb.aid,vb.om_id,vb.nm_id,vb.bekreftelse,vb.vakt_id,vb.godtatt,m.fornavn as byttenavn,md.fornavn as navn,a.navn as arrangement from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid where bekreftelse = ? and godtatt = ?',[true, false], (error,result)=>{
+      connection.query('SELECT vb.id,vb.aid,vb.om_id,vb.nm_id,vb.bekreftelse,vb.vakt_id,vb.godtatt,m.fornavn as byttenavn,md.fornavn as navn,a.navn as arrangement, r.navn as rollenavn from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid inner join vakt v on v.id = vb.vakt_id inner join rolle r on r.id = v.r_id where bekreftelse = ? and godtatt = ?',[true, false], (error,result)=>{
         if(error){
           reject(error);
           return;
