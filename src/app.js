@@ -1032,12 +1032,12 @@ class NyttArrangement extends React.Component{
             <br />
             <div>
               Vakt mal <br />
-              Mal: <select ref='mal'>{malList}</select> <button ref='velgMal'>Velg</button> <button ref='slettMal'>Slet</button>
+              Mal: <select ref='mal'>{malList}</select> <button className='btn btn-default' ref='velgMal'>Velg</button> <button className='btn btn-default'ref='slettMal'>Slett</button>
               <br /><br />
-              Navn: <input ref='malNavn'/> <button ref='endreMal'>Endre</button> <button ref='leggTilMal'>Legg til</button>
+              Navn: <input ref='malNavn'/> <button className='btn btn-default' ref='endreMal'>Endre</button> <button className='btn btn-default' ref='leggTilMal'>Legg til</button>
             </div>
- <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
           </div>
+          <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
         </div>
       </div>
     )
