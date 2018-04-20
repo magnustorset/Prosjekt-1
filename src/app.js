@@ -449,10 +449,13 @@ class Menu extends React.Component {
           <li className='nav-item'>
             <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
           </li>
+          <li className='nav-item'>
+            <Link to='/hjelp' className="nav-link">Hjelp</Link>
+          </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
-            <input  ref='serachFieldUser' type='text' className='form-control' />
+            <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
           </li>
           <li>
           <button ref='serachUsersButton' className='form-control btn btn-default' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}><span className='glyphicon glyphicon-search' /></button>
@@ -467,43 +470,47 @@ class Menu extends React.Component {
   }
    if(signedInUser){
      return(
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div className="navbar-brand">
-    <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
-    Røde Kors</div>
-    <div className='navbar-header'>
-    <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
-    <span className="navbar-toggler-icon"></span>
-    </button>
-    </div>
-    <div className="navbar-collapse collapse" id="navbarSupportedContent">
-  <ul className="navbar-nav mr-auto">
-    <li className="nav-item active">
-    <Link to='/start' className='nav-link'>Start</Link>
-    </li>
-    <li className="nav-item">
-      <Link to='/arrangement'className='nav-link'>Arrangement</Link>
-    </li>
-    <li className='nav-item'>
-    <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
-    </li>
-    <li className='nav-item'>
-      <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
-    </li>
-  </ul>
-  <ul className="nav navbar-nav navbar-right">
-    <li className='hopp'>
-      <input  ref='serachFieldUser' type='text' className='form-control' />
-    </li>
-    <li>
-  <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
-    </li>
-    <li className='spaceBetweenSearchAndLogout'>
-    <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
-    </li>
-  </ul>
-  </div>
-  </nav>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div className="navbar-brand">
+          <img src="src/test.png" width="30" height="30" className="d-inline-block align-top" alt="" />
+          Røde Kors
+        </div>
+        <div className='navbar-header'>
+          <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
+          <span className="navbar-toggler-icon"></span>
+          </button>
+        </div>
+        <div className="navbar-collapse collapse" id="navbarSupportedContent">
+          <ul className="navbar-nav mr-auto">
+            <li className="nav-item active">
+              <Link to='/start' className='nav-link'>Start</Link>
+            </li>
+            <li className="nav-item">
+              <Link to='/arrangement'className='nav-link'>Arrangement</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/minside'className='nav-link'><span className="glyphicon glyphicon-user"></span>Minside</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
+            </li>
+            <li className='nav-item'>
+              <Link to='/hjelp' className="nav-link">Hjelp</Link>
+            </li>
+          </ul>
+          <ul className="nav navbar-nav navbar-right">
+            <li className='hopp'>
+              <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
+            </li>
+            <li>
+              <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
+            </li>
+            <li className='spaceBetweenSearchAndLogout'>
+              <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
+            </li>
+          </ul>
+        </div>
+      </nav>
   );
   }
   else{
@@ -939,30 +946,71 @@ class NyttArrangement extends React.Component{
     let vakter = [];
     for (let i in this.vakter) {
       let item = this.vakter[i];
-      vakter.push(<tr key={item.id}><td>Rolle: {item.navn}</td><td>Antall: <input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td><td><button onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td></tr>);
+      vakter.push(
+        <tr key={item.id} className='arrangementVaktTabell'>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Rolle:</span> {item.navn}</td>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td>
+          <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td>
+        </tr>);
     }
 
     return(
       <div>
-        Navn: <input type="text" ref="a_name" defaultValue="Test" /> <br />
-        Startdato: <input type="datetime-local" ref="a_startdate" /> <br /> {/*Autofyll med dagens dato*/}
-        Sluttdato: <input type="datetime-local" ref="a_enddate" /> <br />
-        Oppmøtetidspunkt: <input type="datetime-local" ref="a_meetdate" /> <br />
-        Oppmøtested: <MapWithASearchBox /> <br />
-        Beskrivelse: <textarea rows="4" cols="20" ref="a_desc" defaultValue="En tekstlig beskrivelse"/> <br />
-        Kontaktperson: <br />
-        Navn: <input type="text" ref="k_name" defaultValue="Lars" /> <br />
-        Telefon: <input type="number" ref="k_tlf" defaultValue="95485648" /> <br />
-
-        Rolle: <select ref='rolle'>{rolleList}</select>
-        <button onClick={() => {this.addVakt()}}>Legg til rolle</button>
-
-        <table>
-          <tbody>
-            {vakter}
-          </tbody>
-        </table>
-        <button ref="arrangementButton">Lag arrangement</button>
+        <div className='Rot_nyttArrangement'>
+          <div className='form-group break'>
+            <label htmlFor='navn'>Navn: </label>
+            <input type="text" name='navn' className="form-control col-8" ref="a_name" defaultValue="Test" />
+          </div>
+          <div className='form-group'>
+            <label htmlFor='startdato'>Startdato: </label>
+            <input type="datetime-local" className="form-control col-8" name='startdato' ref="a_startdate" /> {/*Autofyll med dagens dato*/}
+          </div>
+          <div className='form-group'>
+            <label htmlFor='sluttdato'>Sluttdato: </label>
+            <input type="datetime-local" className="form-control col-8" name='sluttdato' ref="a_enddate" />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='oppmotetid'>Oppmøtetidspunkt: </label>
+            <input type="datetime-local" className="form-control col-8" name='oppmotetid' ref="a_meetdate" />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='oppmotested'>Oppmøtested: </label>
+            <MapWithASearchBox name='oppmotested' />
+          </div>
+          <div className='form-group break'>
+            <label htmlFor='beskrivelse'>Beskrivelse: </label>
+            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8" defaultValue="En tekstlig beskrivelse"/>
+          </div>
+          <div className='form-group formFritekst'>
+            <label>Kontaktperson: </label>
+          </div>
+          <div className='form-row'>
+          <div className='col'>
+            <label htmlFor='k_navn'>Navn: </label>
+            <input type="text" name='k_name' className="form-control" ref="k_name" defaultValue="Lars" />
+          </div>
+          <div className='col break'>
+            <label htmlFor='k_tlf'>Telefon: </label>
+            <input type="number" name='k_tlf' className="form-control" ref="k_tlf" defaultValue="95485648" />
+          </div>
+          </div>
+          <div className='form-group'>
+            <label htmlFor='rolle'>Rolle: </label>
+            <select ref='rolle' name='rolle' className="form-control-lg">{rolleList}</select>
+          </div>
+          <div className='form-group'>
+            <button className='btn btn-default' onClick={() => {this.addVakt()}}>Legg til rolle</button>
+          </div>
+          <div className='form-group'>
+            <table>
+              <tbody>
+                {vakter}
+              </tbody>
+            </table>
+            <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
+            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -1569,7 +1617,7 @@ class BrukerSide extends React.Component {
                   <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
                 </tr>
                 <tr>
-                  <td className="brukerSideButtons"><button className='btn btn-deafult' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
+                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
                   <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
                   <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
                 </tr>
@@ -2735,6 +2783,41 @@ class MedlemKvalifikasjoner extends React.Component {
   }
 }
 
+class Hjelp extends React.Component {
+  render() {
+    let signedInUser = loginService.getSignedInUser();
+    if (signedInUser.admin === 1) {
+      return(
+        <div className='bd-content col-12'>
+          <div className='row'>
+            <div className='col'>
+              <h3 className='display-4'>Opprette arrangement</h3>
+              <p>
+                For å lage et nytt arrangement gå til arrangement-fanen og klikk knappen hvor det står «Opprett arrangement».
+                Deretter fyller du inn nødvendig informasjon.
+              </p>
+            </div>
+            <div className='col'>
+              <h3 className='display-4'>Kalle inn til arrangement</h3>
+              <p>
+              </p>
+            </div>
+            <div className='col'>
+              <h3 className='display-4'>Godkjenne bruker</h3>
+              <p>
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    } else {
+      return(
+        <div>
+        </div>
+      )
+    }
+  }
+}
 
 ReactDOM.render((
   <HashRouter>
@@ -2767,6 +2850,7 @@ ReactDOM.render((
         <Route exact path='/T-utstyr' component={Utstyr} />
         <Route exact path='/T-kvalifikasjon' component={Kvalifikasjoner} />
         <Route exact path='/mineVakter' component={MineVakter} />
+        <Route exact path='/hjelp' component={Hjelp} />
       </Switch>
       <Popup />
     </div>
