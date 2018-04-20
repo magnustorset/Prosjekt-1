@@ -301,9 +301,9 @@ class LoginService {
 
 class ArrangementService {
   //Administrator oppdaterer arrangement
-  updateArrangement(text,oppmote,start,slutt,id){
+  updateArrangement(text,oppmote,start,slutt,latitude,longitude,address,id){
     return new Promise((resolve, reject)=>{
-      connection.query('UPDATE arrangement set beskrivelse = ?, oppmootetidspunkt = ?, starttidspunkt = ?, sluttidspunkt = ?  where id = ?', [text,oppmote,start,slutt,id], (error, result)=>{
+      connection.query('UPDATE arrangement set beskrivelse = ?, oppmootetidspunkt = ?, starttidspunkt = ?, sluttidspunkt = ?,latitute = ?,longitute = ?, address = ?  where id = ?', [text,oppmote,start,slutt,latitude,longitude,address,id], (error, result)=>{
         if(error){
           reject(error);
           return;

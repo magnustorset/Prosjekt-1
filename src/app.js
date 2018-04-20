@@ -89,17 +89,17 @@ const MapWithASearchBox = compose(
         },
        dragMarker(){
          let b = this.getPosition();
-         this.setPosition(b);
-         console.log(b.lat(),b.lng());
+         latitude = b.lat();
+         longitude = b.lng();
+         let latlng = {lat: b.lat(), lng: b.lng()};
+         let geocoder = new google.maps.Geocoder();
+         geocoder.geocode({'location': latlng},function(results,status){
+           if(status === 'OK'){
+             address = results[0].formatted_address;
+           }
+         });
+
        },
-       onMapClick(){
-         let p = refs.marker.getPosition();
-         console.log(p.lat(), p.lng());
-       },
-        onClick(){
-          let a = this.getPosition();
-          console.log(a.lat(),a.lng());
-        },
 
         onPlacesChanged: () => {
           const places = refs.searchBox.getPlaces();
@@ -144,7 +144,6 @@ const MapWithASearchBox = compose(
     defaultZoom={15}
     center={props.center}
     onBoundsChanged={props.onBoundsChanged}
-    onClick={props.onMapClick}
     >
       <SearchBox
       ref={props.onSearchBoxMounted}
@@ -178,7 +177,6 @@ const MapWithASearchBox = compose(
             position={marker.position}
             draggable={true}
             onDragEnd={props.dragMarker}
-            onClick={props.onClick}
             />
           )}
           </GoogleMap>
@@ -1979,7 +1977,7 @@ class EndreArrangement extends React.Component {
             <div className='form-group'>
               <label htmlFor='kart'>Oppmøtested:</label>
               <p>{this.state.oppmotested}</p>
-              <MapWithAMarker name='kart' />
+              <MapWithASearchBox name='kart' />
             </div>
             <div className='form-group'>
               <button className='btn btn-default' ref='lagreEndringer'>Lagre endringene</button>
@@ -1992,6 +1990,10 @@ class EndreArrangement extends React.Component {
   let a = moment(variabel).format('YYYY-MM-DDTHH:mm');
   return a;
   }
+  componentWillUnmount(){
+    latitude = 63.4123278
+    longitude = 10.404471000000058
+  }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
@@ -2001,8 +2003,8 @@ class EndreArrangement extends React.Component {
       this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
       this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
       this.state.oppmotested = this.arrangement.address;
-      mapLat = this.arrangement.latitude;
-      mapLng = this.arrangement.longitute;
+      latitude = this.arrangement.latitude;
+      longitude = this.arrangement.longitute;
       this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
@@ -2014,8 +2016,8 @@ class EndreArrangement extends React.Component {
       if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
     });
     this.refs.lagreEndringer.onclick = () =>{
-      arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,this.id).then((result)=>{
-      this.forceUpdate();
+      arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,latitude,longitude,address,this.id).then((result)=>{
+      history.push('/visArrangement/'+this.arrangement.id);
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement' + error);
     });
