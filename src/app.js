@@ -369,6 +369,7 @@ class Prompt2 extends React.Component {
           return <select ref='selectField' className="mm-popup__input" placeholder={this.props.placeholder} value={this.state.value} onChange={this.onChange}>{bruker}</select>;
       }
   }
+
 Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
       let promptValue = 0;
 
@@ -405,8 +406,54 @@ Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
       });
     });
 
+class popover extends React.Component {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            value: this.props.defaultValue
+        };
 
+        this.onChange = (e) => this._onChange(e);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.value !== this.state.value) {
+            this.props.onChange(this.state.value);
+        }
+    }
+
+    _onChange(e) {
+        let value = e.target.value;
+
+        this.setState({value: value});
+    }
+
+    render() {
+        return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+    }
+}
+
+Popup.registerPlugin('popover', function (content, target) {
+    this.create({
+        content: content,
+        className: 'popover',
+        noOverlay: true,
+
+        position: function (box) {
+            let bodyRect      = document.getElementById('root').getBoundingClientRect();
+            let btnRect       = target.getBoundingClientRect();
+            let btnOffsetTop  = btnRect.top - bodyRect.top;
+            let btnOffsetLeft = btnRect.left - bodyRect.left;
+            let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+            box.style.top  = (btnOffsetTop - box.offsetHeight - 10) - scroll + 'px';
+            box.style.left = (btnOffsetLeft + (target.offsetWidth / 2) - (box.offsetWidth / 2)) + 'px';
+            box.style.margin = 0;
+            box.style.opacity = 1;
+        }
+    });
+});
 
 class Menu extends React.Component {
   render () {
@@ -985,18 +1032,19 @@ class NyttArrangement extends React.Component{
             <label>Kontaktperson: </label>
           </div>
           <div className='form-row'>
-          <div className='col'>
-            <label htmlFor='k_navn'>Navn: </label>
-            <input type="text" name='k_name' className="form-control" ref="k_name" defaultValue="Lars" />
-          </div>
-          <div className='col break'>
-            <label htmlFor='k_tlf'>Telefon: </label>
-            <input type="number" name='k_tlf' className="form-control" ref="k_tlf" defaultValue="95485648" />
-          </div>
+            <div className='col'>
+              <label htmlFor='k_navn'>Navn: </label>
+              <input type="text" name='k_name' className="form-control" ref="k_name" defaultValue="Lars" />
+            </div>
+            <div className='col break'>
+              <label htmlFor='k_tlf'>Telefon: </label>
+              <input type="number" name='k_tlf' className="form-control" ref="k_tlf" defaultValue="95485648" />
+            </div>
           </div>
           <div className='form-group'>
             <label htmlFor='rolle'>Rolle: </label>
             <select ref='rolle' name='rolle' className="form-control-lg">{rolleList}</select>
+            <button className='btn btn-default' id='aHelpButton' ref='helpButton'>Hjelp</button>
           </div>
           <div className='form-group'>
             <button className='btn btn-default' onClick={() => {this.addVakt()}}>Legg til rolle</button>
@@ -1032,6 +1080,12 @@ class NyttArrangement extends React.Component{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
     }
+
+    this.refs.helpButton.onclick = () => {
+      Popup.plugins().popover('Velg rollen du vil legge til fra rullegardinmenyen og klikk legg til rolle. Skriv deretter inn antall. Hvis du vil legge til flere roller velger du en ny rolle fra menyen og skriver inn antall igjen.', aHelpButton);
+
+    }
+
   }
 
   addVakt() {
