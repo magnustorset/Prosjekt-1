@@ -776,6 +776,9 @@ class ResetPassord extends React.Component {
     return (
       <div>
         <div className='Rot container'>
+          <p className='form-group'>
+            Du har nå blitt sendt en epost med en kode. Skriv inn koden her.
+          </p>
           <div className='form-group'>
             <label htmlFor='kode'>Kode:</label>
             <input type='text' name='kode' className='form-control col-2' ref='kodeInput' />
@@ -1044,10 +1047,8 @@ class NyttArrangement extends React.Component{
           <div className='form-group'>
             <label htmlFor='rolle'>Rolle: </label>
             <select ref='rolle' name='rolle' className="form-control-lg">{rolleList}</select>
-            <button className='btn btn-default' id='aHelpButton' ref='helpButton'>Hjelp</button>
-          </div>
-          <div className='form-group'>
             <button className='btn btn-default' onClick={() => {this.addVakt()}}>Legg til rolle</button>
+            <button className='btn btn-default' id='aHelpButton' ref='helpButton'>Hjelp</button>
           </div>
           <div className='form-group'>
             <table>
@@ -1395,7 +1396,7 @@ class SeKvalifikasjoner extends React.Component {
 
     this.user = [];
     this.kvalifikasjoner = [];
-    this.id = brukerid;
+    this.id = loginService.getSignedInUser().id;
 
   }
   render(){
