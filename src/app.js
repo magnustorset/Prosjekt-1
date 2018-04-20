@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -453,6 +453,9 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/T-kvalifikasjon' className="nav-link">Kvalifikasjoner</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/T-rolle' className="nav-link">Roller</Link>
           </li>
           <li className='nav-item'>
             <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
@@ -943,23 +946,30 @@ class NyttArrangement extends React.Component{
     this.linjer = 1;
     this.roller = [];
     this.vakter = [];
+    this.maler = [];
   }
   render(){
     let rolleList = [];
+    let vakter = [];
+    let malList = [];
+
     rolleList.push(<option key="0" value="0"></option>);
     for(let item of this.roller) {
       rolleList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
     }
 
-    let vakter = [];
     for (let i in this.vakter) {
       let item = this.vakter[i];
       vakter.push(
         <tr key={item.id} className='arrangementVaktTabell'>
           <td className='arrangementVaktTabellData'><span className='tableText'>Rolle:</span> {item.navn}</td>
-          <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" onChange={(event) => {item.antall = +event.target.value}} /></td>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" defaultValue={item.antall} onChange={(event) => {item.antall = +event.target.value}} /></td>
           <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td>
         </tr>);
+    }
+
+    for(let item of this.maler) {
+      malList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
     }
 
     return(
@@ -1018,7 +1028,15 @@ class NyttArrangement extends React.Component{
                 {vakter}
               </tbody>
             </table>
-            <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
+
+            <br />
+            <div>
+              Vakt mal <br />
+              Mal: <select ref='mal'>{malList}</select> <button ref='velgMal'>Velg</button> <button ref='slettMal'>Slet</button>
+              <br /><br />
+              Navn: <input ref='malNavn'/> <button ref='endreMal'>Endre</button> <button ref='leggTilMal'>Legg til</button>
+            </div>
+ <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
           </div>
         </div>
       </div>
@@ -1035,6 +1053,16 @@ class NyttArrangement extends React.Component{
       console.log(err);
     })
 
+    malService.getMals().then((res) => { //Finnished
+      console.log('getMals Sukse!');
+      console.log(res);
+      this.maler = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log('getMals feil!');
+      console.log(err);
+    });
+
     this.refs.arrangementButton.onclick = () => {
       arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude, address).then(() => {
         address = ''
@@ -1044,6 +1072,85 @@ class NyttArrangement extends React.Component{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
     }
+
+
+    this.refs.velgMal.onclick = () => {
+      let id = this.refs.mal.value;
+
+      malService.getMalRolls(id).then((res) => {
+        console.log(res);
+
+        let vakter = [];
+        for(let item of res) {
+          vakter.push({id: item.r_id, navn: this.addify(item.r_id), antall: item.antall});
+        }
+        console.log(vakter);
+        this.vakter = vakter;
+
+        this.componentDidMount();
+      }).catch((err) => {
+        console.log('getMalRolls error!');
+      });
+    }
+    this.refs.slettMal.onclick = () => {
+      let id = this.refs.mal.value;
+
+      malService.removeMalRolls(id).then((res) => {
+        console.log('removeMalRolls sukse!');
+        malService.removeMal(id).then((res) => {
+          console.log('removeMal sukse!');
+          this.componentDidMount();
+        }).catch((err) => {
+          console.log('removeMal feil!');
+        });
+      }).catch((err) => {
+        console.log('removeMalRolls feil!');
+      });
+    }
+    this.refs.endreMal.onclick = () => { //Finnished
+      let id = this.refs.mal.value;
+      let navn = this.refs.malNavn.value;
+      console.log(id, navn);
+
+      malService.alterMal(id, navn).then((res) => {
+        console.log('alterMal sukse!');
+        malService.removeMalRolls(id).then((res) => {
+          console.log('removeMalRolls sukse!');
+          malService.addMalRolls(id, this.vakter).then((res) => {
+            console.log('addMalRolls sukse!');
+            this.componentDidMount();
+          }).catch((err) => {
+            console.log('addMalRolls Feil!');
+
+          })
+        }).catch((err) => {
+          console.log('removeMalRolls error!');
+        })
+      }).catch((err) => {
+        console.log('alterMal error!');
+      })
+    }
+    this.refs.leggTilMal.onclick = () => { //Finnished
+      let navn = this.refs.malNavn.value;
+      console.log(navn);
+      malService.addMal(navn).then((res) => {
+        console.log('addMal Sukse!');
+        console.log(res);
+
+        malService.addMalRolls(res.insertId, this.vakter).then((res) => {
+          console.log('addMalRolls sukse!');
+          console.log(res);
+          this.componentDidMount();
+        }).catch((err) => {
+          console.log('addMalRolls Feil!');
+          console.log(err);
+        })
+      }).catch((err) => {
+        console.log('addMal Feil!');
+        console.log(err);
+      })
+    }
+
   }
 
   addVakt() {
@@ -1070,6 +1177,14 @@ class NyttArrangement extends React.Component{
       }
     }
     return true;
+  }
+  addify(id) {
+    for(let item of this.roller) {
+      if (item.id === id) {
+        return item.navn;
+      }
+    }
+    return 'Inngen rolle funnet';
   }
 }
 
@@ -2803,6 +2918,77 @@ class MedlemKvalifikasjoner extends React.Component {
   }
 }
 
+
+class Rolle extends React.Component {
+  constructor() {
+    super();
+    this.roller = [];
+  }
+  render() {
+    let rolleListe = [];
+
+    rolleListe.push(<tr key={'rolleListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    for (let item of this.roller) {
+      rolleListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeRolle(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeRolle(item.id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {rolleListe}
+            </tbody>
+          </table>
+          Navn: <input ref='roNavn'/> <button className='btn btn-default' ref='lagRo'>Legg til</button>
+        </div>
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagRo.onclick = () => {
+      console.log(this.refs.roNavn.value);
+      rolleService.addRolle(this.refs.roNavn.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    rolleService.getAllRolle().then((res) => {
+      console.log(res);
+      this.roller = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeRolle(id) {
+    console.log('Endre: ' + id);
+    rolleService.alterRolle(id, this.refs.roNavn.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeRolle(id) {
+    console.log('Fjern: ' + id);
+    rolleService.removeRolle(id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+
 class Hjelp extends React.Component {
   render() {
     let signedInUser = loginService.getSignedInUser();
@@ -2869,6 +3055,7 @@ ReactDOM.render((
         <Route exact path='/inkalling/:id' component={Innkalling} />
         <Route exact path='/T-utstyr' component={Utstyr} />
         <Route exact path='/T-kvalifikasjon' component={Kvalifikasjoner} />
+        <Route exact path='/T-rolle' component={Rolle} />
         <Route exact path='/mineVakter' component={MineVakter} />
         <Route exact path='/hjelp' component={Hjelp} />
       </Switch>
