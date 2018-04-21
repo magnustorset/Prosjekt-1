@@ -705,8 +705,16 @@ class Menu extends React.Component {
   }
 
   componentDidMount(){
+    let isRefresh
+    window.onkeydown = e => {
+      if ((e.ctrlKey || e.metaKey) && e.keyCode === 82) {
+        isRefresh = true;
+      }
+    }
     window.onbeforeunload = e => {
-      loginService.signOut();
+      if (!isRefresh) {
+        loginService.signOut()
+      }
       return;
     };
   }
@@ -780,7 +788,7 @@ class Innlogging extends React.Component {
 class NyBruker extends React.Component {
   render () {
     return (
-      <div className='Rot_nybruker container'>
+      <div className='Rot_nybruker'>
          <div className='form-group'>
             <label htmlFor='fornavn'>Fornavn:</label>
             <input type="text" ref="fornavnInput" className='form-control col-6 sokeFelt' defaultValue="Fornan" name='fornavn'/>
@@ -1406,6 +1414,7 @@ class MineSider extends React.Component {
     }
     return(
       <div>
+
         <h1 className='title'>Min Side</h1>
         <div className='vasrselDiv'>
           <table>

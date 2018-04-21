@@ -716,12 +716,6 @@ class AdministratorFunctions{
   }
 }
 
-let userService = new UserService()
-let loginService = new LoginService()
-let arrangementService = new ArrangementService()
-let emailService = new EmailService()
-let administratorFunctions = new AdministratorFunctions()
-
 
 class VaktValg {
   static lagListe3(id) {
@@ -1244,7 +1238,11 @@ class StatistikkService {
 
 }
 
-
+let userService = new UserService()
+let loginService = new LoginService()
+let arrangementService = new ArrangementService()
+let emailService = new EmailService()
+let administratorFunctions = new AdministratorFunctions()
 let rolleService = new RolleService();
 let malService = new MalService();
 let statistikkService = new StatistikkService();
