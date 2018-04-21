@@ -303,7 +303,7 @@ class ArrangementService {
   //Henter alle dine vaktbytter, så de kan vises som varsler
   varsler(minid){
     return new Promise((resolve,reject)=>{
-      connection.query('select vb.om_id, vb.nm_id,vb.aid, m.fornavn as Onavn, md.fornavn as Nnavn,a.navn as anavn, vb.bekreftelse,vb.godtatt,r.navn as rollenavn from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid inner join vakt v on v.id = vb.vakt_id inner join rolle r on r.id = v.r_id where om_id= ? and (bekreftelse = ? and godtatt = ?) or om_id = ? and (bekreftelse = ? and godtatt = ?)',[minid,false,true,minid,true,true],(error, result)=>{
+      connection.query('select vb.id,vb.om_id, vb.nm_id,vb.aid, m.fornavn as Onavn, md.fornavn as Nnavn,a.navn as anavn, vb.bekreftelse,vb.godtatt,r.navn as rollenavn from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid inner join vakt v on v.id = vb.vakt_id inner join rolle r on r.id = v.r_id where om_id= ? and (bekreftelse = ? and godtatt = ?) or om_id = ? and (bekreftelse = ? and godtatt = ?)',[minid,false,true,minid,true,true],(error, result)=>{
         if(error){
           reject(error);
           return;
