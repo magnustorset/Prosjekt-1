@@ -529,7 +529,8 @@ class ArrangementService {
 
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
-        connection.query('SELECT *, arrangement.id as a_id from arrangement INNER JOIN medlem on kontaktperson = medlem.id where navn LIKE ?',[sok], (error, result) =>{
+        let today = new Date()
+        connection.query('SELECT *, arrangement.id as a_id from arrangement INNER JOIN medlem on kontaktperson = medlem.id where navn LIKE ? AND sluttidspunkt > ? ORDER BY starttidspunkt ASC',[sok, today], (error, result) =>{
           if(error){
             reject(error);
             return;
