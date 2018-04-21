@@ -1196,7 +1196,6 @@ class NyttArrangement extends React.Component{
             </div>
           </div>
           <div className='form-group'>
-            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
             <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
           </div>
         </div>
