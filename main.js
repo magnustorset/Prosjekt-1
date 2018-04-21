@@ -64,7 +64,7 @@ app.on('window-all-closed', () => {
 
   if (process.platform === 'darwin') {
     template.unshift({
-      label: require('electron').getName(),
+      label: app.getName(),
       submenu: [
         {role: 'about'},
         {type: 'separator'},
