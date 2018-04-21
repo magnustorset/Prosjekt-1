@@ -300,6 +300,18 @@ class LoginService {
 }
 
 class ArrangementService {
+  //Henter alle dine vaktbytter, så de kan vises som varsler
+  varsler(minid){
+    return new Promise((resolve,reject)=>{
+      connection.query('select vb.om_id, vb.nm_id,vb.aid, m.fornavn as Onavn, md.fornavn as Nnavn,a.navn as anavn, vb.bekreftelse,vb.godtatt,r.navn as rollenavn from vaktBytte vb inner join medlem m on m.id = vb.om_id inner join medlem md on md.id = vb.nm_id inner join arrangement a on a.id = vb.aid inner join vakt v on v.id = vb.vakt_id inner join rolle r on r.id = v.r_id where om_id= ? and (bekreftelse = ? and godtatt = ?) or om_id = ? and (bekreftelse = ? and godtatt = ?)',[minid,false,true,minid,true,true],(error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
   //Sjekke om personen alt er interresert i arrangementet
   getInterest(mid,aid){
     return new Promise((resolve, reject)=>{
@@ -918,7 +930,6 @@ class UtstyrService {
 
 }
 
-
 class KvalifikasjonService {
   static getAllKvalifikasjon() {
     return new Promise((resolve, reject) => {
@@ -1047,7 +1058,6 @@ class KvalifikasjonService {
 
 }
 
-
 class RolleService {
   getAllRolle() {
     return new Promise((resolve, reject) => {
@@ -1091,6 +1101,7 @@ class RolleService {
   }
 
 }
+
 
 class MalService {
   getMals() {
@@ -1188,9 +1199,54 @@ class MalService {
   }
 }
 
+class StatistikkService {
+  allMedAntVakter() { //Totale antallet vakter hvert medlem har tatt
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT m_id, brukernavn, COUNT(*) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id GROUP BY m_id, brukernavn', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  allMedAntTimer() { //Totale antallet timer hvert medlem har tatt
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT m_id, brukernavn, SUM(ROUND(TIME_TO_SEC(TIMEDIFF(sluttidspunkt, oppmootetidspunkt))/3600)) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id INNER JOIN arrangement a ON v.a_id = a.id GROUP BY m_id, brukernavn', (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+  allMedAntTimerMDato(fra, til) { //Totale antallet timer hvert medlem har tatt
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT m_id, brukernavn, SUM(ROUND(TIME_TO_SEC(TIMEDIFF(sluttidspunkt, oppmootetidspunkt))/3600)) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id INNER JOIN arrangement a ON v.a_id = a.id WHERE (oppmootetidspunkt BETWEEN ? AND ?) GROUP BY m_id, brukernavn', [fra, til], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+  allMedAntVaktMDato(fra, til) { //Totale antallet timer hvert medlem har tatt
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT m_id, brukernavn, COUNT(*) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id INNER JOIN arrangement a ON v.a_id = a.id WHERE (oppmootetidspunkt BETWEEN ? AND ?) GROUP BY m_id, brukernavn', [fra, til], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+}
 
 
 let rolleService = new RolleService();
 let malService = new MalService();
+let statistikkService = new StatistikkService();
 
-export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService }
+export { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService, statistikkService }

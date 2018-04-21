@@ -54,6 +54,21 @@ background-color: white;
   width: 50%;
 }
 
+.varselGod{
+  padding: 10px;
+  background-color: lightgreen;
+  border-bottom: 1px solid black;
+}
+.varselDårlig{
+  padding: 10px;
+  background-color: #ff7c66;
+  border-bottom: 1px solid black;
+}
+.vasrselDiv{
+  float:right;
+  margin-right: 4%;
+}
+
 /*
 
 ******IKKE I BRUK******
