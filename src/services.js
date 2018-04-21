@@ -917,7 +917,6 @@ class UtstyrService {
 
 }
 
-
 class KvalifikasjonService {
   static getAllKvalifikasjon() {
     return new Promise((resolve, reject) => {
@@ -1046,7 +1045,6 @@ class KvalifikasjonService {
 
 }
 
-
 class RolleService {
   getAllRolle() {
     return new Promise((resolve, reject) => {
@@ -1090,6 +1088,7 @@ class RolleService {
   }
 
 }
+
 
 class MalService {
   getMals() {
