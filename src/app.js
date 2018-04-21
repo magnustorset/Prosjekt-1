@@ -702,11 +702,26 @@ class Menu extends React.Component {
     else if(klokke == 1){klokke++; kollaps.style.display = 'none';}
     if(kollaps.style.display =='none'){klokke=0;}
   }
-    logOut(){
-      loginService.signOut();
-      history.push('/')
-    }
+  logOut(){
+    loginService.signOut();
+    history.push('/')
   }
+
+  componentDidMount(){
+    let isRefresh
+    window.onkeydown = e => {
+      if ((e.ctrlKey || e.metaKey) && e.keyCode === 82) {
+        isRefresh = true;
+      }
+    }
+    window.onbeforeunload = e => {
+      if (!isRefresh) {
+        loginService.signOut()
+      }
+      return;
+    };
+  }
+}
 
 class Innlogging extends React.Component {
   render () {
@@ -776,7 +791,7 @@ class Innlogging extends React.Component {
 class NyBruker extends React.Component {
   render () {
     return (
-      <div className='Rot_nybruker container'>
+      <div className='Rot_nybruker'>
          <div className='form-group'>
             <label htmlFor='fornavn'>Fornavn:</label>
             <input type="text" ref="fornavnInput" className='form-control col-6 sokeFelt' defaultValue="Fornan" name='fornavn'/>
@@ -1031,11 +1046,32 @@ class Arrangement extends React.Component{
     this.arrangement = [];
   }
   render(){
-    let a = 100;
+    let a = 10000;
+    let b = 100000;
+    let c = 1000000;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(
+          <tr key={a}>
+            <td className='arrangementTable' >Navn</td>
+            <td className='arrangementTable'>Kontaktperson</td>
+          </tr>,
+          <tr key={table.a_id}>
+            <td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td>
+            <td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td>
+          </tr>,
+          <tr key={b}>
+            <td className='arrangementTable'>Adresse</td>
+            <td className='arrangementTable'>Dato</td>
+          </tr>,
+          <tr key={c}>
+            <td className='arrangementTableDataBot'>{table.address}</td>
+            <td className='arrangementTableDataBot'>{moment(table.starttidspunkt).format('ll')}</td>
+          </tr>
+        )
       a++;
+      b++;
+      c++;
     }
     let signedInUser = loginService.getSignedInUser();
     if(signedInUser.admin === 1)
@@ -1205,6 +1241,7 @@ class NyttArrangement extends React.Component{
             <select ref='mal' name='mal' className="form-control-lg sokeFelt">{malList}</select>
             <button className='btn btn-default' ref='velgMal'>Velg</button>
             <button className='btn btn-default'ref='slettMal'>Slett</button>
+            <button className='btn btn-xs btn-default' id='vaktHelpButton' ref='vaktHelpButton'><span className="glyphicon glyphicon-info-sign"></span></button>
           </div>
           <div className='form-group row'>
             <div className='col-1'>
@@ -1278,6 +1315,9 @@ class NyttArrangement extends React.Component{
         address = ''
         longitude = ''
         latitude = ''
+
+        history.push('/Arrangement')
+
         let vakter = [];
         for (let item of this.vakter) {
           for (var i = 0; i < item.antall; i++) {
@@ -1307,6 +1347,7 @@ class NyttArrangement extends React.Component{
           if(errorMessage) errorMessage.set('Kunne ikke legge til utstyr');
         });
 
+
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
 
@@ -1317,6 +1358,12 @@ class NyttArrangement extends React.Component{
     this.refs.helpButton.onclick = () => {
       Popup.plugins().popover('Velg rollen du vil legge til fra rullegardinmenyen og klikk legg til rolle. Skriv deretter inn antall. Hvis du vil legge til flere roller velger du en ny rolle fra menyen og skriver inn antall igjen.', aHelpButton);
     }
+
+
+    this.refs.vaktHelpButton.onclick = () => {
+      Popup.plugins().popover('For å bruke en mal velger du en mal fra rullegardinmenyen så vil roller og antall automatisk bli fylt inn. For å legge til en vaktmal fyll inn de rollene du vil ha med, skriv inn et navn og trykk "Legg til". For å endre en mal, velg først malen du vil endre, så endrer du rollene til det du vil, deretter skriver du et navn og klikker "Endre".', vaktHelpButton);
+    }
+
 
     this.refs.velgMal.onclick = () => {
       let id = this.refs.mal.value;
@@ -1517,6 +1564,7 @@ class MineSider extends React.Component {
     }
     return(
       <div>
+
         <h1 className='title'>Min Side</h1>
         <div className='vasrselDiv'>
           <table>
@@ -2274,7 +2322,6 @@ class EndreBrukerInfo extends React.Component {
   this.update();
   }
 }
-
 
 class VisArrangement extends React.Component {
   constructor(props) {
@@ -3089,13 +3136,22 @@ class MineVakter extends React.Component {
           <tbody>
             <tr>
               <td>
-                <p><strong>Ikke godkjente</strong></p>
+                <p>
+                  <strong>Ikke godkjente</strong>
+                  <button className='btn btn-xs btn-default' id='ikkeGodkjentVaktHelpButton' ref='ikkeGodkjentVaktHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+                </p>
               </td>
               <td>
-                <p><strong>Godkjente</strong></p>
+                <p>
+                  <strong>Godkjente</strong>
+                  <button className='btn btn-xs btn-default' id='GodkjentVaktHelpButton' ref='GodkjentVaktHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+                </p>
               </td>
               <td>
-                <p><strong>Bytte forespørsler</strong></p>
+                <p>
+                  <strong>Bytte forespørsler</strong>
+                  <button className='btn btn-xs btn-default' id='bytteForespørselHelpButton' ref='bytteForespørselHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+                </p>
               </td>
             </tr>
             <tr>
@@ -3202,6 +3258,17 @@ class MineVakter extends React.Component {
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
     });
+
+    this.refs.ikkeGodkjentVaktHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises vakter du har blitt kalt inn til, men som du ikke har sagt fra om at du skal være med på.', ikkeGodkjentVaktHelpButton);
+    }
+    this.refs.GodkjentVaktHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises vakter du har godkjent. Klikk "Bytt vakt" for å sende en forespørsel til en annen bruker om å bytte vakt', GodkjentVaktHelpButton);
+    }
+    this.refs.bytteForespørselHelpButton.onclick = () => {
+      Popup.plugins().popunder('Her vises forespørsler du har mottatt om å bytte vakt. Klikk "Ok" for å bekrefte at du vil ta over vakten. Trykk "Nei" for å avslå', bytteForespørselHelpButton);
+    }
+
   }
 }
 

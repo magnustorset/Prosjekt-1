@@ -115,9 +115,9 @@ background-color: white;
 
 /* Ny bruker */
 .Rot_nybruker {
-  position: absolute;
-  top:5%;
-  bottom: 2%;
+  position: relative;
+  top:50px;
+  margin-bottom: 30px;
   left: 35%;
   background-color: #f7bab2;
   padding: 30px;
