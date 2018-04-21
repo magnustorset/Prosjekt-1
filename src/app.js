@@ -1726,10 +1726,12 @@ class VisSøkeResultat extends React.Component {
    }
     return(
       <div>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Tilbake</button>
+        </div>
       <ul>
       {resultat}
       </ul>
-      <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
       </div>
     );
   }
@@ -1755,6 +1757,9 @@ class BrukerSide extends React.Component {
     if (signedInUser.admin === 1 && this.user.admin === 0) {
       return(
         <div>
+          <div>
+            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+          </div>
           <div className="brukerSideTabell">
           <table className="brukerSideTabell">
             <thead>
@@ -1785,7 +1790,6 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1793,6 +1797,9 @@ class BrukerSide extends React.Component {
       if(signedInUser.admin === 1 && this.user.admin === 1){
         return(
           <div>
+          <div>
+            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+          </div>
             <div className="brukerSideTabell">
             <table className="brukerSideTabell">
               <thead>
@@ -1823,7 +1830,6 @@ class BrukerSide extends React.Component {
                 </tr>
               </tbody>
             </table>
-              <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
             </div>
           </div>
         )
@@ -1831,6 +1837,9 @@ class BrukerSide extends React.Component {
       return(
         <div>
           <div>
+          <div>
+            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+          </div>
           <table className='brukerSideTabell'>
             <thead>
               <tr>
@@ -1846,7 +1855,6 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
