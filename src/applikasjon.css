@@ -168,10 +168,17 @@ background-color: white;
 
 .arrangementTable {
   font-weight: bold;
+  padding-top: 15px;
 }
-.arrangementTableData {
+
+.arrangementTableData{
+  padding-bottom: 3px;
+}
+
+.arrangementTableDataBot {
   padding-bottom: 10px;
   border-bottom: 1px solid black;
+  padding-right: 5px;
 }
 
 .arrangementLink {

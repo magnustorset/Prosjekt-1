@@ -1028,11 +1028,32 @@ class Arrangement extends React.Component{
     this.arrangement = [];
   }
   render(){
-    let a = 100;
+    let a = 10000;
+    let b = 100000;
+    let c = 1000000;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(
+          <tr key={a}>
+            <td className='arrangementTable' >Navn</td>
+            <td className='arrangementTable'>Kontaktperson</td>
+          </tr>,
+          <tr key={table.a_id}>
+            <td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td>
+            <td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td>
+          </tr>,
+          <tr key={b}>
+            <td className='arrangementTable'>Adresse</td>
+            <td className='arrangementTable'>Dato</td>
+          </tr>,
+          <tr key={c}>
+            <td className='arrangementTableDataBot'>{table.address}</td>
+            <td className='arrangementTableDataBot'>{moment(table.starttidspunkt).format('ll')}</td>
+          </tr>
+        )
       a++;
+      b++;
+      c++;
     }
     let signedInUser = loginService.getSignedInUser();
     if(signedInUser.admin === 1)
@@ -1081,7 +1102,7 @@ class Arrangement extends React.Component{
       this.arrangement = result;
       this.forceUpdate();
     }).catch((error) => {
-      if(errorMessage) errorMessage.set('Finner ikke arrangement');
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
     });
   }
   }
@@ -1230,6 +1251,7 @@ class NyttArrangement extends React.Component{
         address = ''
         longitude = ''
         latitude = ''
+        history.push('/Arrangement')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
@@ -2043,7 +2065,7 @@ class VisArrangement extends React.Component {
     return(
       <div>
       <div>
-        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
       </div>
         <div className='Rot_nyttArrangement'>
             <div className='form-group'>
@@ -2093,7 +2115,7 @@ class VisArrangement extends React.Component {
     return(
       <div>
       <div>
-        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
       </div>
         <div className='Rot_nyttArrangement'>
             <div className='form-group'>
