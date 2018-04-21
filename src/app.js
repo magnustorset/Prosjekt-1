@@ -3348,15 +3348,23 @@ class RolleKvalifikasjoner extends React.Component {
   constructor() {
     super();
     this.rolleKval = []
+    this.kvalifikasjoner =[]
+    this.roller = [];
   }
   render() {
     let kvalListe = [];
-
+    let kvalifikasjoner = [];
+    let rolleListe = [];
     kvalListe.push(<tr key={'RKListe'}><td>Rolle</td><td>Kvalifikasjon</td><td>Knapper</td></tr>);
     for (let item of this.rolleKval) {
       kvalListe.push(<tr key={item.r_id + ' - ' + item.k_id}><td>{item.r_navn}</td><td>{item.k_navn}</td><td><button className='btn btn-default' onClick={() => {this.removeKval(item.r_id, item.k_id)}}>Fjern</button></td></tr>);
     }
-
+    for (let item of this.roller) {
+      rolleListe.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+    }
+    for (let item of this.kvalifikasjoner) {
+      kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+    }
     return(
       <div>
         <br />
@@ -3367,7 +3375,7 @@ class RolleKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Rolle: <input className='sokeFelt' ref='rolle'/> Kvalifikasjon: <input className='sokeFelt' ref='kval'/> <button className='btn btn-default' ref='lagRK'>Legg til</button>
+          Rolle:  <select ref='rolle'>{rolleListe}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -3394,8 +3402,21 @@ class RolleKvalifikasjoner extends React.Component {
     }).catch((err) => {
       console.log(err);
     });
-  }
-
+    KvalifikasjonService.getAllKvalifikasjon().then((res) => {
+      console.log(res);
+      this.kvalifikasjoner = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    rolleService.getAllRolle().then((res) => {
+      console.log(res);
+      this.roller = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+  });
+}
   changeKval(r_id, k_id) {
     console.log('Endre');
     // KvalifikasjonService.alterRK(r_id, k_id).then((res) => {
