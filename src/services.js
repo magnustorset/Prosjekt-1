@@ -485,47 +485,53 @@ class ArrangementService {
       })
     })
   }
-  addArrangement (tlf, navn, meetdate, startdate, enddate, desc, roller, longitude, latitude, address) {
-      let k_id;
-      return new Promise((resolve, reject) =>{
-        connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
+
+  addArrangement (tlf, navn, meetdate, startdate, enddate, desc, longitude, latitude, address) {
+    let k_id;
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
+        if(error){
+          console.log('tlf err');
+          console.log(error);
+          reject(error);
+          return;
+        }
+        k_id = result[0].id
+
+        connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute, address) values (?, ?, ?, ?, ?, ?, ?, ?,?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude, address], (error, result) => {
           if(error){
-            console.log('tlf err');
+            console.log('arrangement err');
             console.log(error);
             reject(error);
+
             return;
           }
-          k_id = result[0].id
-
-          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute, address) values (?, ?, ?, ?, ?, ?, ?, ?,?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude, address], (error, result) => {
-            if(error){
-              console.log('arrangement err');
-              console.log(error);
-              reject(error);
-
-              return;
-            }
-            for (var i = 0; i < roller.length; i++) {
-              for (var o = 0; o < roller[i].antall; o++) {
-                connection.query('INSERT INTO vakt (a_id, r_id) values (?, ?)', [result.insertId, roller[i].id], (error, result) => {
-                  if(error){
-                    console.log('vakt err');
-                    console.log(error);
-                    reject(error);
-
-                    return;
-                  }
-                  resolve(result);
-                });
-              }
-            }
-          });
+          resolve(result);
+        });
       });
     });
-
-
-      resolve();
-    }
+  }
+  addArrVakter(vakter) {
+    return new Promise((resolve, reject) =>{
+      connection.query('INSERT INTO vakt (a_id, r_id) VALUES ?', [vakter], (error, result) => {
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
+  addArrUtstyr(utstyr) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO a_utstyr (a_id, u_id, antall) VALUES ?', [utstyr], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
 
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
@@ -886,6 +892,16 @@ class UtstyrService {
     });
   }
 
+  static getRU(r_id, antall) {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT u_id, antall*? AS "antall" FROM r_utstyr WHERE r_id = ?', [antall, r_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
 
   static getAllAU() {
     return new Promise((resolve, reject) => {
