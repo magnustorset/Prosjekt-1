@@ -1849,6 +1849,7 @@ class VisArrangement extends React.Component {
     this.id = props.match.params.id;
     this.arrangement = [];
     this.user = [];
+    this.interesse = [];
   }
   render(){
     let signedInUser = loginService.getSignedInUser();
@@ -1907,13 +1908,8 @@ class VisArrangement extends React.Component {
     return(
       <div>
       <div>
-        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
-
-      </div>
-    )
-  }if(signedInUser.admin === 0){
-    return(
-      <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
         <table>
           <tbody>
             <tr>
@@ -1943,14 +1939,19 @@ class VisArrangement extends React.Component {
             <tr>
               <td><div><MapWithAMarker /></div></td>
             </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{history.goBack()}}>Tilbake</button></td>
-            </tr>
           </tbody>
         </table>
       </div>
     )
   }
+  }
+  avmeldInteresse(){
+    arrangementService.removeIntrest(loginService.getSignedInUser().id,this.id);
+    this.componentDidMount()
+  }
+  meldInteresse(){
+    arrangementService.iAmInterested(loginService.getSignedInUser().id,this.id);
+    this.componentDidMount()
   }
   changeDate(variabel){
     let a = moment(variabel).format('DD.MM.YY HH:mm');
@@ -1962,6 +1963,12 @@ class VisArrangement extends React.Component {
     mapLng = '';
     }
   componentDidMount(){
+    arrangementService.getInterest(loginService.getSignedInUser().id, this.id).then((result)=>{
+      this.interesse = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke interesse' + error);
+    });
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
       mapLat = this.arrangement.latitute;
