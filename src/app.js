@@ -1121,7 +1121,7 @@ class NyttArrangement extends React.Component{
     return(
       <div>
         <div>
-          <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
         </div>
         <div className='Rot_nyttArrangement'>
           <div className='form-group break'>
@@ -1361,11 +1361,34 @@ class MineSider extends React.Component {
     let signedInUser = loginService.getSignedInUser();
     this.user = [];
     this.id = signedInUser.id;
+    this.varsler = [];
   }
   render(){
+    let varsel = []
+    for(let item of this.varsler){
+      if(item.bekreftelse === 0 && item.godtatt ===1){
+        varsel.push(<tr key={item.id} ><td className='varselDårlig'>Din forspørsel om å bytte vakt med {item.Nnavn} som {item.rollenavn} på {item.anavn} har blitt avslått</td></tr>);
+      }else if(item.bekreftelse === 1 && item.godtatt === 1){
+        varsel.push(<tr key={item.id} ><td className='varselGod'>Din forspørsel om å bytte vakt med {item.Nnavn} som {item.rollenavn} på {item.anavn} har blitt godtatt</td></tr>);
+      }
+    }
     return(
       <div>
         <h1 className='title'>Min Side</h1>
+        <div className='vasrselDiv'>
+          <table>
+            <thead>
+              <tr>
+                <td>
+                  <strong>Varsler:</strong>
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+            {varsel}
+            </tbody>
+          </table>
+        </div>
         <div className='mineSider'>
         <table >
           <tbody>
@@ -1398,6 +1421,12 @@ class MineSider extends React.Component {
     )
   }
   componentDidMount(){
+    arrangementService.varsler(loginService.getSignedInUser().id).then((result)=>{
+      this.varsler = result;
+      this.forceUpdate()
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke varsler' + error);
+    });
     arrangementService.getYourArrangements(loginService.getSignedInUser().id).then((result)=>{
       for(let ting of result){
         eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
@@ -1722,7 +1751,10 @@ class Administrator extends React.Component{
               </div>
             </td>
             <td style={{width: '30%'}}>
-              <div><strong>Annet</strong></div>
+              <div>
+              <strong>Skriv melding til brukerne:</strong>
+              <button className='btn btn-xs btn-default' id='adminMeldingHelpButton' ref='adminMeldingHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
           </tr>
         </thead>
@@ -1736,8 +1768,6 @@ class Administrator extends React.Component{
             </td>
             <td>
               <div className='form-group'>
-                <label htmlFor='adminMelding'>Skriv melding til brukerne:</label> <button className='btn btn-xs btn-default' id='adminMeldingHelpButton' ref='adminMeldingHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
-
                 <textarea ref='adminMelding' className='form-control col-8 sokeFelt' name='adminMelding'/>
                 <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
               </div>
@@ -1872,10 +1902,12 @@ class VisSøkeResultat extends React.Component {
    }
     return(
       <div>
-      <ul>
-      {resultat}
-      </ul>
-      <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Tilbake</button>
+        </div>
+        <ul>
+          {resultat}
+        </ul>
       </div>
     );
   }
@@ -1901,6 +1933,9 @@ class BrukerSide extends React.Component {
     if (signedInUser.admin === 1 && this.user.admin === 0) {
       return(
         <div>
+          <div>
+            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+          </div>
           <div className="brukerSideTabell">
           <table className="brukerSideTabell">
             <thead>
@@ -1931,7 +1966,6 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1939,6 +1973,9 @@ class BrukerSide extends React.Component {
       if(signedInUser.admin === 1 && this.user.admin === 1){
         return(
           <div>
+          <div>
+            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+          </div>
             <div className="brukerSideTabell">
             <table className="brukerSideTabell">
               <thead>
@@ -1969,7 +2006,6 @@ class BrukerSide extends React.Component {
                 </tr>
               </tbody>
             </table>
-              <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
             </div>
           </div>
         )
@@ -1977,6 +2013,9 @@ class BrukerSide extends React.Component {
       return(
         <div>
           <div>
+          <div>
+            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+          </div>
           <table className='brukerSideTabell'>
             <thead>
               <tr>
@@ -1992,7 +2031,6 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -2033,7 +2071,7 @@ class VisArrangement extends React.Component {
     return(
       <div>
       <div>
-        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
       </div>
         <div className='Rot_nyttArrangement'>
             <div className='form-group'>
@@ -2083,7 +2121,7 @@ class VisArrangement extends React.Component {
     return(
       <div>
       <div>
-        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
       </div>
         <div className='Rot_nyttArrangement'>
             <div className='form-group'>
@@ -2188,7 +2226,7 @@ class EndreArrangement extends React.Component {
     return(
       <div>
       <div>
-      <button className='btn btn-default tilbakeKnapp' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button>
+      <button className='btn btn-warning tilbakeKnapp' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button>
       </div>
         <div className='Rot_nyttArrangement'>
             <div className='form-group'>
@@ -2305,7 +2343,7 @@ class Innkalling extends React.Component {
     return(
       <div>
       <div>
-        <button className='btn btn-default tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
       </div>
         <table style={{width: '100%'}}>
           <thead>
