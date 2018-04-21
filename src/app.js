@@ -1463,12 +1463,27 @@ class Passiv extends React.Component {
   render() {
     return(
       <div>
-        <label htmlFor='passivFra'>Passiv fra: </label>
-        <input type='date' name='passivFra' ref='passivFra' />
-        <label htmlFor='passivTil'>Passiv til: </label>
-        <input type='date' name='passivTil' ref='passivTil' />
-        <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
-        <button className='btn btn-default' ref='tilbakeButton'>Tilbake</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <div>
+          <h1 className='title'>Meld deg passiv </h1>
+        </div>
+
+
+        <div className='enkelContainer'>
+          <div className='form-group'>
+            <label htmlFor='passivFra'>Passiv fra: </label>
+            <input type='date' name='passivFra' className='form-control col-4 sokeFelt' ref='passivFra' />
+          </div>
+          <div className='form-group'>
+            <label htmlFor='passivTil'>Passiv til: </label>
+            <input type='date' name='passivTil' className='form-control col-4 sokeFelt' ref='passivTil' />
+          </div>
+          <div className='form-group'>
+            <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -1501,9 +1516,6 @@ class Passiv extends React.Component {
         alert('Sluttdato må være senere enn startdato')
       }
     }
-    this.refs.tilbakeButton.onclick = () => {
-      history.push('/minside')
-    }
 
   }
 }
@@ -1521,17 +1533,34 @@ class ForandreBrukerInfo extends React.Component {
   render(){
     return(
       <div>
-        <h1>Min Side </h1>
-
-        <table>
-          <tbody>
-            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
-            <tr><td>Epost: <input ref='emailInput' /></td><td>Poststed:</td></tr>
-            <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
-          </tbody>
-        </table>
-        <button className='btn btn-default' ref='saveButton'>Lagre forandringer</button>
-        <button className='btn btn-default' ref='cancelButton'>Forkast forandringer</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <div>
+          <h1 className='title'>Endre personalia </h1>
+        </div>
+        <div className='enkelContainer'>
+          <table className='personaliaTable'>
+            <tbody>
+              <tr>
+                <td className='personaliaTable'><fieldset disabled><label htmlFor='medlemsnr'>Medlemmsnummer: </label> <input type='text' name='medlemsnr' className='form-control sokeFelt' placeholder={this.user.id} /></fieldset></td>
+                <td className='personaliaTable'><label htmlFor='postnr'>Postnummer: </label><input type='number' maxLength='4' name='postnr' className='form-control sokeFelt' ref='zipInput' /></td>
+              </tr>
+              <tr>
+                <td className='personaliaTable'><label htmlFor='epost'>Epost: </label><input ref='emailInput' className='form-control sokeFelt'/></td>
+                <td className='personaliaTable'><label htmlFor='postnr'>Poststed: </label><fieldset disabled><input type='text' name='medlemsnr' className='form-control sokeFelt' /></fieldset></td>
+              </tr>
+              <tr className='break'>
+                <td className='personaliaTable'><label htmlFor='tlf'>Telefonnummer: </label><input className='form-control sokeFelt' name='tlf' type='number' ref='tlfInput' /></td>
+                <td className='personaliaTable'><label htmlFor='addr'>Gateadresse: </label><input className='form-control sokeFelt' name='addr' ref='adressInput' /></td>
+              </tr>
+              <tr className='break'>
+                <td className='personaliaTable'><button className='btn btn-default' ref='saveButton'>Lagre forandringer</button></td>
+                <td className='personaliaTable'><button className='btn btn-default' ref='cancelButton'>Forkast forandringer</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     )
   }
@@ -1599,62 +1628,65 @@ class ForandrePassord extends React.Component {
     this.user = [];
     this.id = signedInUser.id;
   }
+
   render(){
     return(
       <div>
-      <h2>Lag nytt passord</h2>
-
-      Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
-
-      Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
-
-      <button className='btn btn-default' ref='saveButton'>Lagre nytt passord</button>
-      <button className='btn btn-default' ref='cancelButton'>Ikke lagre</button>
+      <div>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+      <h1 className='title'>Lag nytt passord</h1>
+      <div className='enkelContainer'>
+        <div className='form-group'>
+          <label htmlFor='nyttPassord'> Nytt passord: </label>
+          <input type='password' className='form-control col-5 sokeFelt' name='nyttPassord' ref='passwordInput1' />
+        </div>
+        <div className='form-group'>
+          <label htmlFor='gjentaPassord'> Gjenta nytt passord: </label>
+          <input type='password' className='form-control col-5 sokeFelt' name='gjentaPassord' ref='passwordInput2' />
+        </div>
+        <div className='form-group'>
+          <button className='btn btn-default' ref='saveButton'>Lagre nytt passord</button>
+        </div>
+      </div>
       </div>
     )
   }
-    componentDidMount() {
-      userService.getUser(this.id).then((result) =>{
-        console.log(this.id);
-        this.user = result[0];
-        console.log(this.user);
-        this.forceUpdate();
-      }).catch((error) =>{
-        if(errorMessage) errorMessage.set('Finner ikke bruker');
-      });
 
-      this.refs.saveButton.onclick = () =>{
-        let password1 = this.refs.passwordInput1.value;
-        let password2 = this.refs.passwordInput2.value;
+  componentDidMount() {
+    userService.getUser(this.id).then((result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
 
-        let thePassword = this.user.passord;
-        let currentId = this.user.id;
-        if (password1 === password2){
-          Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
-              if(passwordHash.verify(value,thePassword)){
-                userService.editPassword(password1, currentId).then(() =>{
-                  history.push('/minside');
-              }).catch((error) =>{
-                if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
-              });
+    this.refs.saveButton.onclick = () =>{
+      let password1 = this.refs.passwordInput1.value;
+      let password2 = this.refs.passwordInput2.value;
 
-             }
-             else{
-               alert('Passordet stemte ikke.');
-             }
-          });
+      let thePassword = this.user.passord;
+      let currentId = this.user.id;
+      if (password1 === password2){
+        Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
+            if(passwordHash.verify(value,thePassword)){
+              userService.editPassword(password1, currentId).then(() =>{
+                history.push('/minside');
+            }).catch((error) =>{
+              if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
+            });
 
-        }
-        else{
-          alert('Passordfeltene må være like!')
-        }
-  }
-
-
-      this.refs.cancelButton.onclick = () =>{
-        this.props.history.push('/minside');
+           } else {
+             alert('Passordet stemte ikke.');
+           }
+        });
+      } else {
+        alert('Passordfeltene må være like!')
       }
     }
+  }
 }
 
 class SeKvalifikasjoner extends React.Component {
@@ -1663,7 +1695,7 @@ class SeKvalifikasjoner extends React.Component {
 
     this.user = [];
     this.kvalifikasjoner = [];
-    this.id = brukerid;
+    this.id = loginService.getSignedInUser().id;
 
   }
   render(){
@@ -1671,14 +1703,18 @@ class SeKvalifikasjoner extends React.Component {
     let kvalList = [];
     for(let kval of this.kvalifikasjoner){
       console.log(kval);
-      kvalList.push(<li key={counter}>{kval.navn}</li>);
+      kvalList.push(<li className='list-group-item col-5' key={counter}>{kval.navn}</li>);
       counter++;
     }
     return(
       <div>
-        <h2>Kvalifikasjoner</h2>
-        <ul>{kvalList}</ul>
-        <button className='btn btn-default' ref='tilbakeKnapp'>Gå tilbake</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <h1 className='title'>Mine kvalifikasjoner</h1>
+        <div className='enkelContainer'>
+          <ul className='list-group'>{kvalList}</ul>
+        </div>
       </div>
     )
   }
@@ -1690,9 +1726,6 @@ class SeKvalifikasjoner extends React.Component {
     }).catch((error: Error) => {
       if(errorMessage) errorMessage.set("Failed getting qualifications" + error);
     });
-    this.refs.tilbakeKnapp.onclick = () =>{
-      this.props.history.goBack();
-    }
 
   }
 }
