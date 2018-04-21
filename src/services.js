@@ -1209,17 +1209,6 @@ class StatistikkService {
     });
   }
 
-  allMedAntVakterRolle() { //Antallet vakter medlemmet har tat i hver rolle
-    return new Promise((resolve, reject) => {
-      connection.query('SELECT m_id, brukernavn, r_id, COUNT(*) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id GROUP BY m_id, brukernavn, r_id', (error, result) => {
-        if(error) {
-          reject(error);
-        }
-        resolve(result);
-      });
-    });
-  }
-
   allMedAntTimerMDato(fra, til) { //Totale antallet timer hvert medlem har tatt
     return new Promise((resolve, reject) => {
       connection.query('SELECT m_id, brukernavn, SUM(ROUND(TIME_TO_SEC(TIMEDIFF(sluttidspunkt, oppmootetidspunkt))/3600)) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id INNER JOIN arrangement a ON v.a_id = a.id WHERE (oppmootetidspunkt BETWEEN ? AND ?) GROUP BY m_id, brukernavn', [fra, til], (error, result) => {

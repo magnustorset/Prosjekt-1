@@ -3015,7 +3015,6 @@ class Statistik extends React.Component {
     this.statistikk = [];
     this.statistikkType = [
       {kom: 'allMedAntVakter', navn: 'Antallet vakter per medlem.'},
-      {kom: 'medAntVakterRolle', navn: 'Antallet vakter per rolle for det valgte medlemmet.'},
       {kom: 'allMedAntTimer', navn: 'Antallet timer per medlem.'},
       {kom: 'allMedAntTimerMDato', navn: 'Antallet timer per medlem mellom datoene.'},
       {kom: 'allMedAntVaktMDato', navn: 'Antallet vakter per medlem mellom datoene.'}
@@ -3025,9 +3024,9 @@ class Statistik extends React.Component {
     let statVisning = [];
     let statValg = [];
 
-    statVisning.push(<tr key={'statistikkListe'}><td>Id</td><td>Brukernavn</td><td>Rolle</td><td>Antall</td></tr>);
+    statVisning.push(<tr key={'statistikkListe'}><td>Id</td><td>Brukernavn</td><td>Antall</td></tr>);
     for(let item of this.statistikk) {
-      statVisning.push(<tr key={item.m_id}><td>{item.m_id}</td><td>{item.brukernavn}</td><td>{(item.r_id) ? item.r_id:'No rolle found'}</td><td>{item.antall}</td></tr>);
+      statVisning.push(<tr key={item.m_id}><td>{item.m_id}</td><td>{item.brukernavn}</td><td>{item.antall}</td></tr>);
     }
 
     // statValg.push(<option key='Tomt' value='Tomt'>Velg type</option>);
@@ -3055,97 +3054,86 @@ class Statistik extends React.Component {
   componentDidMount() {
 
     this.refs.statVis.onclick = () => {
-      switch (this.refs.statType.value) {
-        case 'allMedAntVakter':
-          console.log('allMedAntVakter');
-          this.allMedAntVakter();
-          break;
-        case 'medAntVakterRolle':
-          console.log('medAntVakterRolle');
-          this.medAntVakterRolle();
-          break;
-        case 'allMedAntTimer':
-          console.log('allMedAntTimer');
-          this.allMedAntTimer();
-          break;
-        case 'allMedAntTimerMDato':
-          console.log('allMedAntTimer');
-          this.allMedAntTimerMDato();
-          break;
-        case 'allMedAntVaktMDato':
-          console.log('allMedAntVaktMDato');
-          this.allMedAntVaktMDato();
-          break;
-        case 'test':
-          console.log('test');
-          this.test();
-          break;
-        default:
-          console.log('switch fail!');
-          console.log(this.refs.statType.value);
-      }
+      let fra = this.refs.sDato.value;
+      let til = this.refs.eDato.value;
+
+      statistikkService[this.refs.statType.value](fra, til).then((res) => {
+        console.log(res);
+        this.statistikk = res;
+        this.forceUpdate();
+      }).catch((err) => {
+        console.log(err);
+      });
+
+
+      // switch (this.refs.statType.value) {
+      //   case 'allMedAntVakter':
+      //     console.log('allMedAntVakter');
+      //     this.allMedAntVakter();
+      //     break;
+      //   case 'allMedAntTimer':
+      //     console.log('allMedAntTimer');
+      //     this.allMedAntTimer();
+      //     break;
+      //   case 'allMedAntTimerMDato':
+      //     console.log('allMedAntTimer');
+      //     this.allMedAntTimerMDato();
+      //     break;
+      //   case 'allMedAntVaktMDato':
+      //     console.log('allMedAntVaktMDato');
+      //     this.allMedAntVaktMDato();
+      //     break;
+      //   default:
+      //     console.log('switch fail!');
+      //     console.log(this.refs.statType.value);
+      // }
     };
   }
 
-  allMedAntVakter() {
-    statistikkService.allMedAntVakter().then((res) => {
-      console.log(res);
-      this.statistikk = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
+  // allMedAntVakter() {
+  //   statistikkService.allMedAntVakter().then((res) => {
+  //     console.log(res);
+  //     this.statistikk = res;
+  //     this.forceUpdate();
+  //   }).catch((err) => {
+  //     console.log(err);
+  //   });
+  //
+  // }
+  // allMedAntTimer() {
+  //   statistikkService.allMedAntTimer().then((res) => {
+  //     console.log(res);
+  //     this.statistikk = res;
+  //     this.forceUpdate();
+  //   }).catch((err) => {
+  //     console.log(err);
+  //   });
+  //
+  // }
+  //
+  // allMedAntTimerMDato() {
+  //   let fra = this.refs.sDato.value;
+  //   let til = this.refs.eDato.value;
+  //   statistikkService.allMedAntTimerMDato(fra, til).then((res) => {
+  //     console.log(res);
+  //     this.statistikk = res;
+  //     this.forceUpdate();
+  //   }).catch((err) => {
+  //     console.log(err);
+  //   });
+  // }
+  // allMedAntVaktMDato() {
+  //   let fra = this.refs.sDato.value;
+  //   let til = this.refs.eDato.value;
+  //   statistikkService.allMedAntVaktMDato(fra, til).then((res) => {
+  //     console.log(res);
+  //     this.statistikk = res;
+  //     this.forceUpdate();
+  //   }).catch((err) => {
+  //     console.log(err);
+  //   });
+  // }
 
-  }
-  allMedAntTimer() {
-    statistikkService.allMedAntTimer().then((res) => {
-      console.log(res);
-      this.statistikk = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-
-  }
-
-  medAntVakterRolle() {
-    statistikkService.allMedAntVakterRolle().then((res) => {
-      console.log(res);
-      this.statistikk = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-
-  }
-
-  allMedAntTimerMDato() {
-    let fra = this.refs.sDato.value;
-    let til = this.refs.eDato.value;
-    statistikkService.allMedAntTimerMDato(fra, til).then((res) => {
-      console.log(res);
-      this.statistikk = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-  allMedAntVaktMDato() {
-    let fra = this.refs.sDato.value;
-    let til = this.refs.eDato.value;
-    statistikkService.allMedAntVaktMDato(fra, til).then((res) => {
-      console.log(res);
-      this.statistikk = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-
-
-  test() {
-    console.log('Test function.');
-  }
 }
 
 
