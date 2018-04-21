@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService, statistikkService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -40,10 +40,11 @@ const { SearchBox } = require('react-google-maps/lib/components/places/SearchBox
 let brukerlogedin = false
 let klokke = 0
 let emailCode = false
-let latitude = ''
-let longitude = ''
-let mapLat = ''
-let mapLng = ''
+let latitude = 63.4123278
+let longitude = 10.404471000000058
+let address = ''
+let mapLat = 63.4123278
+let mapLng = 10.404471000000058
 let brukerEpost;
 let vis = []
 let velgBytteBruker = []
@@ -57,8 +58,8 @@ const MapWithASearchBox = compose(
   }),
   lifecycle({
     componentWillMount() {
-      let sted = 63.426387
-      let stad = 10.392680
+      let sted = latitude;
+      let stad = longitude;
       const refs = {}
 
       this.setState({
@@ -88,17 +89,18 @@ const MapWithASearchBox = compose(
         },
        dragMarker(){
          let b = this.getPosition();
-         this.setPosition(b);
-         console.log(b.lat(),b.lng());
+         latitude = b.lat();
+         longitude = b.lng();
+         let latlng = {lat: b.lat(), lng: b.lng()};
+         let geocoder = new google.maps.Geocoder();
+         geocoder.geocode({'location': latlng},function(results,status){
+           if(status === 'OK'){
+             address = results[0].formatted_address;
+           }
+         });
+
        },
-       onMapClick(){
-         let p = refs.marker.getPosition();
-         console.log(p.lat(), p.lng());
-       },
-        onClick(){
-          let a = this.getPosition();
-          console.log(a.lat(),a.lng());
-        },
+
         onPlacesChanged: () => {
           const places = refs.searchBox.getPlaces();
           const bounds = new google.maps.LatLngBounds();
@@ -122,8 +124,13 @@ const MapWithASearchBox = compose(
           let k = refs.marker.getPosition();
           latitude = k.lat();
           longitude = k.lng();
-          console.log(latitude);
-          console.log(longitude);
+          let geocoder = new google.maps.Geocoder();
+          let latlng = {lat: k.lat(), lng: k.lng()};
+          geocoder.geocode({'location': latlng},function(results,status){
+            if(status === 'OK'){
+              address = results[0].formatted_address;
+            }
+          });
           // refs.map.fitBounds(bounds);
         },
       })
@@ -137,7 +144,6 @@ const MapWithASearchBox = compose(
     defaultZoom={15}
     center={props.center}
     onBoundsChanged={props.onBoundsChanged}
-    onClick={props.onMapClick}
     >
       <SearchBox
       ref={props.onSearchBoxMounted}
@@ -146,6 +152,7 @@ const MapWithASearchBox = compose(
       onPlacesChanged={props.onPlacesChanged}
       >
         <input
+          className='sokeFelt'
           type="text"
           placeholder="Søk etter plass"
           style={{
@@ -170,11 +177,11 @@ const MapWithASearchBox = compose(
             position={marker.position}
             draggable={true}
             onDragEnd={props.dragMarker}
-            onClick={props.onClick}
             />
           )}
           </GoogleMap>
 );
+
 const MapWithAMarker = compose(
   withProps({
     googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
@@ -274,6 +281,7 @@ class ErrorMessage extends React.Component {
   }
 }
 let errorMessage; // ErrorMessage-instance
+
 class Prompt extends React.Component {
     constructor(props) {
         super(props);
@@ -299,7 +307,7 @@ class Prompt extends React.Component {
     }
 
     render() {
-        return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+        return <input type="password" placeholder={this.props.placeholder} className="mm-popup__input sokeFelt" value={this.state.value} onChange={this.onChange} />;
     }
  }
 
@@ -336,6 +344,7 @@ Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
         }
     });
   });
+
 class Prompt2 extends React.Component {
       constructor(props) {
           super(props);
@@ -366,9 +375,10 @@ class Prompt2 extends React.Component {
         for(let item of this.brukere){
           bruker.push(<option key={item.Id} value={item.Id}>{item.Navn}</option>)
         }
-          return <select ref='selectField' className="mm-popup__input" placeholder={this.props.placeholder} value={this.state.value} onChange={this.onChange}>{bruker}</select>;
+          return <select ref='selectField' className="mm-popup__input sokeFelt" placeholder={this.props.placeholder} value={this.state.value} onChange={this.onChange}>{bruker}</select>;
       }
   }
+
 Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
       let promptValue = 0;
 
@@ -405,8 +415,152 @@ Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
       });
     });
 
+class popover extends React.Component {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            value: this.props.defaultValue
+        };
 
+        this.onChange = (e) => this._onChange(e);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.value !== this.state.value) {
+            this.props.onChange(this.state.value);
+        }
+    }
+
+    _onChange(e) {
+        let value = e.target.value;
+
+        this.setState({value: value});
+    }
+
+    render() {
+        return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+    }
+}
+
+Popup.registerPlugin('popover', function (content, target) {
+    this.create({
+        content: content,
+        className: 'popover',
+        noOverlay: true,
+
+        position: function (box) {
+            let bodyRect      = document.getElementById('root').getBoundingClientRect();
+            let btnRect       = target.getBoundingClientRect();
+            let btnOffsetTop  = btnRect.top - bodyRect.top;
+            let btnOffsetLeft = btnRect.left - bodyRect.left;
+            let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+            box.style.top  = (btnOffsetTop - box.offsetHeight - 10) - scroll + 'px';
+            box.style.left = (btnOffsetLeft + (target.offsetWidth / 2) - (box.offsetWidth / 2)) + 'px';
+            box.style.margin = 0;
+            box.style.opacity = 1;
+        }
+    });
+});
+
+class popunder extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            value: this.props.defaultValue
+        };
+
+        this.onChange = (e) => this._onChange(e);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.value !== this.state.value) {
+            this.props.onChange(this.state.value);
+        }
+    }
+
+    _onChange(e) {
+        let value = e.target.value;
+
+        this.setState({value: value});
+    }
+
+    render() {
+        return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+    }
+}
+
+Popup.registerPlugin('popunder', function (content, target) {
+    this.create({
+        content: content,
+        className: 'popunder',
+        noOverlay: true,
+
+        position: function (box) {
+            let bodyRect      = document.getElementById('root').getBoundingClientRect();
+            let btnRect       = target.getBoundingClientRect();
+            let btnOffsetTop  = btnRect.top - bodyRect.top;
+            let btnOffsetLeft = btnRect.left - bodyRect.left;
+            let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+            box.style.top  = (btnOffsetTop + btnRect.height) - scroll + 'px';
+            box.style.left = (btnOffsetLeft + (target.offsetWidth / 2) - (box.offsetWidth / 2)) + 'px';
+            box.style.margin = 0;
+            box.style.opacity = 1;
+        }
+    });
+});
+
+class popright extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            value: this.props.defaultValue
+        };
+
+        this.onChange = (e) => this._onChange(e);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.value !== this.state.value) {
+            this.props.onChange(this.state.value);
+        }
+    }
+
+    _onChange(e) {
+        let value = e.target.value;
+
+        this.setState({value: value});
+    }
+
+    render() {
+        return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+    }
+}
+
+Popup.registerPlugin('popright', function (content, target) {
+    this.create({
+        content: content,
+        className: 'popright',
+        noOverlay: true,
+
+        position: function (box) {
+            let bodyRect      = document.getElementById('root').getBoundingClientRect();
+            let btnRect       = target.getBoundingClientRect();
+            let btnOffsetTop  = btnRect.top - bodyRect.top;
+            let btnOffsetLeft = btnRect.left - bodyRect.left;
+            let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+            box.style.top  = (btnOffsetTop) - scroll + 'px';
+            box.style.left = (btnOffsetLeft + btnRect.width) + 'px';
+            box.style.margin = 0;
+            box.style.opacity = 1;
+        }
+    });
+});
 
 class Menu extends React.Component {
   render () {
@@ -455,13 +609,10 @@ class Menu extends React.Component {
           <li className='nav-item'>
             <Link to='/hjelp' className="nav-link">Hjelp</Link>
           </li>
-          <li className='nav-item'>
-            <Link to='/statistik' className="nav-link">Statistik</Link>
-          </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
-            <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
+            <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control sokeFelt' />
           </li>
           <li>
           <button ref='serachUsersButton' className='form-control btn btn-default' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}><span className='glyphicon glyphicon-search' /></button>
@@ -506,7 +657,7 @@ class Menu extends React.Component {
           </ul>
           <ul className="nav navbar-nav navbar-right">
             <li className='hopp'>
-              <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control' />
+              <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control sokeFelt' />
             </li>
             <li>
               <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
@@ -566,11 +717,11 @@ class Innlogging extends React.Component {
       </div>
         <div className='form-group'>
           <label htmlFor='brukernavn'>Brukernavn:</label>
-          <input type="text" ref="unInput" className="form-control col-6" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
+          <input type="text" ref="unInput" className="form-control col-6 sokeFelt" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
         </div>
         <div className='form-group'>
           <label htmlFor='passord'>Passord:</label>
-          <input type="password" ref="pwInput" className="form-control col-4" defaultValue="passord" name='passord'/>
+          <input type="password" ref="pwInput" className="form-control col-4 sokeFelt" defaultValue="passord" name='passord'/>
         </div>
         <div className='form-group'>
           <button className="btn btn-primary btn-lg" ref="innlogginButton">Logg inn</button>
@@ -625,43 +776,43 @@ class NyBruker extends React.Component {
       <div className='Rot_nybruker container'>
          <div className='form-group'>
             <label htmlFor='fornavn'>Fornavn:</label>
-            <input type="text" ref="fornavnInput" className='form-control col-6' defaultValue="Fornan" name='fornavn'/>
+            <input type="text" ref="fornavnInput" className='form-control col-6 sokeFelt' defaultValue="Fornan" name='fornavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='etternavn'>Etternavn:</label>
-            <input type="text" ref="etternavnInput" className='form-control col-6' defaultValue="Etternavn" name='etternavn'/>
+            <input type="text" ref="etternavnInput" className='form-control col-6 sokeFelt' defaultValue="Etternavn" name='etternavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='brukernavn'>Brukernavn:</label>
-            <input type="text" ref="brukernavnInput" className='form-control col-6'  defaultValue="Brukernavn" name='brukernavn'/>
+            <input type="text" ref="brukernavnInput" className='form-control col-6 sokeFelt'  defaultValue="Brukernavn" name='brukernavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='epost'>Epost:</label>
-            <input type="email" ref="epostInput" className='form-control col-6' defaultValue='dinepost@dinepost.no' name='epost'/>
+            <input type="email" ref="epostInput" className='form-control col-6 sokeFelt' defaultValue='dinepost@dinepost.no' name='epost'/>
         </div>
         <div className='form-group'>
             <label htmlFor='medlemsnr'>Medlemsnr:</label>
-            <input type="number" ref="medlemsnrInput" className='form-control col-6' defaultValue='98123'  name='medlemsnr'/>
+            <input type="number" ref="medlemsnrInput" className='form-control col-6 sokeFelt' defaultValue='98123'  name='medlemsnr'/>
         </div>
         <div className='form-group'>
             <label htmlFor='telefon'>Telefonnummer:</label>
-            <input type="number" ref="tlfInput" className='form-control col-6' defaultValue='91909293' name='telefon'/>
+            <input type="number" ref="tlfInput" className='form-control col-6 sokeFelt' defaultValue='91909293' name='telefon'/>
         </div>
         <div className='form-group'>
             <label htmlFor='adresse'>Gateadresse:</label>
-            <input type="text" ref="adresseInput" className='form-control col-6' defaultValue='Brandhaugveita 4' name='adressse'/>
+            <input type="text" ref="adresseInput" className='form-control col-6 sokeFelt' defaultValue='Brandhaugveita 4' name='adressse'/>
         </div>
         <div className='form-group'>
             <label htmlFor='postnr'>Postnummer:</label>
-            <input type="text" ref="postnrInput" className='form-control col-6' defaultValue='0000' name='postnr'/>
+            <input type="text" ref="postnrInput" className='form-control col-6 sokeFelt' defaultValue='0000' name='postnr'/>
         </div>
         <div className='form-group'>
             <label htmlFor='passord'>Passord:</label>
-            <input type="password" ref="passwordInput1" className='form-control col-6' defaultValue='*****' name='passord'/>
+            <input type="password" ref="passwordInput1" className='form-control col-6 sokeFelt' defaultValue='*****' name='passord'/>
         </div>
         <div className='form-group'>
             <label htmlFor='gpassord'>Gjenta passord:</label>
-            <input type="password" ref="passwordInput2" className='form-control col-6' defaultValue='*****' name='gpassord'/>
+            <input type="password" ref="passwordInput2" className='form-control col-6 sokeFelt' defaultValue='*****' name='gpassord'/>
         </div>
         <div className='form-group'>
             <button className='btn btn-default' ref="createuserButton">Ferdig</button>
@@ -692,7 +843,7 @@ class NyttPassord extends React.Component {
         <div className='Rot container'>
           <div className='form-group'>
             <label htmlFor='epost'>E-post: </label>
-            <input type='email' name='epost' className='form-control col-6' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
+            <input type='email' name='epost' className='form-control col-6 sokeFelt' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
           </div>
           <div className='form-group'>
             <button className='btn btn-default' ref='newPasswordButton'>Be om nytt passord</button>
@@ -735,9 +886,12 @@ class ResetPassord extends React.Component {
     return (
       <div>
         <div className='Rot container'>
+          <p className='form-group'>
+            Du har nå blitt sendt en epost med en kode. Skriv inn koden her.
+          </p>
           <div className='form-group'>
             <label htmlFor='kode'>Kode:</label>
-            <input type='text' name='kode' className='form-control col-2' ref='kodeInput' />
+            <input type='text' name='kode' className='form-control col-2 sokeFelt' ref='kodeInput' />
             <button className='btn btn-default' ref='kodeButton'>Sjekk kode</button>
           </div>
           <ErrorMessage />
@@ -771,11 +925,11 @@ class NyttResetPassord extends React.Component {
         <div className='Rot container'>
           <div className='form-group'>
             <label htmlFor='passord1'>Nytt passord</label>
-            <input type='password' name='passord1' className='form-control col-4' ref='passordInput1' />
+            <input type='password' name='passord1' className='form-control col-4 sokeFelt' ref='passordInput1' />
           </div>
           <div className='form-group'>
             <label htmlFor='passord2'>Gjenta passord</label>
-            <input type='password' name='passord2' className='form-control col-4' ref='passordInput2' />
+            <input type='password' name='passord2' className='form-control col-4 sokeFelt' ref='passordInput2' />
           </div>
           <div className='form-group'>
             <button className='btn btn-default' ref='byttPassordButton'>Bytt passord</button>
@@ -798,7 +952,6 @@ class NyttResetPassord extends React.Component {
     }
   }
 }
-
 
 class StartSide extends React.Component {
   constructor() {
@@ -869,7 +1022,6 @@ class StartSide extends React.Component {
   }
 }
 
-
 class Arrangement extends React.Component{
   constructor(){
     super();
@@ -891,7 +1043,7 @@ class Arrangement extends React.Component{
             <thead>
               <tr>
                 <td>
-                <input type='text'className='form-control' ref='searchArrangement' /></td>
+                <input type='text'className='form-control sokeFelt' ref='searchArrangement' /></td>
                 <td><button className='btn btn-default' ref='searchButton' onClick={ () =>{this.hentArrangement( )}}>Søk arrangement</button></td>
 
                 <td>
@@ -911,7 +1063,7 @@ class Arrangement extends React.Component{
         <table>
           <thead>
             <tr>
-              <td><input type='text' className='form-control' ref='searchArrangement'  /></td>
+              <td><input type='text' className='form-control sokeFelt' ref='searchArrangement'  /></td>
               <td><button className='btn btn-default' ref='searchButton'onClick={ () => {this.hentArrangement()}}>Søk arrangement</button></td>
             </tr>
           </thead>
@@ -933,7 +1085,6 @@ class Arrangement extends React.Component{
     });
   }
   }
-
 
 class NyttArrangement extends React.Component{
   constructor() {
@@ -986,22 +1137,25 @@ class NyttArrangement extends React.Component{
 
     return(
       <div>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
         <div className='Rot_nyttArrangement'>
           <div className='form-group break'>
             <label htmlFor='navn'>Navn: </label>
-            <input type="text" name='navn' className="form-control col-8" ref="a_name" defaultValue="Test" />
+            <input type="text" name='navn' className="form-control col-8 sokeFelt" ref="a_name" defaultValue="Test" />
           </div>
           <div className='form-group'>
             <label htmlFor='startdato'>Startdato: </label>
-            <input type="datetime-local" className="form-control col-8" name='startdato' ref="a_startdate" /> {/*Autofyll med dagens dato*/}
+            <input type="datetime-local" className="form-control col-8 sokeFelt" name='startdato' ref="a_startdate" /> {/*Autofyll med dagens dato*/}
           </div>
           <div className='form-group'>
             <label htmlFor='sluttdato'>Sluttdato: </label>
-            <input type="datetime-local" className="form-control col-8" name='sluttdato' ref="a_enddate" />
+            <input type="datetime-local" className="form-control col-8 sokeFelt" name='sluttdato' ref="a_enddate" />
           </div>
           <div className='form-group break'>
             <label htmlFor='oppmotetid'>Oppmøtetidspunkt: </label>
-            <input type="datetime-local" className="form-control col-8" name='oppmotetid' ref="a_meetdate" />
+            <input type="datetime-local" className="form-control col-8 sokeFelt" name='oppmotetid' ref="a_meetdate" />
           </div>
           <div className='form-group break'>
             <label htmlFor='oppmotested'>Oppmøtested: </label>
@@ -1009,27 +1163,26 @@ class NyttArrangement extends React.Component{
           </div>
           <div className='form-group break'>
             <label htmlFor='beskrivelse'>Beskrivelse: </label>
-            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8" defaultValue="En tekstlig beskrivelse"/>
+            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8 sokeFelt" defaultValue="En tekstlig beskrivelse"/>
           </div>
           <div className='form-group formFritekst'>
             <label>Kontaktperson: </label>
           </div>
           <div className='form-row'>
-          <div className='col'>
-            <label htmlFor='k_navn'>Navn: </label>
-            <input type="text" name='k_name' className="form-control" ref="k_name" defaultValue="Lars" />
-          </div>
-          <div className='col break'>
-            <label htmlFor='k_tlf'>Telefon: </label>
-            <input type="number" name='k_tlf' className="form-control" ref="k_tlf" defaultValue="95485648" />
-          </div>
+            <div className='col'>
+              <label htmlFor='k_navn'>Navn: </label>
+              <input type="text" name='k_name' className="form-control sokeFelt" ref="k_name" defaultValue="Lars" />
+            </div>
+            <div className='col break'>
+              <label htmlFor='k_tlf'>Telefon: </label>
+              <input type="number" name='k_tlf' className="form-control sokeFelt" ref="k_tlf" defaultValue="95485648" />
+            </div>
           </div>
           <div className='form-group'>
             <label htmlFor='rolle'>Rolle: </label>
-            <select ref='rolle' name='rolle' className="form-control-lg">{rolleList}</select>
-          </div>
-          <div className='form-group'>
+            <select ref='rolle' name='rolle' className="form-control-lg sokeFelt">{rolleList}</select>
             <button className='btn btn-default' onClick={() => {this.addVakt()}}>Legg til rolle</button>
+            <button className='btn btn-xs btn-default' id='aHelpButton' ref='helpButton'><span className="glyphicon glyphicon-info-sign"></span></button>
           </div>
           <div className='form-group'>
             <table>
@@ -1037,8 +1190,7 @@ class NyttArrangement extends React.Component{
                 {vakter}
               </tbody>
             </table>
-            <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
-            <button className='btn btn-default' onClick={()=>{history.goBack()} }>Tilbake</button>
+
           </div>
 
           <br />
@@ -1065,6 +1217,31 @@ class NyttArrangement extends React.Component{
                 {utListe}
               </tbody>
             </table>
+          </div>
+          <div className='form-group formFritekst'>
+            <label>Vakt mal: </label>
+          </div>
+          <div className='form-group'>
+            <label htmlFor='mal'>Mal: </label>
+            <select ref='mal' name='mal' className="form-control-lg sokeFelt">{malList}</select>
+            <button className='btn btn-default' ref='velgMal'>Velg</button>
+            <button className='btn btn-default'ref='slettMal'>Slett</button>
+          </div>
+          <div className='form-group row'>
+            <div className='col-1'>
+              <label htmlFor="malNavn">Navn: </label>
+            </div>
+            <div className='col-5'>
+              <input ref='malNavn' name='malNavn' className="form-control sokeFelt" />
+            </div>
+            <div className='col'>
+              <button className='btn btn-default' ref='endreMal'>Endre</button>
+              <button className='btn btn-default' ref='leggTilMal'>Legg til</button>
+            </div>
+
+          </div>
+          <div className='form-group'>
+            <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
           </div>
         </div>
       </div>
@@ -1098,7 +1275,11 @@ class NyttArrangement extends React.Component{
     });
 
     this.refs.arrangementButton.onclick = () => {
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, longitude,latitude).then((res) => {
+
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, longitude,latitude,address).then((res) => {
+        address = ''
+        longitude = ''
+        latitude = ''
         let vakter = [];
         for (let item of this.vakter) {
           for (var i = 0; i < item.antall; i++) {
@@ -1127,9 +1308,16 @@ class NyttArrangement extends React.Component{
           console.log(err);
           if(errorMessage) errorMessage.set('Kunne ikke legge til utstyr');
         });
+
+      }).catch((error) =>{
+        if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
+
       });
 
+    }
 
+    this.refs.helpButton.onclick = () => {
+      Popup.plugins().popover('Velg rollen du vil legge til fra rullegardinmenyen og klikk legg til rolle. Skriv deretter inn antall. Hvis du vil legge til flere roller velger du en ny rolle fra menyen og skriver inn antall igjen.', aHelpButton);
     }
 
     this.refs.velgMal.onclick = () => {
@@ -1208,6 +1396,7 @@ class NyttArrangement extends React.Component{
         console.log(err);
       })
     }
+
 
   }
 
@@ -1420,12 +1609,27 @@ class Passiv extends React.Component {
   render() {
     return(
       <div>
-        <label htmlFor='passivFra'>Passiv fra: </label>
-        <input type='date' name='passivFra' ref='passivFra' />
-        <label htmlFor='passivTil'>Passiv til: </label>
-        <input type='date' name='passivTil' ref='passivTil' />
-        <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
-        <button className='btn btn-default' ref='tilbakeButton'>Tilbake</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <div>
+          <h1 className='title'>Meld deg passiv </h1>
+        </div>
+
+
+        <div className='enkelContainer'>
+          <div className='form-group'>
+            <label htmlFor='passivFra'>Passiv fra: </label>
+            <input type='date' name='passivFra' className='form-control col-4 sokeFelt' ref='passivFra' />
+          </div>
+          <div className='form-group'>
+            <label htmlFor='passivTil'>Passiv til: </label>
+            <input type='date' name='passivTil' className='form-control col-4 sokeFelt' ref='passivTil' />
+          </div>
+          <div className='form-group'>
+            <button className='btn btn-default' ref='setPassive'>Sett passiv</button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -1458,9 +1662,6 @@ class Passiv extends React.Component {
         alert('Sluttdato må være senere enn startdato')
       }
     }
-    this.refs.tilbakeButton.onclick = () => {
-      history.push('/minside')
-    }
 
   }
 }
@@ -1478,17 +1679,34 @@ class ForandreBrukerInfo extends React.Component {
   render(){
     return(
       <div>
-        <h1>Min Side </h1>
-
-        <table>
-          <tbody>
-            <tr><td>Medlemmsnummer: {this.user.id}</td><td>Postnummer:<input type='number' ref='zipInput' /></td></tr>
-            <tr><td>Epost: <input ref='emailInput' /></td><td>Poststed:</td></tr>
-            <tr><td>Telefonnummer: <input type='number' ref='tlfInput' /></td><td>Gateadresse: <input ref='adressInput' /></td></tr>
-          </tbody>
-        </table>
-        <button className='btn btn-default' ref='saveButton'>Lagre forandringer</button>
-        <button className='btn btn-default' ref='cancelButton'>Forkast forandringer</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <div>
+          <h1 className='title'>Endre personalia </h1>
+        </div>
+        <div className='enkelContainer'>
+          <table className='personaliaTable'>
+            <tbody>
+              <tr>
+                <td className='personaliaTable'><fieldset disabled><label htmlFor='medlemsnr'>Medlemmsnummer: </label> <input type='text' name='medlemsnr' className='form-control sokeFelt' placeholder={this.user.id} /></fieldset></td>
+                <td className='personaliaTable'><label htmlFor='postnr'>Postnummer: </label><input type='number' maxLength='4' name='postnr' className='form-control sokeFelt' ref='zipInput' /></td>
+              </tr>
+              <tr>
+                <td className='personaliaTable'><label htmlFor='epost'>Epost: </label><input ref='emailInput' className='form-control sokeFelt'/></td>
+                <td className='personaliaTable'><label htmlFor='postnr'>Poststed: </label><fieldset disabled><input type='text' name='medlemsnr' className='form-control sokeFelt' /></fieldset></td>
+              </tr>
+              <tr className='break'>
+                <td className='personaliaTable'><label htmlFor='tlf'>Telefonnummer: </label><input className='form-control sokeFelt' name='tlf' type='number' ref='tlfInput' /></td>
+                <td className='personaliaTable'><label htmlFor='addr'>Gateadresse: </label><input className='form-control sokeFelt' name='addr' ref='adressInput' /></td>
+              </tr>
+              <tr className='break'>
+                <td className='personaliaTable'><button className='btn btn-default' ref='saveButton'>Lagre forandringer</button></td>
+                <td className='personaliaTable'><button className='btn btn-default' ref='cancelButton'>Forkast forandringer</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     )
   }
@@ -1556,62 +1774,65 @@ class ForandrePassord extends React.Component {
     this.user = [];
     this.id = signedInUser.id;
   }
+
   render(){
     return(
       <div>
-      <h2>Lag nytt passord</h2>
-
-      Skriv inn nytt et passord:<input type='password' ref='passwordInput1' />
-
-      Skriv på nytt igjen:<input type='password' ref='passwordInput2' />
-
-      <button className='btn btn-default' ref='saveButton'>Lagre nytt passord</button>
-      <button className='btn btn-default' ref='cancelButton'>Ikke lagre</button>
+      <div>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+      <h1 className='title'>Lag nytt passord</h1>
+      <div className='enkelContainer'>
+        <div className='form-group'>
+          <label htmlFor='nyttPassord'> Nytt passord: </label>
+          <input type='password' className='form-control col-5 sokeFelt' name='nyttPassord' ref='passwordInput1' />
+        </div>
+        <div className='form-group'>
+          <label htmlFor='gjentaPassord'> Gjenta nytt passord: </label>
+          <input type='password' className='form-control col-5 sokeFelt' name='gjentaPassord' ref='passwordInput2' />
+        </div>
+        <div className='form-group'>
+          <button className='btn btn-default' ref='saveButton'>Lagre nytt passord</button>
+        </div>
+      </div>
       </div>
     )
   }
-    componentDidMount() {
-      userService.getUser(this.id).then((result) =>{
-        console.log(this.id);
-        this.user = result[0];
-        console.log(this.user);
-        this.forceUpdate();
-      }).catch((error) =>{
-        if(errorMessage) errorMessage.set('Finner ikke bruker');
-      });
 
-      this.refs.saveButton.onclick = () =>{
-        let password1 = this.refs.passwordInput1.value;
-        let password2 = this.refs.passwordInput2.value;
+  componentDidMount() {
+    userService.getUser(this.id).then((result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
 
-        let thePassword = this.user.passord;
-        let currentId = this.user.id;
-        if (password1 === password2){
-          Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
-              if(passwordHash.verify(value,thePassword)){
-                userService.editPassword(password1, currentId).then(() =>{
-                  history.push('/minside');
-              }).catch((error) =>{
-                if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
-              });
+    this.refs.saveButton.onclick = () =>{
+      let password1 = this.refs.passwordInput1.value;
+      let password2 = this.refs.passwordInput2.value;
 
-             }
-             else{
-               alert('Passordet stemte ikke.');
-             }
-          });
+      let thePassword = this.user.passord;
+      let currentId = this.user.id;
+      if (password1 === password2){
+        Popup.plugins(password1,thePassword,currentId).prompt('', 'Passord', function (value) {
+            if(passwordHash.verify(value,thePassword)){
+              userService.editPassword(password1, currentId).then(() =>{
+                history.push('/minside');
+            }).catch((error) =>{
+              if(errorMessage) errorMessage.set('Klarte ikke å oppdatere passord');
+            });
 
-        }
-        else{
-          alert('Passordfeltene må være like!')
-        }
-  }
-
-
-      this.refs.cancelButton.onclick = () =>{
-        this.props.history.push('/minside');
+           } else {
+             alert('Passordet stemte ikke.');
+           }
+        });
+      } else {
+        alert('Passordfeltene må være like!')
       }
     }
+  }
 }
 
 class SeKvalifikasjoner extends React.Component {
@@ -1620,7 +1841,7 @@ class SeKvalifikasjoner extends React.Component {
 
     this.user = [];
     this.kvalifikasjoner = [];
-    this.id = brukerid;
+    this.id = loginService.getSignedInUser().id;
 
   }
   render(){
@@ -1628,14 +1849,18 @@ class SeKvalifikasjoner extends React.Component {
     let kvalList = [];
     for(let kval of this.kvalifikasjoner){
       console.log(kval);
-      kvalList.push(<li key={counter}>{kval.navn}</li>);
+      kvalList.push(<li className='list-group-item col-5' key={counter}>{kval.navn}</li>);
       counter++;
     }
     return(
       <div>
-        <h2>Kvalifikasjoner</h2>
-        <ul>{kvalList}</ul>
-        <button className='btn btn-default' ref='tilbakeKnapp'>Gå tilbake</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <h1 className='title'>Mine kvalifikasjoner</h1>
+        <div className='enkelContainer'>
+          <ul className='list-group'>{kvalList}</ul>
+        </div>
       </div>
     )
   }
@@ -1647,9 +1872,6 @@ class SeKvalifikasjoner extends React.Component {
     }).catch((error: Error) => {
       if(errorMessage) errorMessage.set("Failed getting qualifications" + error);
     });
-    this.refs.tilbakeKnapp.onclick = () =>{
-      this.props.history.goBack();
-    }
 
   }
 }
@@ -1662,13 +1884,22 @@ class Administrator extends React.Component{
         <thead>
           <tr>
             <td style={{width: '30%'}}>
-              <div><strong>Brukere som må godkjennes</strong></div>
+              <div>
+              <strong>Brukere som må godkjennes</strong>
+              <button className='btn btn-xs btn-default' id='godkjennBrukerHelpButton' ref='godkjennBrukerHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
             <td style={{width: '30%'}}>
-              <div><strong>Godkjenn vaktbytter</strong></div>
+              <div>
+              <strong>Godkjenn vaktbytter</strong>
+              <button className='btn btn-xs btn-default' id='godkjennVaktHelpButton' ref='godkjennVaktHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
             <td style={{width: '30%'}}>
-              <div><strong>Annet</strong></div>
+              <div>
+              <strong>Skriv melding til brukerne:</strong>
+              <button className='btn btn-xs btn-default' id='adminMeldingHelpButton' ref='adminMeldingHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
           </tr>
         </thead>
@@ -1681,12 +1912,14 @@ class Administrator extends React.Component{
               <ByttVakt />
             </td>
             <td>
+              <div className='form-group'>
+                <textarea ref='adminMelding' className='form-control col-8 sokeFelt' name='adminMelding'/>
+                <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
+              </div>
             </td>
           </tr>
           <tr>
             <td>
-            <textarea ref='adminMelding' />
-            <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
             </td>
             <td>
             </td>
@@ -1701,10 +1934,19 @@ class Administrator extends React.Component{
   componentDidMount(){
     this.refs.RegistrerAdminMelding.onclick = ()=> {
       administratorFunctions.updateAdminMelding(this.refs.adminMelding.value);
+      this.refs.adminMelding.value = '';
+    }
+    this.refs.godkjennBrukerHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises brukere som er laget, men ikke godkjent. Klikk et navn for å se info om bruker. Klikk "Godkjenn" for å godkjenne en bruker.', godkjennBrukerHelpButton);
+    }
+    this.refs.godkjennVaktHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises vakter som en bruker ønsker å bytte, men som ikke er godkjent. Klikk et navn for å se info om bruker. Klikk på arrangementet for mer info om arrangementet. Klikk "Godta" eller "Avslå" for å godkjenne eller avslå byttet.', godkjennVaktHelpButton);
+    }
+    this.refs.adminMeldingHelpButton.onclick = () => {
+      Popup.plugins().popunder('Her kan du skrive en melding som vil dukke opp på fremsiden for alle brukere', adminMeldingHelpButton);
     }
   }
 }
-
 
 class GodkjennBruker extends React.Component {
   constructor(){
@@ -1756,7 +1998,7 @@ class ByttVakt extends React.Component{
   render(){
     let vakter = []
     for(let bytte of this.vaktbytter){
-      vakter.push(<tr key={bytte.id}><td>{bytte.byttenavn}, vil bytte vakt med {bytte.navn} på arrangement {bytte.arrangement}</td><td><button onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
+      vakter.push(<tr key={bytte.id}><td><Link to={'/bruker/'+bytte.om_id}>{bytte.byttenavn}</Link>, vil bytte vakt med <Link to={'/bruker/'+bytte.nm_id}>{bytte.navn}</Link> på arrangement <Link to={'/visArrangement/'+bytte.aid}>{bytte.arrangement} </Link>som {bytte.rollenavn}</td><td><button className='btn btn-default' onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button className='btn btn-default' onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
     }
     return(
       <div>
@@ -1805,10 +2047,12 @@ class VisSøkeResultat extends React.Component {
    }
     return(
       <div>
-      <ul>
-      {resultat}
-      </ul>
-      <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Tilbake</button>
+        </div>
+        <ul>
+          {resultat}
+        </ul>
       </div>
     );
   }
@@ -1830,10 +2074,27 @@ class BrukerSide extends React.Component {
     this.user = {}
   }
   render() {
+
     let signedInUser = loginService.getSignedInUser();
-    if (signedInUser.admin === 1 && this.user.admin === 0) {
+    if (signedInUser.admin === 1) {
+      let b;
+      let a;
+      if(this.user.admin === 1){
+        a = (<button className='btn btn-default' onClick={() =>{this.deleteAdmin()}}>Fjern bruker admin</button>)
+      }else{
+        a = (<button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button>)
+      }
+      if(this.user.aktiv === 1){
+        b =(<button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button>)
+      }else{
+        b ='';
+        a ='Gå til administrator siden for å aktiver bruker';
+      }
       return(
         <div>
+          <div>
+            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+          </div>
           <div className="brukerSideTabell">
           <table className="brukerSideTabell">
             <thead>
@@ -1858,58 +2119,25 @@ class BrukerSide extends React.Component {
                 <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
               </tr>
               <tr>
-              <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
-              <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
-              <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
+                <td className="brukerSideButtons">{a}</td>
+                <td className="brukerSideButtons">{b}</td>
+              </tr>
+              <tr>
+                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
+                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/endreBrukerInfo/'+this.id)}}>Endre bruker info</button></td>
               </tr>
             </tbody>
           </table>
-            <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
-    }
-      if(signedInUser.admin === 1 && this.user.admin === 1){
-        return(
-          <div>
-            <div className="brukerSideTabell">
-            <table className="brukerSideTabell">
-              <thead>
-                <tr>
-                  <th className="brukerSideHead">{this.user.fornavn} {this.user.etternavn}</th>
-                  <th className="brukerSideHead">{this.user.id}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="brukerSideData"><span className='tableText'>E-post: </span> {this.user.epost}</td>
-                  <td className="brukerSideData"><span className='tableText'>Adresse: </span> {this.user.adresse}</td>
-
-                </tr>
-                <tr>
-                  <td className="brukerSideData"><span className='tableText'>Telefon: </span>{this.user.tlf}</td>
-                  <td className="brukerSideData"><span className='tableText'>Postnummer: </span>{this.user.postnr}</td>
-
-                </tr>
-                <tr>
-                  <td className="brukerSideData"><span className='tableText'>Vaktpoeng: </span> {this.user.vaktpoeng}</td>
-                  <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
-                </tr>
-                <tr>
-                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
-                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
-                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
-                </tr>
-              </tbody>
-            </table>
-              <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
-            </div>
-          </div>
-        )
     }else{
       return(
         <div>
           <div>
+          <div>
+            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
+          </div>
           <table className='brukerSideTabell'>
             <thead>
               <tr>
@@ -1925,7 +2153,6 @@ class BrukerSide extends React.Component {
               </tr>
             </tbody>
           </table>
-            <button className='btn btn-default' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
           </div>
         </div>
       )
@@ -1933,12 +2160,15 @@ class BrukerSide extends React.Component {
   }
   deaktiverBruker(){
     administratorFunctions.deaktiverBruker(this.user.id);
+    this.componentDidMount();
   }
   deleteAdmin(){
     administratorFunctions.deleteAdmin(this.user.id);
+    this.componentDidMount();
   }
  makeAdmin(){
    administratorFunctions.makeUserAdmin(this.user.id);
+   this.componentDidMount();
  }
   componentDidMount() {
     userService.getUser(this.id).then((result) => {
@@ -1949,6 +2179,104 @@ class BrukerSide extends React.Component {
   }
 }
 
+class EndreBrukerInfo extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.user = [];
+    this.id = props.match.params.id;
+
+  }
+  render(){
+    return(
+      <div>
+        <div>
+          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+        </div>
+        <div>
+          <h1 className='title'>Endre personalia </h1>
+        </div>
+        <div className='enkelContainer'>
+          <table className='personaliaTable'>
+            <tbody>
+              <tr>
+                <td className='personaliaTable'><fieldset disabled><label htmlFor='medlemsnr'>Medlemmsnummer: </label> <input type='text' name='medlemsnr' className='form-control sokeFelt' placeholder={this.user.id} /></fieldset></td>
+                <td className='personaliaTable'><label htmlFor='postnr'>Postnummer: </label><input type='number' maxLength='4' name='postnr' className='form-control sokeFelt' ref='zipInput' /></td>
+              </tr>
+              <tr>
+                <td className='personaliaTable'><label htmlFor='epost'>Epost: </label><input ref='emailInput' className='form-control sokeFelt'/></td>
+                <td className='personaliaTable'><label htmlFor='postnr'>Poststed: </label><fieldset disabled><input type='text' name='medlemsnr' className='form-control sokeFelt' /></fieldset></td>
+              </tr>
+              <tr className='break'>
+                <td className='personaliaTable'><label htmlFor='tlf'>Telefonnummer: </label><input className='form-control sokeFelt' name='tlf' type='number' ref='tlfInput' /></td>
+                <td className='personaliaTable'><label htmlFor='addr'>Gateadresse: </label><input className='form-control sokeFelt' name='addr' ref='adressInput' /></td>
+              </tr>
+              <tr className='break'>
+                <td className='personaliaTable'><button className='btn btn-default' ref='saveButton'>Lagre forandringer</button></td>
+                <td className='personaliaTable'><button className='btn btn-default' ref='cancelButton'>Forkast forandringer</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+  update() {
+    userService.getUser(this.id).then((result) =>{
+      this.refs.emailInput.value = result[0].epost;
+      this.refs.tlfInput.value = result[0].tlf;
+      this.refs.adressInput.value = result[0].adresse;
+      this.refs.zipInput.value = result[0].poststed_postnr;
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
+
+  }
+  componentDidMount(){
+    userService.getUser(this.id).then((result) =>{
+      console.log(this.id);
+      this.user = result[0];
+      console.log(this.user);
+      this.forceUpdate();
+    }).catch((error) =>{
+      if(errorMessage) errorMessage.set('Finner ikke bruker');
+    });
+    this.refs.cancelButton.onclick = () =>{
+      history.goBack();
+    }
+    this.refs.saveButton.onclick = () =>{
+      let email = this.refs.emailInput.value;
+      let adress = this.refs.adressInput.value;
+      let tlf = this.refs.tlfInput.value;
+      let zip = this.refs.zipInput.value;
+      let vip = this.id;
+
+      let thePassword = this.user.passord;
+
+      /** Call the plugin */
+      Popup.plugins(email, adress, tlf, zip, vip, thePassword).prompt('', 'Passord', function (value,signedInUser) {
+
+          if(passwordHash.verify(value,loginService.getSignedInUser().passord)){
+            userService.editUser(email, adress, tlf, zip, vip).then(() =>{
+              history.goBack();
+          }).catch((error) =>{
+            if(errorMessage) errorMessage.set('Klarte ikke å oppdatere bruker');
+          });
+
+
+
+
+         }
+         else{
+           alert('Du må skrive inn riktig passord for å endre din personlige informasjon!');
+         }
+      });
+    }
+  this.update();
+  }
+}
+
 
 class VisArrangement extends React.Component {
   constructor(props) {
@@ -1956,101 +2284,126 @@ class VisArrangement extends React.Component {
     this.id = props.match.params.id;
     this.arrangement = [];
     this.user = [];
+    this.interesse = [];
   }
   render(){
     let signedInUser = loginService.getSignedInUser();
+
+
     if(signedInUser.admin === 1){
 
     return(
       <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button></td>
-              <td><button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+          <label htmlFor='navn'>Arragnemnet navn:</label>
+           <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='beskrivelse'>Arragnemnet beskrivelse:</label>
+              <p name='beskrivelse'>{this.arrangement.beskrivelse}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='oppmote'>Oppmøtetidspunkt:</label>
+              <p name='oppmote'>{this.changeDate(this.arrangement.oppmootetidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='start'>Starttidspunkt:</label>
+              <p name='start'>{this.changeDate(this.arrangement.starttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='slutt'>Sluttidspunkt:</label>
+            <p name='slutt'>{this.changeDate(this.arrangement.sluttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.arrangement.address}</p>
+              <MapWithAMarker name='kart'/>
+            </div>
+            <div className='form-group'>
+              <button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button>
+              <button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button>
+            </div>
+          </div>
       </div>
     )
+
   }if(signedInUser.admin === 0){
+    let b;
+    if(this.interesse.length === 0){
+      b =  (<button className='btn btn-default' onClick={()=>{this.meldInteresse()}}>Meld interesse</button>)
+    }else{
+      b = (<button className='btn btn-default' onClick={()=>{this.avmeldInteresse()}}>Avmeld interesse</button>)
+    }
     return(
       <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{history.goBack()}}>Tilbake</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+          <label htmlFor='navn'>Arragnemnet navn:</label>
+           <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='beskrivelse'>Arragnemnet beskrivelse:</label>
+              <p name='beskrivelse'>{this.arrangement.beskrivelse}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='oppmote'>Oppmøtetidspunkt:</label>
+              <p name='oppmote'>{this.changeDate(this.arrangement.oppmootetidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='start'>Starttidspunkt:</label>
+              <p name='start'>{this.changeDate(this.arrangement.starttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='slutt'>Sluttidspunkt:</label>
+            <p name='slutt'>{this.changeDate(this.arrangement.sluttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.arrangement.address}</p>
+              <MapWithAMarker name='kart'/>
+            </div>
+              {b}
+          </div>
       </div>
     )
   }
+  }
+  avmeldInteresse(){
+    arrangementService.removeIntrest(loginService.getSignedInUser().id,this.id);
+    this.componentDidMount()
+  }
+  meldInteresse(){
+    arrangementService.iAmInterested(loginService.getSignedInUser().id,this.id);
+    this.componentDidMount()
   }
   changeDate(variabel){
     let a = moment(variabel).format('DD.MM.YY HH:mm');
     return a;
   }
 
-  componentWillUnmount(){
-    mapLat = '';
-    mapLng = '';
-    }
+
   componentDidMount(){
+    arrangementService.getInterest(loginService.getSignedInUser().id,this.id).then((result)=>{
+      this.interesse = result;
+      this.forceUpdate();
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Noe gikk galt' + error);
+    });
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
       mapLat = this.arrangement.latitute;
@@ -2078,7 +2431,8 @@ class EndreArrangement extends React.Component {
     this.state = {beskrivelse: '',
                   oppmootetidspunkt: '',
                   starttidspunkt: '',
-                  sluttidspunkt: ''
+                  sluttidspunkt: '',
+                  oppmotested: ''
                   };
 
     this.handleChange = this.handleChange.bind(this);
@@ -2095,47 +2449,53 @@ class EndreArrangement extends React.Component {
   render(){
     return(
       <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' ref='text' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td><input type='datetime-local'name='oppmootetidspunkt' ref='oppmøte' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/></td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td><input type='datetime-local' name='starttidspunkt' ref='start' value={this.state.starttidspunkt} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td><input type='datetime-local' name='sluttidspunkt' ref='slutt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
-              <td><button className='btn btn-default' ref='lagreEndringer'>Lagre endringene</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+      <button className='btn btn-warning tilbakeKnapp' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+              <label htmlFor='navn'>Arrangement navn:</label>
+              <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='beskrivelse'>Arrangement beskrivelse:</label>
+              <textarea name='beskrivelse' className='form-control col-8' ref='text' value={this.state.beskrivelse} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='oppmootetidspunkt'>Oppmøtetidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local'name='oppmootetidspunkt' ref='oppmøte' className='form-control col-8' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='starttidspunkt'>Starttidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local' name='starttidspunkt' ref='start' className='form-control col-8' value={this.state.starttidspunkt} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='sluttidspunkt'>Sluttidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local' name='sluttidspunkt' ref='slutt' className='form-control col-8' value={this.state.sluttidspunkt} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.state.oppmotested}</p>
+              <MapWithASearchBox name='kart' />
+            </div>
+            <div className='form-group'>
+              <button className='btn btn-default' ref='lagreEndringer'>Lagre endringene</button>
+            </div>
+          </div>
       </div>
     )
   }
   changeDate(variabel){
   let a = moment(variabel).format('YYYY-MM-DDTHH:mm');
   return a;
+  }
+  componentWillUnmount(){
+    latitude = 63.4123278
+    longitude = 10.404471000000058
   }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
@@ -2145,8 +2505,9 @@ class EndreArrangement extends React.Component {
       this.state.oppmootetidspunkt = this.changeDate(this.arrangement.oppmootetidspunkt);
       this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
       this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
-      mapLat = this.arrangement.latitude;
-      mapLng = this.arrangement.longitute;
+      this.state.oppmotested = this.arrangement.address;
+      latitude = this.arrangement.latitude;
+      longitude = this.arrangement.longitute;
       this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
@@ -2158,8 +2519,8 @@ class EndreArrangement extends React.Component {
       if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
     });
     this.refs.lagreEndringer.onclick = () =>{
-      arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,this.id).then((result)=>{
-      this.forceUpdate();
+      arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,latitude,longitude,address,this.id).then((result)=>{
+      history.push('/visArrangement/'+this.arrangement.id);
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement' + error);
     });
@@ -2205,6 +2566,9 @@ class Innkalling extends React.Component {
 
     return(
       <div>
+      <div>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
         <table style={{width: '100%'}}>
           <thead>
             <tr>
@@ -2482,6 +2846,222 @@ class Innkalling extends React.Component {
   // }
 }
 
+class Utstyr extends React.Component {
+  constructor() {
+    super();
+    this.utstyr = [];
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'utstyrsListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    for (let item of this.utstyr) {
+      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Navn: <input className='sokeFelt' ref='utNavn'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+        </div>
+        <RolleUtstyr />
+        <ArrangementUtstyr />
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log(this.refs.utNavn.value);
+      UtstyrService.addUtstyr(this.refs.utNavn.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllUtstyr().then((res) => {
+      console.log(res);
+      this.utstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(id) {
+    console.log('Endre: ' + id);
+    UtstyrService.alterUtstyr(id, this.refs.utNavn.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(id) {
+    console.log('Fjern: ' + id);
+    UtstyrService.removeUtstyr(id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class RolleUtstyr extends React.Component {
+  constructor() {
+    super();
+    this.rolleUtstyr = []
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    for (let item of this.rolleUtstyr) {
+      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <br />
+        <p>Rolle-Utstyrs Liste</p>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Rolle: <input className='sokeFelt' ref='rolle'/> Utstyr: <input className='sokeFelt' ref='utstyr'/> Antall: <input className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+        </div>
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log('Click');
+      UtstyrService.addRU(this.refs.rolle.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllRU().then((res) => {
+      console.log(res);
+      this.rolleUtstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(r_id, u_id) {
+    console.log('Endre');
+    UtstyrService.alterRU(r_id, u_id, this.refs.antall.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(r_id, u_id) {
+    console.log('Fjern');
+    UtstyrService.removeRU(r_id, u_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class ArrangementUtstyr extends React.Component {
+  constructor() {
+    super();
+    this.arrangememtUtstyr = []
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'a_utstyrsListe'}><td>Arrangement</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    for (let item of this.arrangememtUtstyr) {
+      utstyrsListe.push(<tr key={item.a_id + ' - ' + item.u_id}><td>{item.a_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <br />
+        <p>Arrangament-Utstyrs Liste</p>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Arrangement: <input className='sokeFelt' ref='arrangement'/> Utstyr: <input className='sokeFelt' ref='utstyr'/> Antall: <input className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+        </div>
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log('Click');
+      UtstyrService.addAU(this.refs.arrangement.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllAU().then((res) => {
+      console.log(res);
+      this.arrangememtUtstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(a_id, u_id) {
+    console.log('Endre');
+    UtstyrService.alterAU(a_id, u_id, this.refs.antall.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(a_id, u_id) {
+    console.log('Fjern');
+    UtstyrService.removeAU(a_id, u_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
 class MineVakter extends React.Component {
   constructor(){
     super();
@@ -2494,7 +3074,7 @@ class MineVakter extends React.Component {
     let godtatt = [];
     let vakter = []
     for(let bytte of this.vaktbytter){
-      vakter.push(<tr key={bytte.id}><td className='arrangementTableDataa'>{bytte.byttenavn}, vil bytte vakt med deg på arrangement {bytte.arrangement}</td><td className='arrangementTableDataa'><button onClick={()=>{this.vaktGodtatt(bytte.id)}}>Ok</button><button onClick={()=>{this.vaktIkkeGodtatt(bytte.id)}}>Nei</button></td></tr>)
+      vakter.push(<tr key={bytte.id}><td className='arrangementTableDataa'><Link to={'/bruker/'+ bytte.om_id}>{bytte.byttenavn}</Link>, vil bytte vakt med deg på arrangement <Link to={'/visArrangement/'+bytte.aid}>{bytte.arrangement}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.vaktGodtatt(bytte.id)}}>Ok</button><button className='btn btn-default' onClick={()=>{this.vaktIkkeGodtatt(bytte.id)}}>Nei</button></td></tr>)
     }
     for(let yes of this.godkjente){
       godtatt.push(<tr key={yes.id}><td className='arrangementTableDataa'><Link to={'/visArrangement/'+yes.id}>{yes.navn}</Link></td><td className='arrangementTableDataa'><button className='btn btn-default' onClick={()=>{this.bytte(yes.vakt_id, yes.rolleid, yes.id)}}>Bytt vakt</button></td></tr>);
@@ -2627,276 +3207,6 @@ class MineVakter extends React.Component {
   }
 }
 
-
-class Utstyr extends React.Component {
-  constructor() {
-    super();
-    this.utstyr = [];
-  }
-  render() {
-    let utstyrsListe = [];
-
-    utstyrsListe.push(<tr key={'utstyrsListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
-    for (let item of this.utstyr) {
-      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
-    }
-
-    return(
-      <div>
-        <div>
-          <table>
-            <tbody>
-              {utstyrsListe}
-            </tbody>
-          </table>
-          Navn: <input ref='utNavn'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
-        </div>
-        <RolleUtstyr />
-        <ArrangementUtstyr />
-        <br />
-      </div>
-    )
-  }
-  componentDidMount() {
-    this.update();
-
-    this.refs.lagUt.onclick = () => {
-      console.log(this.refs.utNavn.value);
-      UtstyrService.addUtstyr(this.refs.utNavn.value).then((res) => {
-        console.log(res);
-        this.update();
-      }).catch((err) => {
-        console.log(err);
-      });
-    };
-  }
-  update() {
-    UtstyrService.getAllUtstyr().then((res) => {
-      console.log(res);
-      this.utstyr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-
-  changeUtstyr(id) {
-    console.log('Endre: ' + id);
-    UtstyrService.alterUtstyr(id, this.refs.utNavn.value).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-  removeUtstyr(id) {
-    console.log('Fjern: ' + id);
-    UtstyrService.removeUtstyr(id).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-}
-
-class RolleUtstyr extends React.Component {
-  constructor() {
-    super();
-    this.rolleUtstyr = [];
-    this.roller = [];
-    this.utstyr = [];
-  }
-  render() {
-    let utstyrsListe = [];
-    let utstyr = [];
-    let roller = [];
-
-    utstyrsListe.push(<tr key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
-    for (let item of this.rolleUtstyr) {
-      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
-    }
-    for (let item of this.utstyr) {
-      utstyr.push(<option key={item.id} value={item.id} >{item.navn}</option>);
-    }
-    for (let item of this.roller) {
-      roller.push(<option key={item.id} value={item.id} >{item.navn}</option>);
-    }
-
-    return(
-      <div>
-        <br />
-        <p>Rolle-Utstyrs Liste</p>
-        <div>
-          <table>
-            <tbody>
-              {utstyrsListe}
-            </tbody>
-          </table>
-          Rolle: <select ref='rolle'>{roller}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' step='1' min='1' max='25' defaultValue='1' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
-        </div>
-        <br />
-      </div>
-    )
-  }
-  componentDidMount() {
-    this.update();
-
-    this.refs.lagUt.onclick = () => {
-      console.log('Click');
-      UtstyrService.addRU(this.refs.rolle.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
-        console.log(res);
-        this.update();
-      }).catch((err) => {
-        console.log(err);
-      });
-    };
-  }
-  update() {
-    UtstyrService.getAllRU().then((res) => {
-      console.log(res);
-      this.rolleUtstyr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-
-    UtstyrService.getAllUtstyr().then((res) => {
-      console.log(res);
-      this.utstyr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-
-    rolleService.getAllRolle().then((res) => {
-      console.log(res);
-      this.roller = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-
-  changeUtstyr(r_id, u_id) {
-    console.log('Endre');
-    UtstyrService.alterRU(r_id, u_id, this.refs.antall.value).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-  removeUtstyr(r_id, u_id) {
-    console.log('Fjern');
-    UtstyrService.removeRU(r_id, u_id).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-}
-
-class ArrangementUtstyr extends React.Component {
-  constructor() {
-    super();
-    this.arrangememtUtstyr = [];
-    this.utstyr = [];
-    this.arr = [];
-  }
-  render() {
-    let utstyrsListe = [];
-    let utstyr = [];
-    let arr = [];
-
-    utstyrsListe.push(<tr key={'a_utstyrsListe'}><td>Arrangement</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
-    for (let item of this.arrangememtUtstyr) {
-      utstyrsListe.push(<tr key={item.a_id + ' - ' + item.u_id}><td>{item.a_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
-    }
-    for (let item of this.utstyr) {
-      utstyr.push(<option key={item.id} value={item.id} >{item.navn}</option>);
-    }
-    for (let item of this.arr) {
-      arr.push(<option key={item.id} value={item.id} >{item.navn}</option>);
-    }
-
-    return(
-      <div>
-        <br />
-        <p>Arrangament-Utstyrs Liste</p>
-        <div>
-          <table>
-            <tbody>
-              {utstyrsListe}
-            </tbody>
-          </table>
-          Arrangement: <select ref='arrangement'>{arr}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' step='1' min='1' max='25' defaultValue='1' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
-        </div>
-        <br />
-      </div>
-    )
-  }
-  componentDidMount() {
-    this.update();
-
-    this.refs.lagUt.onclick = () => {
-      console.log('Click');
-      UtstyrService.addAU(this.refs.arrangement.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
-        console.log(res);
-        this.update();
-      }).catch((err) => {
-        console.log(err);
-      });
-    };
-  }
-  update() {
-    UtstyrService.getAllAU().then((res) => {
-      console.log(res);
-      this.arrangememtUtstyr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-
-    UtstyrService.getAllUtstyr().then((res) => {
-      console.log(res);
-      this.utstyr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-
-    arrangementService.getAllArrangement().then((res) => {
-      console.log(res);
-      this.arr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-
-  changeUtstyr(a_id, u_id) {
-    console.log('Endre');
-    UtstyrService.alterAU(a_id, u_id, this.refs.antall.value).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-  removeUtstyr(a_id, u_id) {
-    console.log('Fjern');
-    UtstyrService.removeAU(a_id, u_id).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-}
-
-
 class Kvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -2918,7 +3228,7 @@ class Kvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Navn: <input ref='kvNavn'/> Varighet: <input type='number' step='1' min='1' max='25' defaultValue='1' ref='kvVar'/> <button className='btn btn-default' ref='lagKv'>Legg til</button>
+          Navn: <input className='sokeFelt' ref='kvNavn'/> Varighet: <input className='sokeFelt'  ref='kvVar'/> <button className='btn btn-default' ref='lagKv'>Legg til</button>
         </div>
         <RolleKvalifikasjoner />
         <MedlemKvalifikasjoner />
@@ -2972,24 +3282,14 @@ class Kvalifikasjoner extends React.Component {
 class RolleKvalifikasjoner extends React.Component {
   constructor() {
     super();
-    this.rolleKval = [];
-    this.roller = [];
-    this.kvalifikasjoner = [];
+    this.rolleKval = []
   }
   render() {
     let kvalListe = [];
-    let roller = [];
-    let kvalifikasjoner = [];
 
     kvalListe.push(<tr key={'RKListe'}><td>Rolle</td><td>Kvalifikasjon</td><td>Knapper</td></tr>);
     for (let item of this.rolleKval) {
       kvalListe.push(<tr key={item.r_id + ' - ' + item.k_id}><td>{item.r_navn}</td><td>{item.k_navn}</td><td><button className='btn btn-default' onClick={() => {this.removeKval(item.r_id, item.k_id)}}>Fjern</button></td></tr>);
-    }
-    for (let item of this.roller) {
-      roller.push(<option key={item.id} value={item.id} >{item.navn}</option>);
-    }
-    for (let item of this.kvalifikasjoner) {
-      kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
     }
 
     return(
@@ -3002,7 +3302,7 @@ class RolleKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Rolle: <select ref='rolle'>{roller}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
+          Rolle: <input className='sokeFelt' ref='rolle'/> Kvalifikasjon: <input className='sokeFelt' ref='kval'/> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -3025,20 +3325,6 @@ class RolleKvalifikasjoner extends React.Component {
     KvalifikasjonService.getAllRK().then((res) => {
       console.log(res);
       this.rolleKval = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-    rolleService.getAllRolle().then((res) => {
-      console.log(res);
-      this.roller = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-    KvalifikasjonService.getAllKvalifikasjon().then((res) => {
-      console.log(res);
-      this.kvalifikasjoner = res;
       this.forceUpdate();
     }).catch((err) => {
       console.log(err);
@@ -3069,23 +3355,13 @@ class MedlemKvalifikasjoner extends React.Component {
   constructor() {
     super();
     this.medKval = []
-    this.meldemer = [];
-    this.kvalifikasjoner = [];
   }
   render() {
     let kvalListe = [];
-    let meldemer = [];
-    let kvalifikasjoner = [];
 
     kvalListe.push(<tr key={'medKval'}><td>Medlem</td><td>Kvalifikasjon</td><td>Gyldig til</td><td>Knapper</td></tr>);
     for (let item of this.medKval) {
       kvalListe.push(<tr key={item.m_id + ' - ' + item.k_id}><td>{item.m_navn}</td><td>{item.k_navn}</td><td>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
-    }
-    for (let item of this.meldemer) {
-      meldemer.push(<option key={item.id} value={item.id} >{item.brukernavn}</option>);
-    }
-    for (let item of this.kvalifikasjoner) {
-      kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
     }
 
     return(
@@ -3099,6 +3375,7 @@ class MedlemKvalifikasjoner extends React.Component {
             </tbody>
           </table>
           Medlem: <select ref='med'>{meldemer}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+
         </div>
         <br />
       </div>
@@ -3125,20 +3402,6 @@ class MedlemKvalifikasjoner extends React.Component {
     }).catch((err) => {
       console.log(err);
     });
-    KvalifikasjonService.getAllKvalifikasjon().then((res) => {
-      console.log(res);
-      this.kvalifikasjoner = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-    userService.getUsers().then((res) => {
-      console.log(res);
-      this.meldemer = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
   }
 
   changeKval(m_id, k_id) {
@@ -3160,7 +3423,6 @@ class MedlemKvalifikasjoner extends React.Component {
     });
   }
 }
-
 
 class Rolle extends React.Component {
   constructor() {
@@ -3185,8 +3447,6 @@ class Rolle extends React.Component {
           </table>
           Navn: <input ref='roNavn'/> <button className='btn btn-default' ref='lagRo'>Legg til</button>
         </div>
-        <RolleKvalifikasjoner />
-        <RolleUtstyr />
       </div>
     )
   }
@@ -3232,7 +3492,6 @@ class Rolle extends React.Component {
     });
   }
 }
-
 
 class Hjelp extends React.Component {
   render() {
@@ -3401,6 +3660,7 @@ class Statistik extends React.Component {
 //
 
 
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -3434,7 +3694,7 @@ ReactDOM.render((
         <Route exact path='/T-rolle' component={Rolle} />
         <Route exact path='/mineVakter' component={MineVakter} />
         <Route exact path='/hjelp' component={Hjelp} />
-        <Route exact path='/statistik' component={Statistik} />
+        <Route exact path='/endreBrukerInfo/:id' component={EndreBrukerInfo} />
       </Switch>
       <Popup />
     </div>
