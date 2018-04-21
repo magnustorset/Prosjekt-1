@@ -710,7 +710,8 @@ class Menu extends React.Component {
   componentDidMount(){
     let isRefresh
     window.onkeydown = e => {
-      if ((e.ctrlKey || e.metaKey) && e.keyCode === 82) {
+      if (((e.ctrlKey || e.metaKey) && e.keyCode === 82) || e.keyCode === 116) {
+        location.reload();
         isRefresh = true;
       }
     }
