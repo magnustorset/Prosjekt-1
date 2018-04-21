@@ -2003,7 +2003,8 @@ class EndreArrangement extends React.Component {
     this.state = {beskrivelse: '',
                   oppmootetidspunkt: '',
                   starttidspunkt: '',
-                  sluttidspunkt: ''
+                  sluttidspunkt: '',
+                  oppmotested: ''
                   };
 
     this.handleChange = this.handleChange.bind(this);
@@ -2020,47 +2021,53 @@ class EndreArrangement extends React.Component {
   render(){
     return(
       <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td><textarea name='beskrivelse' ref='text' value={this.state.beskrivelse} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td><input type='datetime-local'name='oppmootetidspunkt' ref='oppmøte' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/></td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td><input type='datetime-local' name='starttidspunkt' ref='start' value={this.state.starttidspunkt} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td><input type='datetime-local' name='sluttidspunkt' ref='slutt' value={this.state.sluttidspunkt} onChange={this.handleChange} /></td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button></td>
-              <td><button className='btn btn-default' ref='lagreEndringer'>Lagre endringene</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+      <button className='btn btn-warning tilbakeKnapp' onClick={()=>{this.props.history.goBack()}}>Gå tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+              <label htmlFor='navn'>Arrangement navn:</label>
+              <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='beskrivelse'>Arrangement beskrivelse:</label>
+              <textarea name='beskrivelse' className='form-control col-8' ref='text' value={this.state.beskrivelse} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='oppmootetidspunkt'>Oppmøtetidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local'name='oppmootetidspunkt' ref='oppmøte' className='form-control col-8' value={this.state.oppmootetidspunkt} onChange={this.handleChange}/>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='starttidspunkt'>Starttidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local' name='starttidspunkt' ref='start' className='form-control col-8' value={this.state.starttidspunkt} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='sluttidspunkt'>Sluttidspunkt:</label>
+              <input className='sokeFelt' type='datetime-local' name='sluttidspunkt' ref='slutt' className='form-control col-8' value={this.state.sluttidspunkt} onChange={this.handleChange} />
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.state.oppmotested}</p>
+              <MapWithASearchBox name='kart' />
+            </div>
+            <div className='form-group'>
+              <button className='btn btn-default' ref='lagreEndringer'>Lagre endringene</button>
+            </div>
+          </div>
       </div>
     )
   }
   changeDate(variabel){
   let a = moment(variabel).format('YYYY-MM-DDTHH:mm');
   return a;
+  }
+  componentWillUnmount(){
+    latitude = 63.4123278
+    longitude = 10.404471000000058
   }
   componentDidMount(){
     arrangementService.showArrangement(this.id).then((result)=>{
@@ -2070,8 +2077,9 @@ class EndreArrangement extends React.Component {
       this.state.oppmootetidspunkt = this.changeDate(this.arrangement.oppmootetidspunkt);
       this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
       this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
-      mapLat = this.arrangement.latitude;
-      mapLng = this.arrangement.longitute;
+      this.state.oppmotested = this.arrangement.address;
+      latitude = this.arrangement.latitude;
+      longitude = this.arrangement.longitute;
       this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
@@ -2083,8 +2091,8 @@ class EndreArrangement extends React.Component {
       if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
     });
     this.refs.lagreEndringer.onclick = () =>{
-      arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,this.id).then((result)=>{
-      this.forceUpdate();
+      arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,latitude,longitude,address,this.id).then((result)=>{
+      history.push('/visArrangement/'+this.arrangement.id);
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement' + error);
     });
