@@ -1563,13 +1563,22 @@ class Administrator extends React.Component{
         <thead>
           <tr>
             <td style={{width: '30%'}}>
-              <div><strong>Brukere som må godkjennes</strong></div>
+              <div>
+              <strong>Brukere som må godkjennes</strong>
+              <button className='btn btn-xs btn-default' id='godkjennBrukerHelpButton' ref='godkjennBrukerHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
             <td style={{width: '30%'}}>
-              <div><strong>Godkjenn vaktbytter</strong></div>
+              <div>
+              <strong>Godkjenn vaktbytter</strong>
+              <button className='btn btn-xs btn-default' id='godkjennVaktHelpButton' ref='godkjennVaktHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
             <td style={{width: '30%'}}>
-              <div><strong>Annet</strong></div>
+              <div>
+              <strong>Skriv melding til brukerne:</strong>
+              <button className='btn btn-xs btn-default' id='adminMeldingHelpButton' ref='adminMeldingHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+              </div>
             </td>
           </tr>
         </thead>
@@ -1582,12 +1591,14 @@ class Administrator extends React.Component{
               <ByttVakt />
             </td>
             <td>
+              <div className='form-group'>
+                <textarea ref='adminMelding' className='form-control col-8 sokeFelt' name='adminMelding'/>
+                <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
+              </div>
             </td>
           </tr>
           <tr>
             <td>
-            <textarea ref='adminMelding' />
-            <button className='btn btn-default' ref='RegistrerAdminMelding'>Commit</button>
             </td>
             <td>
             </td>
@@ -1602,10 +1613,19 @@ class Administrator extends React.Component{
   componentDidMount(){
     this.refs.RegistrerAdminMelding.onclick = ()=> {
       administratorFunctions.updateAdminMelding(this.refs.adminMelding.value);
+      this.refs.adminMelding.value = '';
+    }
+    this.refs.godkjennBrukerHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises brukere som er laget, men ikke godkjent. Klikk et navn for å se info om bruker. Klikk "Godkjenn" for å godkjenne en bruker.', godkjennBrukerHelpButton);
+    }
+    this.refs.godkjennVaktHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises vakter som en bruker ønsker å bytte, men som ikke er godkjent. Klikk et navn for å se info om bruker. Klikk på arrangementet for mer info om arrangementet. Klikk "Godta" eller "Avslå" for å godkjenne eller avslå byttet.', godkjennVaktHelpButton);
+    }
+    this.refs.adminMeldingHelpButton.onclick = () => {
+      Popup.plugins().popunder('Her kan du skrive en melding som vil dukke opp på fremsiden for alle brukere', adminMeldingHelpButton);
     }
   }
 }
-
 
 class GodkjennBruker extends React.Component {
   constructor(){
@@ -1657,7 +1677,7 @@ class ByttVakt extends React.Component{
   render(){
     let vakter = []
     for(let bytte of this.vaktbytter){
-      vakter.push(<tr key={bytte.id}><td>{bytte.byttenavn}, vil bytte vakt med {bytte.navn} på arrangement {bytte.arrangement}</td><td><button onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
+      vakter.push(<tr key={bytte.id}><td><Link to={'/bruker/'+bytte.om_id}>{bytte.byttenavn}</Link>, vil bytte vakt med <Link to={'/bruker/'+bytte.nm_id}>{bytte.navn}</Link> på arrangement <Link to={'/visArrangement/'+bytte.aid}>{bytte.arrangement} </Link>som {bytte.rollenavn}</td><td><button className='btn btn-default' onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button className='btn btn-default' onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
     }
     return(
       <div>
