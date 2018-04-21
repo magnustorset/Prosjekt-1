@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService, statistikkService } from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -454,6 +454,9 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/hjelp' className="nav-link">Hjelp</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/statistik' className="nav-link">Statistik</Link>
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
@@ -3005,6 +3008,150 @@ class Hjelp extends React.Component {
   }
 }
 
+
+class Statistik extends React.Component {
+  constructor() {
+    super();
+    this.statistikk = [];
+    this.statistikkType = [
+      {kom: 'allMedAntVakter', navn: 'Antallet vakter per medlem.'},
+      {kom: 'medAntVakterRolle', navn: 'Antallet vakter per rolle for det valgte medlemmet.'},
+      {kom: 'allMedAntTimer', navn: 'Antallet timer per medlem.'},
+      {kom: 'allMedAntTimerMDato', navn: 'Antallet timer per medlem mellom datoene.'},
+      {kom: 'allMedAntVaktMDato', navn: 'Antallet vakter per medlem mellom datoene.'},
+      {kom: 'test', navn: 'Test'}
+    ];
+  }
+  render() {
+    let statVisning = [];
+    let statValg = [];
+
+    statVisning.push(<tr key={'statistikkListe'}><td>Id</td><td>Brukernavn</td><td>Rolle</td><td>Antall</td></tr>);
+    for(let item of this.statistikk) {
+      statVisning.push(<tr key={item.m_id}><td>{item.m_id}</td><td>{item.brukernavn}</td><td>{(item.r_id) ? item.r_id:'No rolle found'}</td><td>{item.antall}</td></tr>);
+    }
+
+    // statValg.push(<option key='Tomt' value='Tomt'>Velg type</option>);
+    for(let item of this.statistikkType) {
+      statValg.push(<option key={item.kom} value={item.kom}>{item.navn}</option>);
+    }
+
+    // for(let item of this.statistikk) {
+    //   statVisning.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeRolle(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeRolle(item.id)}}>Fjern</button></td></tr>);
+    // }
+
+    return(
+      <div>
+        <select ref='statType'>{statValg}</select><select ref='statValue'></select> Start: <input type="datetime-local" ref="sDato" /> Slutt: <input type="datetime-local" ref="eDato" /><button ref='statVis'>Trykk</button>
+        <div>
+          <table>
+            <tbody>
+              {statVisning}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+  componentDidMount() {
+
+    this.refs.statVis.onclick = () => {
+      switch (this.refs.statType.value) {
+        case 'allMedAntVakter':
+          console.log('allMedAntVakter');
+          this.allMedAntVakter();
+          break;
+        case 'medAntVakterRolle':
+          console.log('medAntVakterRolle');
+          this.medAntVakterRolle();
+          break;
+        case 'allMedAntTimer':
+          console.log('allMedAntTimer');
+          this.allMedAntTimer();
+          break;
+        case 'allMedAntTimerMDato':
+          console.log('allMedAntTimer');
+          this.allMedAntTimerMDato();
+          break;
+        case 'allMedAntVaktMDato':
+          console.log('allMedAntVaktMDato');
+          this.allMedAntVaktMDato();
+          break;
+        case 'test':
+          console.log('test');
+          this.test();
+          break;
+        default:
+          console.log('switch fail!');
+          console.log(this.refs.statType.value);
+      }
+    };
+  }
+
+  allMedAntVakter() {
+    statistikkService.allMedAntVakter().then((res) => {
+      console.log(res);
+      this.statistikk = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+
+  }
+  allMedAntTimer() {
+    statistikkService.allMedAntTimer().then((res) => {
+      console.log(res);
+      this.statistikk = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+
+  }
+
+  medAntVakterRolle() {
+    statistikkService.allMedAntVakterRolle().then((res) => {
+      console.log(res);
+      this.statistikk = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+
+  }
+
+  allMedAntTimerMDato() {
+    let fra = this.refs.sDato.value;
+    let til = this.refs.eDato.value;
+    statistikkService.allMedAntTimerMDato(fra, til).then((res) => {
+      console.log(res);
+      this.statistikk = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  allMedAntVaktMDato() {
+    let fra = this.refs.sDato.value;
+    let til = this.refs.eDato.value;
+    statistikkService.allMedAntVaktMDato(fra, til).then((res) => {
+      console.log(res);
+      this.statistikk = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+
+  test() {
+    console.log('Test function.');
+  }
+}
+
+
+
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -3038,6 +3185,7 @@ ReactDOM.render((
         <Route exact path='/T-rolle' component={Rolle} />
         <Route exact path='/mineVakter' component={MineVakter} />
         <Route exact path='/hjelp' component={Hjelp} />
+        <Route exact path='/statistik' component={Statistik} />
       </Switch>
       <Popup />
     </div>
