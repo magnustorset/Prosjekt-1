@@ -3350,6 +3350,8 @@ class MedlemKvalifikasjoner extends React.Component {
   constructor() {
     super();
     this.medKval = []
+    this.meldemer = [];
+    this.kvalifikasjoner = [];
   }
   render() {
     let kvalListe = [];
@@ -3359,7 +3361,12 @@ class MedlemKvalifikasjoner extends React.Component {
     for (let item of this.medKval) {
       kvalListe.push(<tr key={item.m_id + ' - ' + item.k_id}><td>{item.m_navn}</td><td>{item.k_navn}</td><td>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
     }
-
+    for (let item of this.meldemer) {
+         meldemer.push(<option key={item.id} value={item.id} >{item.brukernavn}</option>);
+       }
+       for (let item of this.kvalifikasjoner) {
+         kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+       }
     return(
       <div>
         <br />
@@ -3394,6 +3401,20 @@ class MedlemKvalifikasjoner extends React.Component {
     KvalifikasjonService.getAllMK().then((res) => {
       console.log(res);
       this.medKval = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    KvalifikasjonService.getAllKvalifikasjon().then((res) => {
+      console.log(res);
+      this.kvalifikasjoner = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    userService.getUsers().then((res) => {
+      console.log(res);
+      this.meldemer = res;
       this.forceUpdate();
     }).catch((err) => {
       console.log(err);
