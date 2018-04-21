@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService, statistikkService} from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -608,6 +608,9 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/hjelp' className="nav-link">Hjelp</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/statistikk' className="nav-link">Statistikk</Link>
           </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
@@ -3604,73 +3607,73 @@ class Statistik extends React.Component {
       });
 
 
-      // switch (this.refs.statType.value) {
-      //   case 'allMedAntVakter':
-      //     console.log('allMedAntVakter');
-      //     this.allMedAntVakter();
-      //     break;
-      //   case 'allMedAntTimer':
-      //     console.log('allMedAntTimer');
-      //     this.allMedAntTimer();
-      //     break;
-      //   case 'allMedAntTimerMDato':
-      //     console.log('allMedAntTimer');
-      //     this.allMedAntTimerMDato();
-      //     break;
-      //   case 'allMedAntVaktMDato':
-      //     console.log('allMedAntVaktMDato');
-      //     this.allMedAntVaktMDato();
-      //     break;
-      //   default:
-      //     console.log('switch fail!');
-      //     console.log(this.refs.statType.value);
-      // }
+       switch (this.refs.statType.value) {
+         case 'allMedAntVakter':
+        console.log('allMedAntVakter');
+        this.allMedAntVakter();
+           break;
+         case 'allMedAntTimer':
+           console.log('allMedAntTimer');
+           this.allMedAntTimer();
+           break;
+         case 'allMedAntTimerMDato':
+           console.log('allMedAntTimer');
+         this.allMedAntTimerMDato();
+           break;
+         case 'allMedAntVaktMDato':
+         console.log('allMedAntVaktMDato');
+           this.allMedAntVaktMDato();
+           break;
+         default:
+           console.log('switch fail!');
+         console.log(this.refs.statType.value);
+       }
     };
   }
 
-  // allMedAntVakter() {
-  //   statistikkService.allMedAntVakter().then((res) => {
-  //     console.log(res);
-  //     this.statistikk = res;
-  //     this.forceUpdate();
-  //   }).catch((err) => {
-  //     console.log(err);
-  //   });
-  //
-  // }
-  // allMedAntTimer() {
-  //   statistikkService.allMedAntTimer().then((res) => {
-  //     console.log(res);
-  //     this.statistikk = res;
-  //     this.forceUpdate();
-  //   }).catch((err) => {
-  //     console.log(err);
-  //   });
-  //
-  // }
-  //
-  // allMedAntTimerMDato() {
-  //   let fra = this.refs.sDato.value;
-  //   let til = this.refs.eDato.value;
-  //   statistikkService.allMedAntTimerMDato(fra, til).then((res) => {
-  //     console.log(res);
-  //     this.statistikk = res;
-  //     this.forceUpdate();
-  //   }).catch((err) => {
-  //     console.log(err);
-  //   });
-  // }
-  // allMedAntVaktMDato() {
-  //   let fra = this.refs.sDato.value;
-  //   let til = this.refs.eDato.value;
-  //   statistikkService.allMedAntVaktMDato(fra, til).then((res) => {
-  //     console.log(res);
-  //     this.statistikk = res;
-  //     this.forceUpdate();
-  //   }).catch((err) => {
-  //     console.log(err);
-  //   });
-  // }
+   allMedAntVakter() {
+     statistikkService.allMedAntVakter().then((res) => {
+       console.log(res);
+       this.statistikk = res;
+       this.forceUpdate();
+     }).catch((err) => {
+       console.log(err);
+     });
+
+   }
+   allMedAntTimer() {
+     statistikkService.allMedAntTimer().then((res) => {
+       console.log(res);
+       this.statistikk = res;
+       this.forceUpdate();
+     }).catch((err) => {
+       console.log(err);
+     });
+
+   }
+
+   allMedAntTimerMDato() {
+     let fra = this.refs.sDato.value;
+     let til = this.refs.eDato.value;
+     statistikkService.allMedAntTimerMDato(fra, til).then((res) => {
+       console.log(res);
+       this.statistikk = res;
+       this.forceUpdate();
+     }).catch((err) => {
+       console.log(err);
+     });
+   }
+   allMedAntVaktMDato() {
+     let fra = this.refs.sDato.value;
+     let til = this.refs.eDato.value;
+     statistikkService.allMedAntVaktMDato(fra, til).then((res) => {
+       console.log(res);
+       this.statistikk = res;
+       this.forceUpdate();
+     }).catch((err) => {
+       console.log(err);
+     });
+   }
 
 }
 
@@ -3712,6 +3715,7 @@ ReactDOM.render((
         <Route exact path='/mineVakter' component={MineVakter} />
         <Route exact path='/hjelp' component={Hjelp} />
         <Route exact path='/endreBrukerInfo/:id' component={EndreBrukerInfo} />
+        <Route exact path='/statistikk' component={Statistik} />
       </Switch>
       <Popup />
     </div>
