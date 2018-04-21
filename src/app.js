@@ -40,10 +40,11 @@ const { SearchBox } = require('react-google-maps/lib/components/places/SearchBox
 let brukerlogedin = false
 let klokke = 0
 let emailCode = false
-let latitude = ''
-let longitude = ''
-let mapLat = ''
-let mapLng = ''
+let latitude = 63.4123278
+let longitude = 10.404471000000058
+let address = ''
+let mapLat = 63.4123278
+let mapLng = 10.404471000000058
 let brukerEpost;
 let vis = []
 let velgBytteBruker = []
@@ -57,8 +58,8 @@ const MapWithASearchBox = compose(
   }),
   lifecycle({
     componentWillMount() {
-      let sted = 63.426387
-      let stad = 10.392680
+      let sted = latitude;
+      let stad = longitude;
       const refs = {}
 
       this.setState({
@@ -88,17 +89,18 @@ const MapWithASearchBox = compose(
         },
        dragMarker(){
          let b = this.getPosition();
-         this.setPosition(b);
-         console.log(b.lat(),b.lng());
+         latitude = b.lat();
+         longitude = b.lng();
+         let latlng = {lat: b.lat(), lng: b.lng()};
+         let geocoder = new google.maps.Geocoder();
+         geocoder.geocode({'location': latlng},function(results,status){
+           if(status === 'OK'){
+             address = results[0].formatted_address;
+           }
+         });
+
        },
-       onMapClick(){
-         let p = refs.marker.getPosition();
-         console.log(p.lat(), p.lng());
-       },
-        onClick(){
-          let a = this.getPosition();
-          console.log(a.lat(),a.lng());
-        },
+
         onPlacesChanged: () => {
           const places = refs.searchBox.getPlaces();
           const bounds = new google.maps.LatLngBounds();
@@ -122,8 +124,13 @@ const MapWithASearchBox = compose(
           let k = refs.marker.getPosition();
           latitude = k.lat();
           longitude = k.lng();
-          console.log(latitude);
-          console.log(longitude);
+          let geocoder = new google.maps.Geocoder();
+          let latlng = {lat: k.lat(), lng: k.lng()};
+          geocoder.geocode({'location': latlng},function(results,status){
+            if(status === 'OK'){
+              address = results[0].formatted_address;
+            }
+          });
           // refs.map.fitBounds(bounds);
         },
       })
@@ -137,7 +144,6 @@ const MapWithASearchBox = compose(
     defaultZoom={15}
     center={props.center}
     onBoundsChanged={props.onBoundsChanged}
-    onClick={props.onMapClick}
     >
       <SearchBox
       ref={props.onSearchBoxMounted}
@@ -146,6 +152,7 @@ const MapWithASearchBox = compose(
       onPlacesChanged={props.onPlacesChanged}
       >
         <input
+          className='sokeFelt'
           type="text"
           placeholder="Søk etter plass"
           style={{
@@ -170,11 +177,11 @@ const MapWithASearchBox = compose(
             position={marker.position}
             draggable={true}
             onDragEnd={props.dragMarker}
-            onClick={props.onClick}
             />
           )}
           </GoogleMap>
 );
+
 const MapWithAMarker = compose(
   withProps({
     googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
