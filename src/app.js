@@ -1185,11 +1185,34 @@ class MineSider extends React.Component {
     let signedInUser = loginService.getSignedInUser();
     this.user = [];
     this.id = signedInUser.id;
+    this.varsler = [];
   }
   render(){
+    let varsel = []
+    for(let item of this.varsler){
+      if(item.bekreftelse === 0 && item.godtatt ===1){
+        varsel.push(<tr key={item.id} ><td className='varselDårlig'>Din forspørsel om å bytte vakt med {item.Nnavn} som {item.rollenavn} på {item.anavn} har blitt avslått</td></tr>);
+      }else if(item.bekreftelse === 1 && item.godtatt === 1){
+        varsel.push(<tr key={item.id} ><td className='varselGod'>Din forspørsel om å bytte vakt med {item.Nnavn} som {item.rollenavn} på {item.anavn} har blitt godtatt</td></tr>);
+      }
+    }
     return(
       <div>
-        <h1>Min Side</h1>
+        <h1 className='title'>Min Side</h1>
+        <div className='vasrselDiv'>
+          <table>
+            <thead>
+              <tr>
+                <td>
+                  <strong>Varsler:</strong>
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+            {varsel}
+            </tbody>
+          </table>
+        </div>
         <div className='mineSider'>
         <table >
           <tbody>
@@ -1222,6 +1245,12 @@ class MineSider extends React.Component {
     )
   }
   componentDidMount(){
+    arrangementService.varsler(loginService.getSignedInUser().id).then((result)=>{
+      this.varsler = result;
+      this.forceUpdate()
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Finner ikke varsler' + error);
+    });
     arrangementService.getYourArrangements(loginService.getSignedInUser().id).then((result)=>{
       for(let ting of result){
         eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
