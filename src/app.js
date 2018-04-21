@@ -1929,8 +1929,22 @@ class BrukerSide extends React.Component {
     this.user = {}
   }
   render() {
+
     let signedInUser = loginService.getSignedInUser();
-    if (signedInUser.admin === 1 && this.user.admin === 0) {
+    if (signedInUser.admin === 1) {
+      let b;
+      let a;
+      if(this.user.admin === 1){
+        a = (<button className='btn btn-default' onClick={() =>{this.deleteAdmin()}}>Fjern bruker admin</button>)
+      }else{
+        a = (<button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button>)
+      }
+      if(this.user.aktiv === 1){
+        b =(<button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button>)
+      }else{
+        b ='';
+        a ='Gå til administrator siden for å aktiver bruker';
+      }
       return(
         <div>
           <div>
@@ -1960,8 +1974,8 @@ class BrukerSide extends React.Component {
                 <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
               </tr>
               <tr>
-                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
-                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
+                <td className="brukerSideButtons">{a}</td>
+                <td className="brukerSideButtons">{b}</td>
               </tr>
               <tr>
                 <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
@@ -1972,49 +1986,6 @@ class BrukerSide extends React.Component {
           </div>
         </div>
       )
-    }
-      if(signedInUser.admin === 1 && this.user.admin === 1){
-        return(
-          <div>
-          <div>
-            <button className='btn btn-warning tilbakeKnapp' onClick={() =>{this.props.history.goBack();}}>Gå tilbake</button>
-          </div>
-            <div className="brukerSideTabell">
-            <table className="brukerSideTabell">
-              <thead>
-                <tr>
-                  <th className="brukerSideHead">{this.user.fornavn} {this.user.etternavn}</th>
-                  <th className="brukerSideHead">{this.user.id}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="brukerSideData"><span className='tableText'>E-post: </span> {this.user.epost}</td>
-                  <td className="brukerSideData"><span className='tableText'>Adresse: </span> {this.user.adresse}</td>
-
-                </tr>
-                <tr>
-                  <td className="brukerSideData"><span className='tableText'>Telefon: </span>{this.user.tlf}</td>
-                  <td className="brukerSideData"><span className='tableText'>Postnummer: </span>{this.user.postnr}</td>
-
-                </tr>
-                <tr>
-                  <td className="brukerSideData"><span className='tableText'>Vaktpoeng: </span> {this.user.vaktpoeng}</td>
-                  <td className="brukerSideData"><span className='tableText'>Poststed: </span> {this.user.poststed}</td>
-                </tr>
-                <tr>
-                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.makeAdmin()}}>Gjør bruker admin</button></td>
-                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{this.deaktiverBruker()}}>Deaktiver bruker</button></td>
-                </tr>
-                <tr>
-                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
-                  <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/endreBrukerInfo/'+this.id)}}>Endre bruker info</button></td>
-                </tr>
-              </tbody>
-            </table>
-            </div>
-          </div>
-        )
     }else{
       return(
         <div>
@@ -2044,12 +2015,15 @@ class BrukerSide extends React.Component {
   }
   deaktiverBruker(){
     administratorFunctions.deaktiverBruker(this.user.id);
+    this.componentDidMount();
   }
   deleteAdmin(){
     administratorFunctions.deleteAdmin(this.user.id);
+    this.componentDidMount();
   }
  makeAdmin(){
    administratorFunctions.makeUserAdmin(this.user.id);
+   this.componentDidMount();
  }
   componentDidMount() {
     userService.getUser(this.id).then((result) => {
@@ -2124,7 +2098,7 @@ class EndreBrukerInfo extends React.Component {
       if(errorMessage) errorMessage.set('Finner ikke bruker');
     });
     this.refs.cancelButton.onclick = () =>{
-      this.props.history.push('/minside');
+      history.goBack();
     }
     this.refs.saveButton.onclick = () =>{
       let email = this.refs.emailInput.value;
