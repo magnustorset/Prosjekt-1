@@ -485,47 +485,53 @@ class ArrangementService {
       })
     })
   }
-  addArrangement (tlf, navn, meetdate, startdate, enddate, desc, roller, longitude, latitude, address) {
-      let k_id;
-      return new Promise((resolve, reject) =>{
-        connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
+
+  addArrangement (tlf, navn, meetdate, startdate, enddate, desc, longitude, latitude, address) {
+    let k_id;
+    return new Promise((resolve, reject) =>{
+      connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
+        if(error){
+          console.log('tlf err');
+          console.log(error);
+          reject(error);
+          return;
+        }
+        k_id = result[0].id
+
+        connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute, address) values (?, ?, ?, ?, ?, ?, ?, ?,?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude, address], (error, result) => {
           if(error){
-            console.log('tlf err');
+            console.log('arrangement err');
             console.log(error);
             reject(error);
+
             return;
           }
-          k_id = result[0].id
-
-          connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute, address) values (?, ?, ?, ?, ?, ?, ?, ?,?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude, address], (error, result) => {
-            if(error){
-              console.log('arrangement err');
-              console.log(error);
-              reject(error);
-
-              return;
-            }
-            for (var i = 0; i < roller.length; i++) {
-              for (var o = 0; o < roller[i].antall; o++) {
-                connection.query('INSERT INTO vakt (a_id, r_id) values (?, ?)', [result.insertId, roller[i].id], (error, result) => {
-                  if(error){
-                    console.log('vakt err');
-                    console.log(error);
-                    reject(error);
-
-                    return;
-                  }
-                  resolve(result);
-                });
-              }
-            }
-          });
+          resolve(result);
+        });
       });
     });
-
-
-      resolve();
-    }
+  }
+  addArrVakter(vakter) {
+    return new Promise((resolve, reject) =>{
+      connection.query('INSERT INTO vakt (a_id, r_id) VALUES ?', [vakter], (error, result) => {
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
+  addArrUtstyr(utstyr) {
+    return new Promise((resolve, reject) => {
+      connection.query('INSERT INTO a_utstyr (a_id, u_id, antall) VALUES ?', [utstyr], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
 
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
@@ -720,7 +726,7 @@ class AdministratorFunctions{
 class VaktValg {
   static lagListe3(id) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT ro.r_id, ro.m_id, le.brukernavn, le.interesse, le.vaktpoeng, 0 AS "registrert", 0 AS "opptatt", le.epost FROM ( SELECT rr.r_id, rr.antall, rr.m_id FROM ( SELECT r_id, COUNT(*) AS antall FROM rolle_kvalifikasjon rk GROUP BY r_id ) ra INNER JOIN ( SELECT r_id, m_id, COUNT(*) AS antall FROM medlem_kvalifikasjon mk INNER JOIN rolle_kvalifikasjon rk ON mk.k_id = rk.k_id GROUP BY r_id, m_id ) rr ON ra.r_id = rr.r_id WHERE ra.antall =  rr.antall ) ro INNER JOIN ( SELECT DISTINCT m.id, m.brukernavn, EXISTS (SELECT * FROM interesse i WHERE i.m_id = m.id AND i.a_id = ar.id) AS "interesse", m.vaktpoeng, m.epost FROM passiv p  RIGHT JOIN medlem m ON p.m_id = m.id  LEFT JOIN vakt v ON m.id = v.m_id CROSS JOIN ( SELECT * FROM arrangement WHERE id = ? ) ar WHERE m.aktiv = true  AND NOT(ar.starttidspunkt BETWEEN IFNULL(p.f_dato, 0)  AND IFNULL(p.t_dato, 0)) AND NOT EXISTS(SELECT * FROM arrangement ai INNER JOIN vakt vi ON ai.id = vi.a_id WHERE IFNULL(vi.m_id, 0) = m.id AND IFNULL(ai.starttidspunkt, 0) = ar.starttidspunkt) AND NOT(m.id = ar.kontaktperson) ) le ON ro.m_id = le.id WHERE ro.r_id IN ( SELECT DISTINCT r_id FROM vakt WHERE a_id = ? )', [id, id], (error, result) => {
+      connection.query('SELECT ro.r_id, ro.m_id, le.brukernavn, le.interesse, le.vaktpoeng, 0 AS "registrert", 0 AS "opptatt", le.epost FROM ( SELECT rr.r_id, rr.antall, rr.m_id FROM ( SELECT r_id, COUNT(*) AS antall FROM rolle_kvalifikasjon rk GROUP BY r_id ) ra INNER JOIN ( SELECT r_id, m_id, COUNT(*) AS antall FROM medlem_kvalifikasjon mk INNER JOIN rolle_kvalifikasjon rk ON mk.k_id = rk.k_id WHERE mk.gyldig_til > CURDATE() GROUP BY r_id, m_id ) rr ON ra.r_id = rr.r_id WHERE ra.antall =  rr.antall ) ro INNER JOIN ( SELECT DISTINCT m.id, m.brukernavn, EXISTS (SELECT * FROM interesse i WHERE i.m_id = m.id AND i.a_id = ar.id) AS "interesse", m.vaktpoeng, m.epost FROM passiv p  RIGHT JOIN medlem m ON p.m_id = m.id  LEFT JOIN vakt v ON m.id = v.m_id CROSS JOIN ( SELECT * FROM arrangement WHERE id = ? ) ar WHERE m.aktiv = true  AND NOT(ar.starttidspunkt BETWEEN IFNULL(p.f_dato, 0)  AND IFNULL(p.t_dato, 0)) AND NOT EXISTS(SELECT * FROM arrangement ai INNER JOIN vakt vi ON ai.id = vi.a_id WHERE IFNULL(vi.m_id, 0) = m.id AND IFNULL(ai.starttidspunkt, 0) = ar.starttidspunkt) AND NOT(m.id = ar.kontaktperson) ) le ON ro.m_id = le.id WHERE ro.r_id IN ( SELECT DISTINCT r_id FROM vakt WHERE a_id = ? )', [id, id], (error, result) => {
         if (error) {
           reject(error);
           return;
@@ -880,6 +886,16 @@ class UtstyrService {
     });
   }
 
+  static getRU(r_id, antall) {
+    return new Promise((resolve, reject) => {
+      connection.query('SELECT u_id, antall*? AS "antall" FROM r_utstyr WHERE r_id = ?', [antall, r_id], (error, result) => {
+        if(error) {
+          reject(error);
+        }
+        resolve(result);
+      });
+    });
+  }
 
   static getAllAU() {
     return new Promise((resolve, reject) => {
@@ -1019,9 +1035,9 @@ class KvalifikasjonService {
       });
     });
   }
-  static addMK(m_id, k_id, gyldig) {
+  static addMK(m_id, k_id) {
     return new Promise((resolve, reject) => {
-      connection.query('INSERT INTO medlem_kvalifikasjon (m_id, k_id, gyldig_til) VALUES(?, ?, ?)', [m_id, k_id, gyldig], (error, result) => {
+      connection.query('INSERT INTO medlem_kvalifikasjon (m_id, k_id, gyldig_til) VALUES(?, ?, (SELECT DATE_ADD(CURDATE(), INTERVAL varighet MONTH) FROM kvalifikasjon WHERE id = ?))', [m_id, k_id, k_id], (error, result) => {
         if(error) {
           reject(error);
         }
@@ -1031,7 +1047,7 @@ class KvalifikasjonService {
   }
   static alterMK(m_id, k_id, gyldig) {
     return new Promise((resolve, reject) => {
-      connection.query('UPDATE medlem_kvalifikasjon SET gyldig_til = ? WHERE m_id = ? AND k_id = ?', [gyldig, m_id, k_id], (error, result) => {
+      connection.query('UPDATE medlem_kvalifikasjon SET gyldig_til = (SELECT DATE_ADD(CURDATE(), INTERVAL varighet MONTH) FROM kvalifikasjon WHERE id = ?) WHERE m_id = ? AND k_id = ?', [k_id, m_id, k_id], (error, result) => {
         if(error) {
           reject(error);
         }

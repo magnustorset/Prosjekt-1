@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { NavLink, Link, HashRouter, Switch, Route, Router } from 'react-router-dom'
-import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService } from './services'
+import { userService, loginService, arrangementService, emailService, administratorFunctions, VaktValg, PassivService, UtstyrService, KvalifikasjonService, rolleService, malService, statistikkService} from './services'
 import createHashHistory from 'history/createHashHistory';
 import Popup from 'react-popup';
 import BigCalendar from 'react-big-calendar';
@@ -609,6 +609,9 @@ class Menu extends React.Component {
           <li className='nav-item'>
             <Link to='/hjelp' className="nav-link">Hjelp</Link>
           </li>
+          <li className='nav-item'>
+            <Link to='/statistikk' className="nav-link">Statistikk</Link>
+          </li>
         </ul>
         <ul className="nav navbar-nav navbar-right">
           <li className='hopp'>
@@ -1129,11 +1132,15 @@ class NyttArrangement extends React.Component{
     this.roller = [];
     this.vakter = [];
     this.maler = [];
+    this.utstyr = [];
+    this.utListe = [];
   }
   render(){
     let rolleList = [];
     let vakter = [];
     let malList = [];
+    let utstyr = [];
+    let utListe = [];
 
     rolleList.push(<option key="0" value="0"></option>);
     for(let item of this.roller) {
@@ -1152,6 +1159,19 @@ class NyttArrangement extends React.Component{
 
     for(let item of this.maler) {
       malList.push(<option key={item.id} value={item.id}>{item.navn}</option>);
+    }
+    for(let item of this.utstyr) {
+      utstyr.push(<option key={item.id} value={item.id}>{item.navn}</option>);
+    }
+
+    for (let i in this.utListe) {
+      let item = this.utListe[i];
+      utListe.push(
+        <tr key={item.id} className='arrangementVaktTabell'>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Utstyr:</span> {item.navn}</td>
+          <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="500" defaultValue={item.antall} onChange={(event) => {item.antall = +event.target.value}} /></td>
+          <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.utListe.splice(i, 1); console.log(this.utListe); this.forceUpdate()}}>Fjern</button></td>
+        </tr>);
     }
 
     return(
@@ -1209,7 +1229,10 @@ class NyttArrangement extends React.Component{
                 {vakter}
               </tbody>
             </table>
+
           </div>
+
+          <br />
           <div className='form-group formFritekst'>
             <label>Vakt mal: </label>
           </div>
@@ -1231,12 +1254,32 @@ class NyttArrangement extends React.Component{
               <button className='btn btn-default' ref='endreMal'>Endre</button>
               <button className='btn btn-default' ref='leggTilMal'>Legg til</button>
             </div>
+            </div>
+          <br />
+          <br />
+
+            <div className='form-group'>
+              <label htmlFor='utstyr'>Utstyr: </label>
+              <select ref='utstyr' name='utstyr' className="form-control-lg">{utstyr}</select>
+            </div>
+            <div className='form-group'>
+              <button className='btn btn-default' onClick={() => {this.addUt()}}>Legg til utstyr</button>
+              <button className='btn btn-default' onClick={() => {this.importerRolleUtstyr()}}>Importer utstyr fra roller</button>
+            </div>
+          <div className='form-group'>
+            <table>
+              <tbody>
+                {utListe}
+              </tbody>
+            </table>
           </div>
           <div className='form-group'>
             <button className='btn btn-default' ref="arrangementButton">Lag arrangement</button>
           </div>
+          </div>
+
         </div>
-      </div>
+
     )
   }
 
@@ -1249,7 +1292,6 @@ class NyttArrangement extends React.Component{
       console.log('ERROR: ROLLE_SQL_FAIL');
       console.log(err);
     })
-
     malService.getMals().then((res) => { //Finnished
       console.log('getMals Sukse!');
       console.log(res);
@@ -1259,26 +1301,69 @@ class NyttArrangement extends React.Component{
       console.log('getMals feil!');
       console.log(err);
     });
+    UtstyrService.getAllUtstyr().then((res) => {
+      console.log(res);
+      this.utstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
 
     this.refs.arrangementButton.onclick = () => {
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude, address).then(() => {
+
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, longitude,latitude,address).then((res) => {
         address = ''
         longitude = ''
         latitude = ''
+
         history.push('/Arrangement')
+
+        let vakter = [];
+        for (let item of this.vakter) {
+          for (var i = 0; i < item.antall; i++) {
+            vakter.push([res.insertId, item.id]);
+          }
+        }
+
+        let utstyr = [];
+        for (let item of this.utListe) {
+          utstyr.push([res.insertId, item.id, item.antall]);
+        }
+
+
+
+        console.log(vakter);
+        arrangementService.addArrVakter(vakter).then((res) => {
+          console.log('Vakter sukse!');
+        }).catch((err) => {
+          if(errorMessage) errorMessage.set('Kunne ikke legge til vakter');
+        });
+
+        console.log(utstyr);
+        arrangementService.addArrUtstyr(utstyr).then((res) => {
+          console.log('Vakter sukse!');
+        }).catch((err) => {
+          console.log(err);
+          if(errorMessage) errorMessage.set('Kunne ikke legge til utstyr');
+        });
+
+
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
-      });
-    }
 
+      });
+
+    }
 
     this.refs.helpButton.onclick = () => {
       Popup.plugins().popover('Velg rollen du vil legge til fra rullegardinmenyen og klikk legg til rolle. Skriv deretter inn antall. Hvis du vil legge til flere roller velger du en ny rolle fra menyen og skriver inn antall igjen.', aHelpButton);
     }
 
+
     this.refs.vaktHelpButton.onclick = () => {
       Popup.plugins().popover('For å bruke en mal velger du en mal fra rullegardinmenyen så vil roller og antall automatisk bli fylt inn. For å legge til en vaktmal fyll inn de rollene du vil ha med, skriv inn et navn og trykk "Legg til". For å endre en mal, velg først malen du vil endre, så endrer du rollene til det du vil, deretter skriver du et navn og klikker "Endre".', vaktHelpButton);
     }
+
 
     this.refs.velgMal.onclick = () => {
       let id = this.refs.mal.value;
@@ -1392,6 +1477,71 @@ class NyttArrangement extends React.Component{
       }
     }
     return 'Inngen rolle funnet';
+  }
+
+  addUt() {
+    let u_id = +this.refs.utstyr.value;
+    let navn = 'Tomt';
+
+
+
+    if(u_id && this.utstyrValgt(u_id)) {
+      for (let item of this.utstyr) {
+        if (u_id === item.id) {
+          navn = item.navn;
+        }
+      }
+
+      this.utListe.push({id: u_id, navn: navn, antall: 1});
+      this.forceUpdate();
+    }
+  }
+  utstyrValgt(u_id) {
+    for (let item of this.utListe) {
+      if (u_id === item.id) {
+        return false;
+      }
+    }
+    return true;
+  }
+  importerRolleUtstyr() {
+    let proms = [];
+    let temp = [];
+    for (let item of this.vakter) {
+      proms.push(
+        UtstyrService.getRU(item.id, item.antall).then((res) => {
+
+          for(let thing of res) {
+            if(!temp[thing.u_id]) {
+              temp[thing.u_id] = 0;
+            }
+            temp[thing.u_id] += thing.antall;
+          }
+        }).catch((err) => {
+          console.log('Little err!');
+          console.log(err);
+        })
+      );
+    }
+    Promise.all(proms).then(() => {
+      this.utListe = [];
+      for (let i in temp) {
+        let thing = temp[i];
+        let navn = 'tomt';
+
+        for (let stuff of this.utstyr) {
+          if (+i === stuff.id) {
+            navn = stuff.navn;
+          }
+        }
+        this.utListe.push({id: i, navn: navn, antall: thing});
+      }
+
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log('Big err!');
+      console.log(err);
+    });
   }
 }
 
@@ -2829,7 +2979,7 @@ class RolleUtstyr extends React.Component {
     return(
       <div>
         <br />
-        <p>Rolle utstyrsListe</p>
+        <p>Rolle-Utstyrs Liste</p>
         <div>
           <table>
             <tbody>
@@ -2901,7 +3051,7 @@ class ArrangementUtstyr extends React.Component {
     return(
       <div>
         <br />
-        <p>Arrangament utstyrsListe</p>
+        <p>Arrangament-Utstyrs Liste</p>
         <div>
           <table>
             <tbody>
@@ -3210,7 +3360,7 @@ class RolleKvalifikasjoner extends React.Component {
     return(
       <div>
         <br />
-        <p>Rolle KvalifikkasjonListe</p>
+        <p>Rolle-Kvalifikkasjons Liste</p>
         <div>
           <table>
             <tbody>
@@ -3270,26 +3420,35 @@ class MedlemKvalifikasjoner extends React.Component {
   constructor() {
     super();
     this.medKval = []
+    this.meldemer = [];
+    this.kvalifikasjoner = [];
   }
   render() {
     let kvalListe = [];
-
+    let meldemer = [];
+    let kvalifikasjoner = [];
     kvalListe.push(<tr key={'medKval'}><td>Medlem</td><td>Kvalifikasjon</td><td>Gyldig til</td><td>Knapper</td></tr>);
     for (let item of this.medKval) {
       kvalListe.push(<tr key={item.m_id + ' - ' + item.k_id}><td>{item.m_navn}</td><td>{item.k_navn}</td><td>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
     }
-
+    for (let item of this.meldemer) {
+         meldemer.push(<option key={item.id} value={item.id} >{item.brukernavn}</option>);
+       }
+       for (let item of this.kvalifikasjoner) {
+         kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+       }
     return(
       <div>
         <br />
-        <p>Arrangament utstyrsListe</p>
+        <p>Medlem-Kvalifikasjons Liste</p>
         <div>
           <table>
             <tbody>
               {kvalListe}
             </tbody>
           </table>
-          Medlem: <input className='sokeFelt' ref='med'/> Kvalifikasjon: <input className='sokeFelt' ref='kval'/> Gyldig til: <input className='sokeFelt' ref='gyldig'/> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+          Medlem: <select ref='med'>{meldemer}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+
         </div>
         <br />
       </div>
@@ -3300,7 +3459,7 @@ class MedlemKvalifikasjoner extends React.Component {
 
     this.refs.lagMK.onclick = () => {
       console.log('Click');
-      KvalifikasjonService.addMK(this.refs.med.value, this.refs.kval.value, new Date()).then((res) => {
+      KvalifikasjonService.addMK(this.refs.med.value, this.refs.kval.value).then((res) => {
         console.log(res);
         this.update();
       }).catch((err) => {
@@ -3312,6 +3471,20 @@ class MedlemKvalifikasjoner extends React.Component {
     KvalifikasjonService.getAllMK().then((res) => {
       console.log(res);
       this.medKval = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    KvalifikasjonService.getAllKvalifikasjon().then((res) => {
+      console.log(res);
+      this.kvalifikasjoner = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    userService.getUsers().then((res) => {
+      console.log(res);
+      this.meldemer = res;
       this.forceUpdate();
     }).catch((err) => {
       console.log(err);
@@ -3443,6 +3616,138 @@ class Hjelp extends React.Component {
   }
 }
 
+
+class Statistik extends React.Component {
+  constructor() {
+    super();
+    this.statistikk = [];
+    this.statistikkType = [
+      {kom: 'allMedAntVakter', navn: 'Antallet vakter per medlem.'},
+      {kom: 'allMedAntTimer', navn: 'Antallet timer per medlem.'},
+      {kom: 'allMedAntTimerMDato', navn: 'Antallet timer per medlem mellom datoene.'},
+      {kom: 'allMedAntVaktMDato', navn: 'Antallet vakter per medlem mellom datoene.'}
+    ];
+  }
+  render() {
+    let statVisning = [];
+    let statValg = [];
+
+    statVisning.push(<tr key={'statistikkListe'}><td>Id</td><td>Brukernavn</td><td>Antall</td></tr>);
+    for(let item of this.statistikk) {
+      statVisning.push(<tr key={item.m_id}><td>{item.m_id}</td><td>{item.brukernavn}</td><td>{item.antall}</td></tr>);
+    }
+
+    // statValg.push(<option key='Tomt' value='Tomt'>Velg type</option>);
+    for(let item of this.statistikkType) {
+      statValg.push(<option key={item.kom} value={item.kom}>{item.navn}</option>);
+    }
+
+    // for(let item of this.statistikk) {
+    //   statVisning.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeRolle(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeRolle(item.id)}}>Fjern</button></td></tr>);
+    // }
+
+    return(
+      <div>
+        <select ref='statType'>{statValg}</select><select ref='statValue'></select> Start: <input type="datetime-local" ref="sDato" /> Slutt: <input type="datetime-local" ref="eDato" /><button ref='statVis'>Trykk</button>
+        <div>
+          <table>
+            <tbody>
+              {statVisning}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+  componentDidMount() {
+
+    this.refs.statVis.onclick = () => {
+      let fra = this.refs.sDato.value;
+      let til = this.refs.eDato.value;
+
+      statistikkService[this.refs.statType.value](fra, til).then((res) => {
+        console.log(res);
+        this.statistikk = res;
+        this.forceUpdate();
+      }).catch((err) => {
+        console.log(err);
+      });
+
+
+       switch (this.refs.statType.value) {
+         case 'allMedAntVakter':
+        console.log('allMedAntVakter');
+        this.allMedAntVakter();
+           break;
+         case 'allMedAntTimer':
+           console.log('allMedAntTimer');
+           this.allMedAntTimer();
+           break;
+         case 'allMedAntTimerMDato':
+           console.log('allMedAntTimer');
+         this.allMedAntTimerMDato();
+           break;
+         case 'allMedAntVaktMDato':
+         console.log('allMedAntVaktMDato');
+           this.allMedAntVaktMDato();
+           break;
+         default:
+           console.log('switch fail!');
+         console.log(this.refs.statType.value);
+       }
+    };
+  }
+
+   allMedAntVakter() {
+     statistikkService.allMedAntVakter().then((res) => {
+       console.log(res);
+       this.statistikk = res;
+       this.forceUpdate();
+     }).catch((err) => {
+       console.log(err);
+     });
+
+   }
+   allMedAntTimer() {
+     statistikkService.allMedAntTimer().then((res) => {
+       console.log(res);
+       this.statistikk = res;
+       this.forceUpdate();
+     }).catch((err) => {
+       console.log(err);
+     });
+
+   }
+
+   allMedAntTimerMDato() {
+     let fra = this.refs.sDato.value;
+     let til = this.refs.eDato.value;
+     statistikkService.allMedAntTimerMDato(fra, til).then((res) => {
+       console.log(res);
+       this.statistikk = res;
+       this.forceUpdate();
+     }).catch((err) => {
+       console.log(err);
+     });
+   }
+   allMedAntVaktMDato() {
+     let fra = this.refs.sDato.value;
+     let til = this.refs.eDato.value;
+     statistikkService.allMedAntVaktMDato(fra, til).then((res) => {
+       console.log(res);
+       this.statistikk = res;
+       this.forceUpdate();
+     }).catch((err) => {
+       console.log(err);
+     });
+   }
+
+}
+
+//
+
+
+
 ReactDOM.render((
   <HashRouter>
     <div>
@@ -3477,6 +3782,7 @@ ReactDOM.render((
         <Route exact path='/mineVakter' component={MineVakter} />
         <Route exact path='/hjelp' component={Hjelp} />
         <Route exact path='/endreBrukerInfo/:id' component={EndreBrukerInfo} />
+        <Route exact path='/statistikk' component={Statistik} />
       </Switch>
       <Popup />
     </div>
