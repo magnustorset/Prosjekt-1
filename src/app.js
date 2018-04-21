@@ -876,11 +876,32 @@ class Arrangement extends React.Component{
     this.arrangement = [];
   }
   render(){
-    let a = 100;
+    let a = 10000;
+    let b = 100000;
+    let c = 1000000;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
+      tableItems.push(
+          <tr key={a}>
+            <td className='arrangementTable' >Navn</td>
+            <td className='arrangementTable'>Kontaktperson</td>
+          </tr>,
+          <tr key={table.a_id}>
+            <td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td>
+            <td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td>
+          </tr>,
+          <tr key={b}>
+            <td className='arrangementTable'>Adresse</td>
+            <td className='arrangementTable'>Dato</td>
+          </tr>,
+          <tr key={c}>
+            <td className='arrangementTableDataBot'>{table.address}</td>
+            <td className='arrangementTableDataBot'>{moment(table.starttidspunkt).format('ll')}</td>
+          </tr>
+        )
       a++;
+      b++;
+      c++;
     }
     let signedInUser = loginService.getSignedInUser();
     if(signedInUser.admin === 1)
@@ -929,7 +950,7 @@ class Arrangement extends React.Component{
       this.arrangement = result;
       this.forceUpdate();
     }).catch((error) => {
-      if(errorMessage) errorMessage.set('Finner ikke arrangement');
+      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
     });
   }
   }
@@ -1057,8 +1078,12 @@ class NyttArrangement extends React.Component{
     });
 
     this.refs.arrangementButton.onclick = () => {
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude).then(() => {
 
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude, address).then(() => {
+        address = ''
+        longitude = ''
+        latitude = ''
+        history.push('/Arrangement')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
@@ -1831,41 +1856,59 @@ class VisArrangement extends React.Component {
 
     return(
       <div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-            <tr>
-              <td><button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button></td>
-              <td><button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+          <label htmlFor='navn'>Arragnemnet navn:</label>
+           <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='beskrivelse'>Arragnemnet beskrivelse:</label>
+              <p name='beskrivelse'>{this.arrangement.beskrivelse}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='oppmote'>Oppmøtetidspunkt:</label>
+              <p name='oppmote'>{this.changeDate(this.arrangement.oppmootetidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='start'>Starttidspunkt:</label>
+              <p name='start'>{this.changeDate(this.arrangement.starttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='slutt'>Sluttidspunkt:</label>
+            <p name='slutt'>{this.changeDate(this.arrangement.sluttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.arrangement.address}</p>
+              <MapWithAMarker name='kart'/>
+            </div>
+            <div className='form-group'>
+              <button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button>
+              <button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button>
+            </div>
+          </div>
+      </div>
+    )
+
+  }if(signedInUser.admin === 0){
+    let b;
+    if(this.interesse.length === 0){
+      b =  (<button className='btn btn-default' onClick={()=>{this.meldInteresse()}}>Meld interesse</button>)
+    }else{
+      b = (<button className='btn btn-default' onClick={()=>{this.avmeldInteresse()}}>Avmeld interesse</button>)
+    }
+    return(
+      <div>
+      <div>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+
       </div>
     )
   }if(signedInUser.admin === 0){
@@ -2350,224 +2393,6 @@ class Innkalling extends React.Component {
   // }
 }
 
-
-
-class Utstyr extends React.Component {
-  constructor() {
-    super();
-    this.utstyr = [];
-  }
-  render() {
-    let utstyrsListe = [];
-
-    utstyrsListe.push(<tr key={'utstyrsListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
-    for (let item of this.utstyr) {
-      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
-    }
-
-    return(
-      <div>
-        <div>
-          <table>
-            <tbody>
-              {utstyrsListe}
-            </tbody>
-          </table>
-          Navn: <input ref='utNavn'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
-        </div>
-        <RolleUtstyr />
-        <ArrangementUtstyr />
-        <br />
-      </div>
-    )
-  }
-  componentDidMount() {
-    this.update();
-
-    this.refs.lagUt.onclick = () => {
-      console.log(this.refs.utNavn.value);
-      UtstyrService.addUtstyr(this.refs.utNavn.value).then((res) => {
-        console.log(res);
-        this.update();
-      }).catch((err) => {
-        console.log(err);
-      });
-    };
-  }
-  update() {
-    UtstyrService.getAllUtstyr().then((res) => {
-      console.log(res);
-      this.utstyr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-
-  changeUtstyr(id) {
-    console.log('Endre: ' + id);
-    UtstyrService.alterUtstyr(id, this.refs.utNavn.value).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-  removeUtstyr(id) {
-    console.log('Fjern: ' + id);
-    UtstyrService.removeUtstyr(id).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-}
-
-class RolleUtstyr extends React.Component {
-  constructor() {
-    super();
-    this.rolleUtstyr = []
-  }
-  render() {
-    let utstyrsListe = [];
-
-    utstyrsListe.push(<tr key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
-    for (let item of this.rolleUtstyr) {
-      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
-    }
-
-    return(
-      <div>
-        <br />
-        <p>Rolle utstyrsListe</p>
-        <div>
-          <table>
-            <tbody>
-              {utstyrsListe}
-            </tbody>
-          </table>
-          Rolle: <input ref='rolle'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
-        </div>
-        <br />
-      </div>
-    )
-  }
-  componentDidMount() {
-    this.update();
-
-    this.refs.lagUt.onclick = () => {
-      console.log('Click');
-      UtstyrService.addRU(this.refs.rolle.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
-        console.log(res);
-        this.update();
-      }).catch((err) => {
-        console.log(err);
-      });
-    };
-  }
-  update() {
-    UtstyrService.getAllRU().then((res) => {
-      console.log(res);
-      this.rolleUtstyr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-
-  changeUtstyr(r_id, u_id) {
-    console.log('Endre');
-    UtstyrService.alterRU(r_id, u_id, this.refs.antall.value).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-  removeUtstyr(r_id, u_id) {
-    console.log('Fjern');
-    UtstyrService.removeRU(r_id, u_id).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-}
-
-class ArrangementUtstyr extends React.Component {
-  constructor() {
-    super();
-    this.arrangememtUtstyr = []
-  }
-  render() {
-    let utstyrsListe = [];
-
-    utstyrsListe.push(<tr key={'a_utstyrsListe'}><td>Arrangement</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
-    for (let item of this.arrangememtUtstyr) {
-      utstyrsListe.push(<tr key={item.a_id + ' - ' + item.u_id}><td>{item.a_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
-    }
-
-    return(
-      <div>
-        <br />
-        <p>Arrangament utstyrsListe</p>
-        <div>
-          <table>
-            <tbody>
-              {utstyrsListe}
-            </tbody>
-          </table>
-          Arrangement: <input ref='arrangement'/> Utstyr: <input ref='utstyr'/> Antall: <input ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
-        </div>
-        <br />
-      </div>
-    )
-  }
-  componentDidMount() {
-    this.update();
-
-    this.refs.lagUt.onclick = () => {
-      console.log('Click');
-      UtstyrService.addAU(this.refs.arrangement.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
-        console.log(res);
-        this.update();
-      }).catch((err) => {
-        console.log(err);
-      });
-    };
-  }
-  update() {
-    UtstyrService.getAllAU().then((res) => {
-      console.log(res);
-      this.arrangememtUtstyr = res;
-      this.forceUpdate();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-
-  changeUtstyr(a_id, u_id) {
-    console.log('Endre');
-    UtstyrService.alterAU(a_id, u_id, this.refs.antall.value).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-  removeUtstyr(a_id, u_id) {
-    console.log('Fjern');
-    UtstyrService.removeAU(a_id, u_id).then((res) => {
-      console.log(res);
-      this.update();
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-}
-
 class MineVakter extends React.Component {
   constructor(){
     super();
@@ -2714,6 +2539,275 @@ class MineVakter extends React.Component {
 }
 
 
+class Utstyr extends React.Component {
+  constructor() {
+    super();
+    this.utstyr = [];
+  }
+  render() {
+    let utstyrsListe = [];
+
+    utstyrsListe.push(<tr key={'utstyrsListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    for (let item of this.utstyr) {
+      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
+    }
+
+    return(
+      <div>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Navn: <input ref='utNavn'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+        </div>
+        <RolleUtstyr />
+        <ArrangementUtstyr />
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log(this.refs.utNavn.value);
+      UtstyrService.addUtstyr(this.refs.utNavn.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllUtstyr().then((res) => {
+      console.log(res);
+      this.utstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(id) {
+    console.log('Endre: ' + id);
+    UtstyrService.alterUtstyr(id, this.refs.utNavn.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(id) {
+    console.log('Fjern: ' + id);
+    UtstyrService.removeUtstyr(id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class RolleUtstyr extends React.Component {
+  constructor() {
+    super();
+    this.rolleUtstyr = [];
+    this.roller = [];
+    this.utstyr = [];
+  }
+  render() {
+    let utstyrsListe = [];
+    let utstyr = [];
+    let roller = [];
+
+    utstyrsListe.push(<tr key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    for (let item of this.rolleUtstyr) {
+      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
+    }
+    for (let item of this.utstyr) {
+      utstyr.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+    }
+    for (let item of this.roller) {
+      roller.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+    }
+
+    return(
+      <div>
+        <br />
+        <p>Rolle utstyrsListe</p>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Rolle: <select ref='rolle'>{roller}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' step='1' min='1' max='25' defaultValue='1' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+        </div>
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log('Click');
+      UtstyrService.addRU(this.refs.rolle.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllRU().then((res) => {
+      console.log(res);
+      this.rolleUtstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+
+    UtstyrService.getAllUtstyr().then((res) => {
+      console.log(res);
+      this.utstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+
+    rolleService.getAllRolle().then((res) => {
+      console.log(res);
+      this.roller = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(r_id, u_id) {
+    console.log('Endre');
+    UtstyrService.alterRU(r_id, u_id, this.refs.antall.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(r_id, u_id) {
+    console.log('Fjern');
+    UtstyrService.removeRU(r_id, u_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+class ArrangementUtstyr extends React.Component {
+  constructor() {
+    super();
+    this.arrangememtUtstyr = [];
+    this.utstyr = [];
+    this.arr = [];
+  }
+  render() {
+    let utstyrsListe = [];
+    let utstyr = [];
+    let arr = [];
+
+    utstyrsListe.push(<tr key={'a_utstyrsListe'}><td>Arrangement</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    for (let item of this.arrangememtUtstyr) {
+      utstyrsListe.push(<tr key={item.a_id + ' - ' + item.u_id}><td>{item.a_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
+    }
+    for (let item of this.utstyr) {
+      utstyr.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+    }
+    for (let item of this.arr) {
+      arr.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+    }
+
+    return(
+      <div>
+        <br />
+        <p>Arrangament utstyrsListe</p>
+        <div>
+          <table>
+            <tbody>
+              {utstyrsListe}
+            </tbody>
+          </table>
+          Arrangement: <select ref='arrangement'>{arr}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' step='1' min='1' max='25' defaultValue='1' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+        </div>
+        <br />
+      </div>
+    )
+  }
+  componentDidMount() {
+    this.update();
+
+    this.refs.lagUt.onclick = () => {
+      console.log('Click');
+      UtstyrService.addAU(this.refs.arrangement.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
+        console.log(res);
+        this.update();
+      }).catch((err) => {
+        console.log(err);
+      });
+    };
+  }
+  update() {
+    UtstyrService.getAllAU().then((res) => {
+      console.log(res);
+      this.arrangememtUtstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+
+    UtstyrService.getAllUtstyr().then((res) => {
+      console.log(res);
+      this.utstyr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+
+    arrangementService.getAllArrangement().then((res) => {
+      console.log(res);
+      this.arr = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+
+  changeUtstyr(a_id, u_id) {
+    console.log('Endre');
+    UtstyrService.alterAU(a_id, u_id, this.refs.antall.value).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  removeUtstyr(a_id, u_id) {
+    console.log('Fjern');
+    UtstyrService.removeAU(a_id, u_id).then((res) => {
+      console.log(res);
+      this.update();
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+}
+
+
 class Kvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -2735,7 +2829,7 @@ class Kvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Navn: <input ref='kvNavn'/> Varighet: <input ref='kvVar'/> <button className='btn btn-default' ref='lagKv'>Legg til</button>
+          Navn: <input ref='kvNavn'/> Varighet: <input type='number' step='1' min='1' max='25' defaultValue='1' ref='kvVar'/> <button className='btn btn-default' ref='lagKv'>Legg til</button>
         </div>
         <RolleKvalifikasjoner />
         <MedlemKvalifikasjoner />
@@ -2789,14 +2883,24 @@ class Kvalifikasjoner extends React.Component {
 class RolleKvalifikasjoner extends React.Component {
   constructor() {
     super();
-    this.rolleKval = []
+    this.rolleKval = [];
+    this.roller = [];
+    this.kvalifikasjoner = [];
   }
   render() {
     let kvalListe = [];
+    let roller = [];
+    let kvalifikasjoner = [];
 
     kvalListe.push(<tr key={'RKListe'}><td>Rolle</td><td>Kvalifikasjon</td><td>Knapper</td></tr>);
     for (let item of this.rolleKval) {
       kvalListe.push(<tr key={item.r_id + ' - ' + item.k_id}><td>{item.r_navn}</td><td>{item.k_navn}</td><td><button className='btn btn-default' onClick={() => {this.removeKval(item.r_id, item.k_id)}}>Fjern</button></td></tr>);
+    }
+    for (let item of this.roller) {
+      roller.push(<option key={item.id} value={item.id} >{item.navn}</option>);
+    }
+    for (let item of this.kvalifikasjoner) {
+      kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
     }
 
     return(
@@ -2809,7 +2913,7 @@ class RolleKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Rolle: <input ref='rolle'/> Kvalifikasjon: <input ref='kval'/> <button className='btn btn-default' ref='lagRK'>Legg til</button>
+          Rolle: <select ref='rolle'>{roller}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2832,6 +2936,20 @@ class RolleKvalifikasjoner extends React.Component {
     KvalifikasjonService.getAllRK().then((res) => {
       console.log(res);
       this.rolleKval = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    rolleService.getAllRolle().then((res) => {
+      console.log(res);
+      this.roller = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    KvalifikasjonService.getAllKvalifikasjon().then((res) => {
+      console.log(res);
+      this.kvalifikasjoner = res;
       this.forceUpdate();
     }).catch((err) => {
       console.log(err);
@@ -2862,13 +2980,23 @@ class MedlemKvalifikasjoner extends React.Component {
   constructor() {
     super();
     this.medKval = []
+    this.meldemer = [];
+    this.kvalifikasjoner = [];
   }
   render() {
     let kvalListe = [];
+    let meldemer = [];
+    let kvalifikasjoner = [];
 
     kvalListe.push(<tr key={'medKval'}><td>Medlem</td><td>Kvalifikasjon</td><td>Gyldig til</td><td>Knapper</td></tr>);
     for (let item of this.medKval) {
       kvalListe.push(<tr key={item.m_id + ' - ' + item.k_id}><td>{item.m_navn}</td><td>{item.k_navn}</td><td>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
+    }
+    for (let item of this.meldemer) {
+      meldemer.push(<option key={item.id} value={item.id} >{item.brukernavn}</option>);
+    }
+    for (let item of this.kvalifikasjoner) {
+      kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
     }
 
     return(
@@ -2881,7 +3009,7 @@ class MedlemKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Medlem: <input ref='med'/> Kvalifikasjon: <input ref='kval'/> Gyldig til: <input ref='gyldig'/> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+          Medlem: <select ref='med'>{meldemer}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> Gyldig til: <input type='number' step='1' min='1' max='25' defaultValue='1' ref='gyldig'/> <button className='btn btn-default' ref='lagMK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2904,6 +3032,20 @@ class MedlemKvalifikasjoner extends React.Component {
     KvalifikasjonService.getAllMK().then((res) => {
       console.log(res);
       this.medKval = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    KvalifikasjonService.getAllKvalifikasjon().then((res) => {
+      console.log(res);
+      this.kvalifikasjoner = res;
+      this.forceUpdate();
+    }).catch((err) => {
+      console.log(err);
+    });
+    userService.getUsers().then((res) => {
+      console.log(res);
+      this.meldemer = res;
       this.forceUpdate();
     }).catch((err) => {
       console.log(err);
@@ -2954,6 +3096,8 @@ class Rolle extends React.Component {
           </table>
           Navn: <input ref='roNavn'/> <button className='btn btn-default' ref='lagRo'>Legg til</button>
         </div>
+        <RolleKvalifikasjoner />
+        <RolleUtstyr />
       </div>
     )
   }
