@@ -412,6 +412,148 @@ Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
       });
     });
 
+class popover extends React.Component {
+        constructor(props) {
+            super(props);
+
+            this.state = {
+                value: this.props.defaultValue
+            };
+
+            this.onChange = (e) => this._onChange(e);
+        }
+
+        componentDidUpdate(prevProps, prevState) {
+            if (prevState.value !== this.state.value) {
+                this.props.onChange(this.state.value);
+            }
+        }
+
+        _onChange(e) {
+            let value = e.target.value;
+
+            this.setState({value: value});
+        }
+
+        render() {
+            return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+        }
+    }
+Popup.registerPlugin('popover', function (content, target) {
+        this.create({
+            content: content,
+            className: 'popover',
+            noOverlay: true,
+
+            position: function (box) {
+                let bodyRect      = document.getElementById('root').getBoundingClientRect();
+                let btnRect       = target.getBoundingClientRect();
+                let btnOffsetTop  = btnRect.top - bodyRect.top;
+                let btnOffsetLeft = btnRect.left - bodyRect.left;
+                let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+                box.style.top  = (btnOffsetTop - box.offsetHeight - 10) - scroll + 'px';
+                box.style.left = (btnOffsetLeft + (target.offsetWidth / 2) - (box.offsetWidth / 2)) + 'px';
+                box.style.margin = 0;
+                box.style.opacity = 1;
+            }
+        });
+    });
+class popunder extends React.Component {
+        constructor(props) {
+            super(props);
+
+            this.state = {
+                value: this.props.defaultValue
+            };
+
+            this.onChange = (e) => this._onChange(e);
+        }
+
+        componentDidUpdate(prevProps, prevState) {
+            if (prevState.value !== this.state.value) {
+                this.props.onChange(this.state.value);
+            }
+        }
+
+        _onChange(e) {
+            let value = e.target.value;
+
+            this.setState({value: value});
+        }
+
+        render() {
+            return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+        }
+    }
+Popup.registerPlugin('popunder', function (content, target) {
+        this.create({
+            content: content,
+            className: 'popunder',
+            noOverlay: true,
+
+            position: function (box) {
+                let bodyRect      = document.getElementById('root').getBoundingClientRect();
+                let btnRect       = target.getBoundingClientRect();
+                let btnOffsetTop  = btnRect.top - bodyRect.top;
+                let btnOffsetLeft = btnRect.left - bodyRect.left;
+                let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+                box.style.top  = (btnOffsetTop + btnRect.height) - scroll + 'px';
+                box.style.left = (btnOffsetLeft + (target.offsetWidth / 2) - (box.offsetWidth / 2)) + 'px';
+                box.style.margin = 0;
+                box.style.opacity = 1;
+            }
+        });
+    });
+class popright extends React.Component {
+        constructor(props) {
+            super(props);
+
+            this.state = {
+                value: this.props.defaultValue
+            };
+
+            this.onChange = (e) => this._onChange(e);
+        }
+
+        componentDidUpdate(prevProps, prevState) {
+            if (prevState.value !== this.state.value) {
+                this.props.onChange(this.state.value);
+            }
+        }
+
+        _onChange(e) {
+            let value = e.target.value;
+
+            this.setState({value: value});
+        }
+
+        render() {
+            return <input type="text" placeholder={this.props.placeholder} className="mm-popup__input" value={this.state.value} onChange={this.onChange} />;
+        }
+    }
+Popup.registerPlugin('popright', function (content, target) {
+        this.create({
+            content: content,
+            className: 'popright',
+            noOverlay: true,
+
+            position: function (box) {
+                let bodyRect      = document.getElementById('root').getBoundingClientRect();
+                let btnRect       = target.getBoundingClientRect();
+                let btnOffsetTop  = btnRect.top - bodyRect.top;
+                let btnOffsetLeft = btnRect.left - bodyRect.left;
+                let scroll        = document.documentElement.scrollTop || document.body.scrollTop;
+
+                box.style.top  = (btnOffsetTop) - scroll + 'px';
+                box.style.left = (btnOffsetLeft + btnRect.width) + 'px';
+                box.style.margin = 0;
+                box.style.opacity = 1;
+            }
+        });
+    });
+
 
 
 
