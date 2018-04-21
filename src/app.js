@@ -1853,6 +1853,8 @@ class VisArrangement extends React.Component {
   }
   render(){
     let signedInUser = loginService.getSignedInUser();
+
+
     if(signedInUser.admin === 1){
 
     return(
@@ -1908,39 +1910,40 @@ class VisArrangement extends React.Component {
     return(
       <div>
       <div>
-          <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
-        </div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
-            </tr>
-            <tr>
-              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
-            </tr>
-            <tr>
-              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
-            </tr>
-            <tr>
-              <td>Oppmøtetidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Starttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Sluttidspunkt:</td>
-              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
-            </tr>
-            <tr>
-              <td>Oppmøtested:</td>
-            </tr>
-            <tr>
-              <td><div><MapWithAMarker /></div></td>
-            </tr>
-          </tbody>
-        </table>
+        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
+      </div>
+        <div className='Rot_nyttArrangement'>
+            <div className='form-group'>
+          <label htmlFor='navn'>Arragnemnet navn:</label>
+           <p name='navn'>{this.arrangement.navn}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='beskrivelse'>Arragnemnet beskrivelse:</label>
+              <p name='beskrivelse'>{this.arrangement.beskrivelse}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kontaktperson'>Kontaktperson:</label>
+              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
+            </div>
+            <div className='form-group'>
+                <label htmlFor='oppmote'>Oppmøtetidspunkt:</label>
+              <p name='oppmote'>{this.changeDate(this.arrangement.oppmootetidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='start'>Starttidspunkt:</label>
+              <p name='start'>{this.changeDate(this.arrangement.starttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='slutt'>Sluttidspunkt:</label>
+            <p name='slutt'>{this.changeDate(this.arrangement.sluttidspunkt)}</p>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='kart'>Oppmøtested:</label>
+              <p>{this.arrangement.address}</p>
+              <MapWithAMarker name='kart'/>
+            </div>
+              {b}
+          </div>
       </div>
     )
   }
@@ -1958,16 +1961,13 @@ class VisArrangement extends React.Component {
     return a;
   }
 
-  componentWillUnmount(){
-    mapLat = '';
-    mapLng = '';
-    }
+
   componentDidMount(){
-    arrangementService.getInterest(loginService.getSignedInUser().id, this.id).then((result)=>{
+    arrangementService.getInterest(loginService.getSignedInUser().id,this.id).then((result)=>{
       this.interesse = result;
       this.forceUpdate();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke interesse' + error);
+      if(errorMessage) errorMessage.set('Noe gikk galt' + error);
     });
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
@@ -1986,7 +1986,6 @@ class VisArrangement extends React.Component {
 
   }
 }
-
 class EndreArrangement extends React.Component {
   constructor(props){
     super(props);
