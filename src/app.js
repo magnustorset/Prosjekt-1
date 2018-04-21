@@ -2594,7 +2594,7 @@ class RolleUtstyr extends React.Component {
     return(
       <div>
         <br />
-        <p>Rolle utstyrsListe</p>
+        <p>Rolle-Utstyrs Liste</p>
         <div>
           <table>
             <tbody>
@@ -2692,7 +2692,7 @@ class ArrangementUtstyr extends React.Component {
     return(
       <div>
         <br />
-        <p>Arrangament utstyrsListe</p>
+        <p>Arrangament-Utstyrs Liste</p>
         <div>
           <table>
             <tbody>
@@ -2863,7 +2863,7 @@ class RolleKvalifikasjoner extends React.Component {
     return(
       <div>
         <br />
-        <p>Rolle KvalifikkasjonListe</p>
+        <p>Rolle-Kvalifikkasjons Liste</p>
         <div>
           <table>
             <tbody>
@@ -2959,14 +2959,14 @@ class MedlemKvalifikasjoner extends React.Component {
     return(
       <div>
         <br />
-        <p>Arrangament utstyrsListe</p>
+        <p>Medlem-Kvalifikasjons Liste</p>
         <div>
           <table>
             <tbody>
               {kvalListe}
             </tbody>
           </table>
-          Medlem: <select ref='med'>{meldemer}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> Gyldig til: <input type='number' step='1' min='1' max='25' defaultValue='1' ref='gyldig'/> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+          Medlem: <select ref='med'>{meldemer}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -2977,7 +2977,7 @@ class MedlemKvalifikasjoner extends React.Component {
 
     this.refs.lagMK.onclick = () => {
       console.log('Click');
-      KvalifikasjonService.addMK(this.refs.med.value, this.refs.kval.value, new Date()).then((res) => {
+      KvalifikasjonService.addMK(this.refs.med.value, this.refs.kval.value).then((res) => {
         console.log(res);
         this.update();
       }).catch((err) => {

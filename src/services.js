@@ -1024,9 +1024,9 @@ class KvalifikasjonService {
       });
     });
   }
-  static addMK(m_id, k_id, gyldig) {
+  static addMK(m_id, k_id) {
     return new Promise((resolve, reject) => {
-      connection.query('INSERT INTO medlem_kvalifikasjon (m_id, k_id, gyldig_til) VALUES(?, ?, ?)', [m_id, k_id, gyldig], (error, result) => {
+      connection.query('INSERT INTO medlem_kvalifikasjon (m_id, k_id, gyldig_til) VALUES(?, ?, (SELECT DATE_ADD(CURDATE(), INTERVAL varighet MONTH) FROM kvalifikasjon WHERE id = ?))', [m_id, k_id, k_id], (error, result) => {
         if(error) {
           reject(error);
         }
