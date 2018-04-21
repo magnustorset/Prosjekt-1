@@ -876,32 +876,11 @@ class Arrangement extends React.Component{
     this.arrangement = [];
   }
   render(){
-    let a = 10000;
-    let b = 100000;
-    let c = 1000000;
+    let a = 100;
     let tableItems = [];
     for(let table of this.arrangement){
-      tableItems.push(
-          <tr key={a}>
-            <td className='arrangementTable' >Navn</td>
-            <td className='arrangementTable'>Kontaktperson</td>
-          </tr>,
-          <tr key={table.a_id}>
-            <td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td>
-            <td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td>
-          </tr>,
-          <tr key={b}>
-            <td className='arrangementTable'>Adresse</td>
-            <td className='arrangementTable'>Dato</td>
-          </tr>,
-          <tr key={c}>
-            <td className='arrangementTableDataBot'>{table.address}</td>
-            <td className='arrangementTableDataBot'>{moment(table.starttidspunkt).format('ll')}</td>
-          </tr>
-        )
+      tableItems.push(<tr key={a}><td className='arrangementTable' >Navn</td><td className='arrangementTable'>Kontaktperson</td></tr>,<tr key={table.a_id}><td className='arrangementTableData'><Link className='arrangementLink' to={'/visArrangement/'+table.a_id}>{table.navn}</Link></td><td className='arrangementTableData'><Link className='arrangementLink' to={'/bruker/'+table.kontaktperson}>{table.fornavn + " " + table.etternavn}</Link></td></tr>)
       a++;
-      b++;
-      c++;
     }
     let signedInUser = loginService.getSignedInUser();
     if(signedInUser.admin === 1)
@@ -950,7 +929,7 @@ class Arrangement extends React.Component{
       this.arrangement = result;
       this.forceUpdate();
     }).catch((error) => {
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
     });
   }
   }
@@ -1078,12 +1057,8 @@ class NyttArrangement extends React.Component{
     });
 
     this.refs.arrangementButton.onclick = () => {
+      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude).then(() => {
 
-      arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, this.vakter, longitude,latitude, address).then(() => {
-        address = ''
-        longitude = ''
-        latitude = ''
-        history.push('/Arrangement')
       }).catch((error) =>{
         if(errorMessage) errorMessage.set('Kunne ikke legge til arrangement');
       });
@@ -1856,59 +1831,41 @@ class VisArrangement extends React.Component {
 
     return(
       <div>
-      <div>
-        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
-      </div>
-        <div className='Rot_nyttArrangement'>
-            <div className='form-group'>
-          <label htmlFor='navn'>Arragnemnet navn:</label>
-           <p name='navn'>{this.arrangement.navn}</p>
-            </div>
-            <div className='form-group'>
-              <label htmlFor='beskrivelse'>Arragnemnet beskrivelse:</label>
-              <p name='beskrivelse'>{this.arrangement.beskrivelse}</p>
-            </div>
-            <div className='form-group'>
-              <label htmlFor='kontaktperson'>Kontaktperson:</label>
-              <p name='kontaktperson'><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></p>
-            </div>
-            <div className='form-group'>
-                <label htmlFor='oppmote'>Oppmøtetidspunkt:</label>
-              <p name='oppmote'>{this.changeDate(this.arrangement.oppmootetidspunkt)}</p>
-            </div>
-            <div className='form-group'>
-              <label htmlFor='start'>Starttidspunkt:</label>
-              <p name='start'>{this.changeDate(this.arrangement.starttidspunkt)}</p>
-            </div>
-            <div className='form-group'>
-              <label htmlFor='slutt'>Sluttidspunkt:</label>
-            <p name='slutt'>{this.changeDate(this.arrangement.sluttidspunkt)}</p>
-            </div>
-            <div className='form-group'>
-              <label htmlFor='kart'>Oppmøtested:</label>
-              <p>{this.arrangement.address}</p>
-              <MapWithAMarker name='kart'/>
-            </div>
-            <div className='form-group'>
-              <button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button>
-              <button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button>
-            </div>
-          </div>
-      </div>
-    )
-
-  }if(signedInUser.admin === 0){
-    let b;
-    if(this.interesse.length === 0){
-      b =  (<button className='btn btn-default' onClick={()=>{this.meldInteresse()}}>Meld interesse</button>)
-    }else{
-      b = (<button className='btn btn-default' onClick={()=>{this.avmeldInteresse()}}>Avmeld interesse</button>)
-    }
-    return(
-      <div>
-      <div>
-        <button className='btn btn-warning tilbakeKnapp' onClick={()=>{history.goBack()}}>Tilbake</button>
-
+        <table>
+          <tbody>
+            <tr>
+              <td>Arrangement navn:</td><td>{this.arrangement.navn}</td>
+            </tr>
+            <tr>
+              <td>Arrangement beskrivelse:</td><td>{this.arrangement.beskrivelse}</td>
+            </tr>
+            <tr>
+              <td>Kontaktperson:</td><td><Link to={'/bruker/'+this.user.id}>{this.user.fornavn}, {this.user.etternavn}</Link></td>
+            </tr>
+            <tr>
+              <td>Oppmøtetidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.oppmootetidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Starttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.starttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Sluttidspunkt:</td>
+              <td>{this.changeDate(this.arrangement.sluttidspunkt)}</td>
+            </tr>
+            <tr>
+              <td>Oppmøtested:</td>
+            </tr>
+            <tr>
+              <td><div><MapWithAMarker /></div></td>
+            </tr>
+            <tr>
+              <td><button className='btn btn-default' onClick={()=>{history.push('/endreArrangement/'+this.arrangement.id)}}>Endre arrangementet</button></td>
+              <td><button className='btn btn-default' onClick={()=>{history.push('/inkalling/'+this.arrangement.id)}}>Kall inn</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     )
   }if(signedInUser.admin === 0){
