@@ -2996,7 +2996,7 @@ class RolleUtstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Rolle: <select ref='rolle'>{rolleListe}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          Rolle: <select ref='rolle' onChange={()=>{this.update()}}>{rolleListe}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
         </div>
         <br />
       </div>
@@ -3016,7 +3016,7 @@ class RolleUtstyr extends React.Component {
     };
   }
   update() {
-    UtstyrService.getAllRU().then((res) => {
+    UtstyrService.getAllRU(this.refs.rolle.value).then((res) => {
       console.log(res);
       this.rolleUtstyr = res;
       this.forceUpdate();
@@ -3091,7 +3091,7 @@ class ArrangementUtstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Arrangement: <select ref='arrangement'>{arrangement}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          Arrangement: <select ref='arrangement' onChange={()=>{this.update()}}>{arrangement}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
         </div>
         <br />
       </div>
@@ -3111,7 +3111,7 @@ class ArrangementUtstyr extends React.Component {
     };
   }
   update() {
-    UtstyrService.getAllAU().then((res) => {
+    UtstyrService.getAllAU(this.refs.arrangement.value).then((res) => {
       console.log(res);
       this.arrangememtUtstyr = res;
       this.forceUpdate();
@@ -3327,23 +3327,34 @@ class Kvalifikasjoner extends React.Component {
   render() {
     let kvalListe = [];
 
-    kvalListe.push(<tr key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet</td><td>Knapper</td></tr>);
+    kvalListe.push(<tr className='kvalBold' key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet</td></tr>);
     for (let item of this.kvalifikasjon) {
-      kvalListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td>{item.varighet}</td><td><button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
+      kvalListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'>{item.varighet}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
     }
 
     return(
       <div>
-        <div>
+        <div className='kvaListe'>
           <table>
             <tbody>
               {kvalListe}
             </tbody>
           </table>
-          Navn: <input className='sokeFelt' ref='kvNavn'/> Varighet: <input className='sokeFelt'  ref='kvVar'/> <button className='btn btn-default' ref='lagKv'>Legg til</button>
+          <div className='form-row'>
+          <label htmlFor='kvNavn'>Navn:</label>
+           <input className='sokeFelt form-control col-4' ref='kvNavn' name='kvNavn'/>
+           <label htmlFor='kvVar'>Varighet:</label>
+          <input className='sokeFelt form-control col-4'  ref='kvVar' name='kvVar'/>
+          <button className='btn btn-default' ref='lagKv'>Legg til</button>
         </div>
-        <RolleKvalifikasjoner />
+        </div>
+        <div className='medlemKvaListe'>
         <MedlemKvalifikasjoner />
+        </div>
+        <div className='rolleKvaListe'>
+          <RolleKvalifikasjoner />
+        </div>
+
         <br />
       </div>
     )
@@ -3402,9 +3413,9 @@ class RolleKvalifikasjoner extends React.Component {
     let kvalListe = [];
     let kvalifikasjoner = [];
     let rolleListe = [];
-    kvalListe.push(<tr key={'RKListe'}><td>Rolle</td><td>Kvalifikasjon</td><td>Knapper</td></tr>);
+    kvalListe.push(<tr className='kvalBold' key={'RKListe'}><td>Rolle</td><td>Kvalifikasjon</td></tr>);
     for (let item of this.rolleKval) {
-      kvalListe.push(<tr key={item.r_id + ' - ' + item.k_id}><td>{item.r_navn}</td><td>{item.k_navn}</td><td><button className='btn btn-default' onClick={() => {this.removeKval(item.r_id, item.k_id)}}>Fjern</button></td></tr>);
+      kvalListe.push(<tr className='trKval' key={item.r_id + ' - ' + item.k_id}><td className='tableKval'>{item.r_navn}</td><td className='tableKval'>{item.k_navn}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.removeKval(item.r_id, item.k_id)}}>Fjern</button></td></tr>);
     }
     for (let item of this.roller) {
       rolleListe.push(<option key={item.id} value={item.id} >{item.navn}</option>);
@@ -3416,13 +3427,13 @@ class RolleKvalifikasjoner extends React.Component {
       <div>
         <br />
         <p>Rolle-Kvalifikkasjons Liste</p>
-        <div>
-          <table>
+        <div >
+          <table className='test'>
             <tbody>
               {kvalListe}
             </tbody>
           </table>
-          Rolle:  <select ref='rolle'>{rolleListe}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
+          Rolle:  <select ref='rolle' onChange={()=>{this.update()}}>{rolleListe}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -3442,7 +3453,7 @@ class RolleKvalifikasjoner extends React.Component {
     };
   }
   update() {
-    KvalifikasjonService.getAllRK().then((res) => {
+    KvalifikasjonService.getAllRK(this.refs.rolle.value).then((res) => {
       console.log(res);
       this.rolleKval = res;
       this.forceUpdate();
@@ -3495,9 +3506,9 @@ class MedlemKvalifikasjoner extends React.Component {
     let kvalListe = [];
     let meldemer = [];
     let kvalifikasjoner = [];
-    kvalListe.push(<tr key={'medKval'}><td>Medlem</td><td>Kvalifikasjon</td><td>Gyldig til</td><td>Knapper</td></tr>);
+    kvalListe.push(<tr className='kvalBold' key={'medKval'}><td>Medlem</td><td>Kvalifikasjon</td><td>Gyldig til</td></tr>);
     for (let item of this.medKval) {
-      kvalListe.push(<tr key={item.m_id + ' - ' + item.k_id}><td>{item.m_navn}</td><td>{item.k_navn}</td><td>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
+      kvalListe.push(<tr className='trKval' key={item.m_id + ' - ' + item.k_id}><td className='tableKval'>{item.m_navn}</td><td className='tableKval'>{item.k_navn}</td><td className='tableKval'>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
     }
     for (let item of this.meldemer) {
          meldemer.push(<option key={item.id} value={item.id} >{item.brukernavn}</option>);
@@ -3515,7 +3526,7 @@ class MedlemKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Medlem: <select ref='med'>{meldemer}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+          Medlem: <select ref='med' onChange={()=>{this.update()}}>{meldemer}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
 
         </div>
         <br />
@@ -3536,7 +3547,7 @@ class MedlemKvalifikasjoner extends React.Component {
     };
   }
   update() {
-    KvalifikasjonService.getAllMK().then((res) => {
+    KvalifikasjonService.getAllMK(this.refs.med.value).then((res) => {
       console.log(res);
       this.medKval = res;
       this.forceUpdate();

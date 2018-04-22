@@ -845,9 +845,9 @@ class UtstyrService {
   }
 
 
-  static getAllRU() {
+  static getAllRU(id) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT r_id, u_id, r.navn AS "r_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN r_utstyr ru ON u.id = ru.u_id INNER JOIN rolle r ON ru.r_id = r.id', (error, result) => {
+      connection.query('SELECT r_id, u_id, r.navn AS "r_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN r_utstyr ru ON u.id = ru.u_id INNER JOIN rolle r ON ru.r_id = r.id where r_id = ?',[id], (error, result) => {
         if(error) {
           reject(error);
         }
@@ -897,9 +897,9 @@ class UtstyrService {
     });
   }
 
-  static getAllAU() {
+  static getAllAU(id) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT a_id, u_id, a.navn AS "a_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN a_utstyr au ON u.id = au.u_id INNER JOIN arrangement a ON au.a_id = a.id', (error, result) => {
+      connection.query('SELECT a_id, u_id, a.navn AS "a_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN a_utstyr au ON u.id = au.u_id INNER JOIN arrangement a ON au.a_id = a.id where a_id = ?',[id], (error, result) => {
         if(error) {
           reject(error);
         }
@@ -983,9 +983,9 @@ class KvalifikasjonService {
   }
 
 
-  static getAllRK() {
+  static getAllRK(id) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT r_id, k_id, r.navn AS "r_navn", k.navn AS "k_navn" FROM kvalifikasjon k INNER JOIN rolle_kvalifikasjon rk ON k.id = rk.k_id INNER JOIN rolle r ON rk.r_id = r.id', (error, result) => {
+      connection.query('SELECT r_id, k_id, r.navn AS "r_navn", k.navn AS "k_navn" FROM kvalifikasjon k INNER JOIN rolle_kvalifikasjon rk ON k.id = rk.k_id INNER JOIN rolle r ON rk.r_id = r.id where r_id = ?',[id], (error, result) => {
         if(error) {
           reject(error);
         }
@@ -1025,9 +1025,9 @@ class KvalifikasjonService {
   }
 
 
-  static getAllMK() {
+  static getAllMK(id) {
     return new Promise((resolve, reject) => {
-      connection.query('SELECT m_id, k_id, m.brukernavn AS "m_navn", k.navn AS "k_navn", gyldig_til AS "gyldig" FROM medlem m INNER JOIN medlem_kvalifikasjon mk ON m.id = mk.m_id INNER JOIN kvalifikasjon k ON mk.k_id = k.id', (error, result) => {
+      connection.query('SELECT m_id, k_id, m.brukernavn AS "m_navn", k.navn AS "k_navn", gyldig_til AS "gyldig" FROM medlem m INNER JOIN medlem_kvalifikasjon mk ON m.id = mk.m_id INNER JOIN kvalifikasjon k ON mk.k_id = k.id where m_id = ?',[id], (error, result) => {
         if(error) {
           reject(error);
         }

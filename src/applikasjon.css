@@ -286,3 +286,32 @@ background-color: white;
   position: relative;
   float: right;
 }
+
+/*Kvalifikasjon side*/
+.test{
+
+}
+.tableKval{
+  padding: 2px;
+  border-bottom: 1px solid black;
+}
+.trKval:nth-child(even){
+  background-color: #babbbc;
+}
+.kvalBold{
+  font-weight: bold;
+}
+.kvaListe{
+  float: left;
+  padding-left: 2%;
+  width: 50%;
+
+}
+.rolleKvaListe{
+
+  width: 33%;
+}
+.medlemKvaListe{
+  float:right;
+  width: 50%;
+}
