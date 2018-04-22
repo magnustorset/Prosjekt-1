@@ -3400,7 +3400,14 @@ class Kvalifikasjoner extends React.Component {
   render() {
     let kvalListe = [];
 
-    kvalListe.push(<tr className='kvalBold' key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet (måneder)</td></tr>);
+    kvalListe.push(
+      <tr className='kvalBold' key={'kvalListe'}>
+        <td>Id</td>
+        <td>Navn</td>
+        <td>Varighet (måneder)</td>
+        <td></td>
+        <td><button className='btn btn-xs btn-default' id='kvalListeHelpButton' ref='kvalListeHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button></td>
+      </tr>);
     for (let item of this.kvalifikasjon) {
       kvalListe.push(
         <tr className='trKval' key={item.id}>
@@ -3465,6 +3472,10 @@ class Kvalifikasjoner extends React.Component {
         console.log(err);
       });
     };
+    this.refs.kvalListeHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises alle kvalifikasjoner og hvor lenge de er gyldige. For å legge til en kvalifikasjon skriv inn navn på kvalifikasjon og varighet og klikk legg til. For å endre en kvalifikasjon skriv inn navn og varighet du vil endre til og klikk endre.', kvalListeHelpButton);
+    }
+
   }
   update() {
     KvalifikasjonService.getAllKvalifikasjon().then((res) => {
@@ -3520,7 +3531,9 @@ class RolleKvalifikasjoner extends React.Component {
     return(
       <div className='lister'>
         <br />
-        <p>Rolle-Kvalifikkasjons Liste</p>
+        <p>Rolle-Kvalifikkasjons Liste
+          <button className='btn btn-xs btn-default' id='rolleKvalHelpButton' ref='rolleKvalHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+        </p>
         <div >
           <table className='test'>
             <tbody>
@@ -3561,6 +3574,11 @@ class RolleKvalifikasjoner extends React.Component {
         console.log(err);
       });
     };
+
+    this.refs.rolleKvalHelpButton.onclick = () => {
+      Popup.plugins().popunder('Her vises hvilke kvalifikasjoner som er påkrevd for en spesiell rolle. Velg en rolle fra rullegardinmenyen og du vil få en liste over hvilke kvalifikasjoner som er nødvendig. Klikk fjern på en kvalifikasjon for å fjerne kravet. Velg en kvalifikasjon fra rullegardinmenyen og klikk legg til for å legge til en kvalifikasjon for den rollen.', rolleKvalHelpButton);
+    }
+
   }
   update() {
     KvalifikasjonService.getAllRK(this.refs.rolle.value).then((res) => {
@@ -3629,7 +3647,9 @@ class MedlemKvalifikasjoner extends React.Component {
     return(
       <div className='lister'>
         <br />
-        <p>Medlem-Kvalifikasjons Liste</p>
+        <p>Medlem-Kvalifikasjons Liste
+          <button className='btn btn-xs btn-default' id='medlemKvalHelpButton' ref='medlemKvalHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+        </p>
         <div>
           <table>
             <tbody>
@@ -3670,6 +3690,10 @@ class MedlemKvalifikasjoner extends React.Component {
         console.log(err);
       });
     };
+    this.refs.medlemKvalHelpButton.onclick = () => {
+      Popup.plugins().popunder('Her vises alle kvalifikasjoner for et bestemt medlem. Velg et medlem fra rullegardinmenyen og du vil få en oversikt over dette medlemmets kvalifikasjoner. Velg en kvalifikasjon og klikk legg til for å legge til en kvalifikasjon for et bestemt medlem.', medlemKvalHelpButton);
+    }
+
   }
   update() {
     KvalifikasjonService.getAllMK(this.refs.med.value).then((res) => {
