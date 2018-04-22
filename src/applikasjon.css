@@ -30,7 +30,9 @@ margin-left: 5%;
 /* Mine Sider */
 .calendarMinesider{
 clear: left;
-width: 620px;
+width: 50%;
+min-width: 500px;
+max-width: 620px;
 margin: 3%;
 border: 1px solid black;
 padding: 10px;
@@ -44,7 +46,9 @@ background-color: white;
   margin-left: 3%;
   background-color: #f7ffef;
   border:1px solid black;
-  width: 620px;
+  width: 50%;
+  min-width: 500px;
+  max-width: 620px;
 }
 
 .title{
@@ -64,9 +68,10 @@ background-color: white;
   background-color: #ff7c66;
   border-bottom: 1px solid black;
 }
-.vasrselDiv{
+.varselDiv{
   float:right;
   margin-right: 4%;
+  width: 40%;
 }
 
 /*
@@ -235,7 +240,6 @@ background-color: white;
   padding-left: 10px;
 }
 
-
 /* Bruker side */
 
 .brukerSideTabell{
@@ -309,12 +313,21 @@ background-color: white;
 
 }
 .rolleKvaListe{
-  float:left;
+  float:right;
   width: 50%;
 }
 .medlemKvaListe{
-  float:left;
+  float:right;
   width: 50%;
+}
+
+.arrUtstyrListe {
+  float: left;
+  width: 50%;
+}
+
+.lister {
+  margin-left: 30px;
 }
 
 /*Statistikk siden*/
