@@ -590,7 +590,7 @@ class Menu extends React.Component {
         Røde Kors</div>
 
       <div className='navbar-header'>
-        <button onClick={()=>{this.collapseNavbar()}}
+        <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}
         className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
         <span className="navbar-toggler-icon"></span>
         </button>
@@ -621,6 +621,9 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
+          </li>
+          <li className='nav-item'>
+            <Link to='/hjelp' className="nav-link">Hjelp</Link>
           </li>
           <li className='nav-item'>
             <Link to='/statistikk' className="nav-link">Statistikk</Link>
@@ -676,7 +679,7 @@ class Menu extends React.Component {
               <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control sokeFelt' />
             </li>
             <li>
-              <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
+              <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{this.searchUser();history.push('/sokeResultat')}}>Søk</button>
             </li>
             <li className='spaceBetweenSearchAndLogout'>
               <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
@@ -1148,6 +1151,8 @@ class Arrangement extends React.Component{
   }
   }
 
+
+//Her lages nytt arrangement. Du fyller ut feltene, legger til vaktmal og roller samt utstyr. Sted og adresse legges til med kartet
 class NyttArrangement extends React.Component{
   constructor() {
     super();
@@ -1568,6 +1573,8 @@ class NyttArrangement extends React.Component{
   }
 }
 
+//Her vises din bruker informasjon. Det er lenker til å melde seg passiv,endre brukerinformasjon,endre passord og se dine Kvalifikasjoner
+//Det ligger også en kalender som viser kommende arrengementer for deg. Samt tilbakemelding på vaktbytter du har spurt om
 class MineSider extends React.Component {
   constructor() {
     super();
@@ -1669,11 +1676,12 @@ class MineSider extends React.Component {
       this.props.history.push('/forandrepassord');
     }
     this.refs.seeQualifications.onclick = () =>{
-      this.props.history.push('/sekvalifikasjoner');
+      this.props.history.push('/sekvalifikasjoner/'+loginService.getSignedInUser().id);
     }
   }
 }
 
+//Her melder du deg passiv ved å sette til og fra dato
 class Passiv extends React.Component {
   render() {
     return(
@@ -1719,6 +1727,7 @@ class Passiv extends React.Component {
               console.log(error);
               if(errorMessage) errorMessage.set('Error');
             });
+            Popup.alert('Du er meldt passiv fra ' + start + ' til ' + slutt);
             history.push('/minside')
           } else {
             console.log('Du er opptatt på denne tiden.');
@@ -1728,13 +1737,14 @@ class Passiv extends React.Component {
           if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
         });
       } else {
-        alert('Sluttdato må være senere enn startdato')
+        Popup.alert('Sluttdato må være senere enn startdato')
       }
     }
 
   }
 }
 
+//Her ligger infoen din i felt, der du kan oppdatere til riktig info. Når du lagrer dukker det opp en popup som krever ditt passord for å lage endringene
 class ForandreBrukerInfo extends React.Component {
   constructor() {
     super();
@@ -1835,6 +1845,7 @@ class ForandreBrukerInfo extends React.Component {
   }
 }
 
+//Her kan du endre passord, For å lagre endringen dukker det opp et popup der du må skrive inn ditt gamle passord for å lagre endringene
 class ForandrePassord extends React.Component {
   constructor() {
     super();
@@ -1904,13 +1915,14 @@ class ForandrePassord extends React.Component {
   }
 }
 
+//Denne siden henter dine kvalifikasjoner og viser dem til deg
 class SeKvalifikasjoner extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.user = [];
     this.kvalifikasjoner = [];
-    this.id = loginService.getSignedInUser().id;
+    this.id = this.props.match.params.id;
 
   }
   render(){
@@ -1945,6 +1957,8 @@ class SeKvalifikasjoner extends React.Component {
   }
 }
 
+//Her vises brukere som må godkjennes fra class Godkjennbruker og vaktbytter som må behandles fra class Byttvakt
+//samt at du kan skrive inn ny melding som vil vises på startskjermen til alle brukere
 class Administrator extends React.Component{
   render(){
     return(
@@ -2017,6 +2031,7 @@ class Administrator extends React.Component{
   }
 }
 
+//Denne klassen henter og viser fram alle nye brukere som må godkjennes, samt alle deaktiverte brukere
 class GodkjennBruker extends React.Component {
   constructor(){
     super();
@@ -2059,6 +2074,7 @@ class GodkjennBruker extends React.Component {
   }
 }
 
+//Denne klassen henter alle vaktbytter der den nye vakten har godtatt den, men den krever fremdeles godkjenning av admin
 class ByttVakt extends React.Component{
   constructor(){
     super();
@@ -2103,6 +2119,7 @@ class ByttVakt extends React.Component{
   }
 }
 
+//Denne siden viser fram resultatet av søket du foretar deg i navbaren. Og lager linker som du kan følge for mere info
 class VisSøkeResultat extends React.Component {
   constructor(){
     super();
@@ -2136,6 +2153,9 @@ class VisSøkeResultat extends React.Component {
 }
 
 let sok;
+
+//Denne siden viser all informasjon brukeren du har søkt på vis du er admin, og bare epost og telefon nummer hvis du er vanlig brukere
+//Er du admin kan du også gjøre brukeren til admin eller fjerne han som admin. Deaktiver brukeren se brukerens kvalifikasjoner eller endre på brukerens informasjon
 class BrukerSide extends React.Component {
   constructor(props) {
     super(props)
@@ -2192,7 +2212,7 @@ class BrukerSide extends React.Component {
                 <td className="brukerSideButtons">{b}</td>
               </tr>
               <tr>
-                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
+                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner/'+this.id)}}>Se kvalifikasjoner</button></td>
                 <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/endreBrukerInfo/'+this.id)}}>Endre bruker info</button></td>
               </tr>
             </tbody>
@@ -2248,6 +2268,7 @@ class BrukerSide extends React.Component {
   }
 }
 
+//Denne siden er admin sin side for å endre informasjonen til andre brukere. For å lagre endringene kommer det en popup der admin må skrive inn sitt passord.
 class EndreBrukerInfo extends React.Component {
   constructor(props) {
     super(props);
@@ -2346,6 +2367,8 @@ class EndreBrukerInfo extends React.Component {
   }
 }
 
+//Denne klassen viser fram arrangementet du har trykket på, enten fra kalenderen eller fra arrangement siden. Som bruker kan du har melde interesse i arrangementet eller fjerne interessen
+//Som admin vil du få muligheten til å velge og kalle inn folk til arrangementet eller endre arrangementet
 class VisArrangement extends React.Component {
   constructor(props) {
     super(props)
@@ -2490,6 +2513,7 @@ class VisArrangement extends React.Component {
   }
 }
 
+//Her har admin mulighet til å endre på arrangementet. Endre start,slutt og oppmøte tidspunkt, samt oppmøtested og beskrivesle.
 class EndreArrangement extends React.Component {
   constructor(props){
     super(props);
@@ -2597,6 +2621,8 @@ class EndreArrangement extends React.Component {
   }
 }
 
+//På denne siden velger du hvem som skal bli innkalt til arrangement. Du velger hvilken rolle du skal fylles, får opp en liste over navn og trykker flytt for å flytte dem over til arrangementTableData
+//Når du har kalt inn alle trykker du save. Da vil det bli sendt ut epost om vaktutkalling til de du kalte inn.
 class Innkalling extends React.Component {
   constructor(props) {
     super(props);
@@ -2914,6 +2940,7 @@ class Innkalling extends React.Component {
   // }
 }
 
+//Denne siden viser en liste over utstyr som finnes. Du kan endre på navnene og legge til nytt utstyr. Inne i siden ligger også sidene rolleutstyr og arrangementutstyr.
 class Utstyr extends React.Component {
   constructor() {
     super();
@@ -2922,17 +2949,9 @@ class Utstyr extends React.Component {
   render() {
     let utstyrsListe = [];
 
-    utstyrsListe.push(<tr className='kvalBold' key={'utstyrsListe'}><td>Id</td><td>Navn</td><td></td><td><button className='btn btn-xs btn-default' id='utstyrsListeHelpButton' ref='utstyrsListeHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button></td></tr>);
+    utstyrsListe.push(<tr className='kvalBold' key={'utstyrsListe'}><td>Id</td><td>Navn</td></tr>);
     for (let item of this.utstyr) {
-      utstyrsListe.push(
-        <tr className='trKval' key={item.id}>
-          <td className='tableKval'>{item.id}</td>
-          <td className='tableKval'>{item.navn}</td>
-          <td className='tableKval'>
-            <button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button>
-            <button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button>
-          </td>
-        </tr>);
+      utstyrsListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
     }
 
     return(
@@ -2948,10 +2967,10 @@ class Utstyr extends React.Component {
           <input className='sokeFelt form-control col-4' ref='utNavn' name='utNavn' /> <button className='btn btn-default' ref='lagUt'>Legg til</button>
           </div>
         </div>
-        <div className='arrUtstyrListe'>
+        <div className='rolleKvalListe'>
         <RolleUtstyr />
         </div>
-        <div className='arrUtstyrListe'>
+        <div className='medlemKvaListe'>
         <ArrangementUtstyr />
         </div>
         <br />
@@ -2971,10 +2990,6 @@ class Utstyr extends React.Component {
         console.log(err);
       });
     };
-    this.refs.utstyrsListeHelpButton.onclick = () => {
-      Popup.plugins().popunder('Her vises alt utstyr du kan legge til i en utstyrsliste. For å legge til mer utstyr skriv inn navnet og klikk legg til. For å endre på et innslag skriver du navnet og klikker endre på innslaget du vil endre. Hvis du vil fjerne utstyr fra utstyrslisten klikker du fjern.', utstyrsListeHelpButton);
-    }
-
   }
   update() {
     UtstyrService.getAllUtstyr().then((res) => {
@@ -3006,6 +3021,7 @@ class Utstyr extends React.Component {
   }
 }
 
+//Denne siden viser deg hvilke utstyr som er knyttet til hvilke roller. Her kan du legge til eller fjerne utstyr fra roller.
 class RolleUtstyr extends React.Component {
   constructor() {
     super();
@@ -3030,37 +3046,20 @@ class RolleUtstyr extends React.Component {
     return(
       <div>
         <br />
-        <p>Rolle-Utstyrs Liste
-          <button className='btn btn-xs btn-default' id='rolleUtstyrHelpButton' ref='rolleUtstyrHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
-        </p>
+        <p>Rolle-Utstyrs Liste</p>
         <div>
           <table>
             <tbody>
               {utstyrsListe}
             </tbody>
           </table>
-          <div className='form-group form-row'>
-            <div className='col col-2'>
-              <label htmlFor='rolle'>Rolle: </label>
-            </div>
-            <div className='col col-3'>
-              <select ref='rolle' name='rolle' className='form-control form-control-lg' onChange={()=>{this.update()}}>{rolleListe}</select>
-            </div>
-            <div className='col col-1'>
-              <label htmlFor='utstyr'>Utstyr: </label>
-            </div>
-            <div className='col col-2'>
-              <select ref='utstyr' name='utstyr' className='form-control form-control-lg'>{utstyr}</select>
-            </div>
-            <div className='col col-1'>
-              <label htmlFor='number'>Antall: </label>
-            </div>
-            <div className='col col-2'>
-              <input type='number' className='sokeFelt form-control' ref='antall' name='number'/>
-            </div>
-            <div className='col col-1'>
-              <button className='btn btn-default' ref='lagUt'>Legg til</button>
-            </div>
+          <div className='form-row'>
+            <label htmlFor='rolle'>Rolle: </label>
+            <select ref='rolle' name='rolle' className='form-control-lg' onChange={()=>{this.update()}}>{rolleListe}</select>
+            <label htmlFor='utstyr'>Rolle: </label>
+            <select ref='utstyr' name='utstyr' className='form-control-lg'>{utstyr}</select>
+            <label htmlFor='number'>Antall: </label>
+            <input type='number' className='sokeFelt form-control col-1' ref='antall' name='number'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
           </div>
         </div>
         <br />
@@ -3079,10 +3078,6 @@ class RolleUtstyr extends React.Component {
         console.log(err);
       });
     };
-    this.refs.rolleUtstyrHelpButton.onclick = () => {
-      Popup.plugins().popright('Her vises utstyr som er knyttet til en bestemt rolle. For å se utstyr knyttet til en rolle velg en rolle fra rullegardinmenyen. For å legge til utstyr for rollen velger du utstyr fra rullegardinmenyen merket utstyr og skriver inn antall, deretter klikker du legg til. For å endre et innslag velger du utstyret og antall du vil endre til og klikker endre.', rolleUtstyrHelpButton);
-    }
-
   }
   update() {
     UtstyrService.getAllRU(this.refs.rolle.value).then((res) => {
@@ -3128,6 +3123,7 @@ class RolleUtstyr extends React.Component {
   }
 }
 
+//Denne siden viser deg utstyr knyttet til arrangement. Du kan fjerne utstyr fra arrangementet eller legge til utstyr.
 class ArrangementUtstyr extends React.Component {
   constructor() {
     super();
@@ -3153,38 +3149,25 @@ class ArrangementUtstyr extends React.Component {
     return(
       <div>
         <br />
-        <p>Arrangament-Utstyrs Liste
-          <button className='btn btn-xs btn-default' id='arrUtstyrHelpButton' ref='arrUtstyrHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
-        </p>
+        <p>Arrangament-Utstyrs Liste</p>
         <div>
           <table>
             <tbody>
               {utstyrsListe}
             </tbody>
           </table>
-          <div className='form-group form-row'>
-            <div className='col col-2'>
-              <label htmlFor='ament'>Arrangement:</label>
+          <div className='form-group'>
+            <label htmlFor='ament'>Arragnemnet:</label>
+            <select ref='arrangement' name='ament' className='form-control-lg' onChange={()=>{this.update()}}>{arrangement}</select>
+
+            <label htmlFor='utstyr'>Utstyr:</label>
+            <select ref='utstyr' name='utstyr' className='form-control-lg'>{utstyr}</select>
+            <div className='form-row'>
+            <label htmlFor='number'>Antall:</label>
+            <input type='number' className='sokeFelt form-control col-1' ref='antall' name='number'/>
+             <button className='btn btn-default' ref='lagUt'>Legg til</button>
+             </div>
             </div>
-            <div className='col-3'>
-              <select ref='arrangement' name='ament' className='form-control form-control-lg' onChange={()=>{this.update()}}>{arrangement}</select>
-            </div>
-            <div className='col col-1'>
-              <label htmlFor='utstyr'>Utstyr:</label>
-            </div>
-            <div className='col-2'>
-              <select ref='utstyr' name='utstyr' className='form-control form-control-lg'>{utstyr}</select>
-            </div>
-            <div className='col col-1'>
-              <label htmlFor='number'>Antall:</label>
-            </div>
-            <div className='col col-2'>
-              <input type='number' className='sokeFelt form-control' ref='antall' name='number'/>
-            </div>
-            <div className='col col-1'>
-              <button className='btn btn-default' ref='lagUt'>Legg til</button>
-            </div>
-          </div>
         </div>
         <br />
       </div>
@@ -3202,11 +3185,6 @@ class ArrangementUtstyr extends React.Component {
         console.log(err);
       });
     };
-
-    this.refs.arrUtstyrHelpButton.onclick = () => {
-      Popup.plugins().popright('Her vises utstyr som er knyttet til et bestemt arrangement. For å se utstyr knyttet til et arrangement velg et arrangement fra rullegardinmenyen. For å legge til utstyr på arrangementet velger du utstyr fra rullegardinmenyen merket utstyr og skriver inn antall, deretter klikker du legg til. For å endre et innslag velger du utstyret og antall du vil endre til og klikker endre.', arrUtstyrHelpButton);
-    }
-
   }
   update() {
     UtstyrService.getAllAU(this.refs.arrangement.value).then((res) => {
@@ -3252,6 +3230,8 @@ class ArrangementUtstyr extends React.Component {
   }
 }
 
+//Denne siden henter og viser deg arrangement du er utkalt til men ikke godtatt, arrangement du har godtatt og vaktbytte forespørsler som omfatter deg. Du kan også velge å bytte vakt selv
+//på de arrangementene du har godtatt.
 class MineVakter extends React.Component {
   constructor(){
     super();
@@ -3417,6 +3397,7 @@ class MineVakter extends React.Component {
   }
 }
 
+//Denne siden henter inn alle kvalifikasjoner som er laget. Du kan også endre de eller legge til nye. Den viser også sidene rollekvalifikajsoner og MedlemKvalifikasjoner
 class Kvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -3425,27 +3406,9 @@ class Kvalifikasjoner extends React.Component {
   render() {
     let kvalListe = [];
 
-    kvalListe.push(
-      <tr className='kvalBold' key={'kvalListe'}>
-        <td>Id</td>
-        <td>Navn</td>
-        <td>Varighet (måneder)</td>
-        <td></td>
-        <td><button className='btn btn-xs btn-default' id='kvalListeHelpButton' ref='kvalListeHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button></td>
-      </tr>);
+    kvalListe.push(<tr className='kvalBold' key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet (måneder)</td></tr>);
     for (let item of this.kvalifikasjon) {
-      kvalListe.push(
-        <tr className='trKval' key={item.id}>
-          <td className='tableKval'>{item.id}</td>
-          <td className='tableKval'>{item.navn}</td>
-          <td className='tableKval'>{item.varighet}</td>
-          <td className='tableKval'>
-            <button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button>
-          </td>
-          <td className='tableKval'>
-            <button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button>
-          </td>
-        </tr>);
+      kvalListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'>{item.varighet}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
     }
 
     return(
@@ -3456,23 +3419,13 @@ class Kvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          <div className='form-group form-row'>
-            <div className='col col-1'>
-              <label htmlFor='kvNavn'>Navn:</label>
-            </div>
-            <div className='col col-5'>
-              <input className='sokeFelt form-control' ref='kvNavn' name='kvNavn'/>
-            </div>
-            <div className='col col-2'>
-              <label htmlFor='kvVar'>Varighet:</label>
-            </div>
-            <div className='col col-2'>
-              <input type='number' className='sokeFelt form-control'  ref='kvVar' name='kvVar'/>
-            </div>
-            <div className='col col-2'>
-              <button className='btn btn-default' ref='lagKv'>Legg til</button>
-            </div>
-          </div>
+          <div className='form-group'>
+          <label htmlFor='kvNavn'>Navn:</label>
+           <input className='sokeFelt form-control col-4' ref='kvNavn' name='kvNavn'/>
+           <label htmlFor='kvVar'>Varighet:</label>
+          <input className='sokeFelt form-control col-4'  ref='kvVar' name='kvVar'/>
+          <button className='btn btn-default' ref='lagKv'>Legg til</button>
+        </div>
         </div>
         <div className='medlemKvaListe'>
         <MedlemKvalifikasjoner />
@@ -3497,10 +3450,6 @@ class Kvalifikasjoner extends React.Component {
         console.log(err);
       });
     };
-    this.refs.kvalListeHelpButton.onclick = () => {
-      Popup.plugins().popright('Her vises alle kvalifikasjoner og hvor lenge de er gyldige. For å legge til en kvalifikasjon skriv inn navn på kvalifikasjon og varighet og klikk legg til. For å endre en kvalifikasjon skriv inn navn og varighet du vil endre til og klikk endre.', kvalListeHelpButton);
-    }
-
   }
   update() {
     KvalifikasjonService.getAllKvalifikasjon().then((res) => {
@@ -3532,6 +3481,8 @@ class Kvalifikasjoner extends React.Component {
   }
 }
 
+//Denne siden viser hvilke kvalifikasjoner som er knyttet til hvilke roller. Du velger en rolle og siden viser deg hvilke kvalifikasjoner den har. Du kan også
+//legge til og fjerne kvalifikasjoner til rollene.
 class RolleKvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -3554,34 +3505,16 @@ class RolleKvalifikasjoner extends React.Component {
       kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
     }
     return(
-      <div className='lister'>
+      <div>
         <br />
-        <p>Rolle-Kvalifikkasjons Liste
-          <button className='btn btn-xs btn-default' id='rolleKvalHelpButton' ref='rolleKvalHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
-        </p>
+        <p>Rolle-Kvalifikkasjons Liste</p>
         <div >
           <table className='test'>
             <tbody>
               {kvalListe}
             </tbody>
           </table>
-          <div className='form-group form-row'>
-            <div className='col col-2'>
-              <label htmlFor='rolle'>Rolle: </label>
-            </div>
-            <div className='col col-3'>
-              <select ref='rolle' name='rolle' className='form-control form-control-lg' onChange={()=>{this.update()}}>{rolleListe}</select>
-            </div>
-            <div className='col col-2'>
-              <label htmlFor='kval'>Kvalifikasjon: </label>
-            </div>
-            <div className='col col-3'>
-              <select ref='kval' name='kval' className='form-control form-control-lg' >{kvalifikasjoner}</select>
-            </div>
-            <div className='col col-2'>
-              <button className='btn btn-default' ref='lagRK'>Legg til</button>
-            </div>
-          </div>
+          <label htmlFor='rolle'>Rolle: </label> <select ref='rolle' name='rolle' className='form-control form-control-lg col-3' onChange={()=>{this.update()}}>{rolleListe}</select><label htmlFor='kval'>Kvalifikasjon: </label> <select ref='kval' name='kval' className='form-control form-control-lg col-3' >{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -3599,11 +3532,6 @@ class RolleKvalifikasjoner extends React.Component {
         console.log(err);
       });
     };
-
-    this.refs.rolleKvalHelpButton.onclick = () => {
-      Popup.plugins().popunder('Her vises hvilke kvalifikasjoner som er påkrevd for en spesiell rolle. Velg en rolle fra rullegardinmenyen og du vil få en liste over hvilke kvalifikasjoner som er nødvendig. Klikk fjern på en kvalifikasjon for å fjerne kravet. Velg en kvalifikasjon fra rullegardinmenyen og klikk legg til for å legge til en kvalifikasjon for den rollen.', rolleKvalHelpButton);
-    }
-
   }
   update() {
     KvalifikasjonService.getAllRK(this.refs.rolle.value).then((res) => {
@@ -3648,6 +3576,7 @@ class RolleKvalifikasjoner extends React.Component {
   }
 }
 
+//Denne siden viser deg en liste over medlemmer og hvilke kvalifikasjoner som er knyttet til dem. Du kan også legge til eller fjerne kvalifikasjoner fra medlemmer
 class MedlemKvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -3670,34 +3599,17 @@ class MedlemKvalifikasjoner extends React.Component {
          kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
        }
     return(
-      <div className='lister'>
+      <div>
         <br />
-        <p>Medlem-Kvalifikasjons Liste
-          <button className='btn btn-xs btn-default' id='medlemKvalHelpButton' ref='medlemKvalHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
-        </p>
+        <p>Medlem-Kvalifikasjons Liste</p>
         <div>
           <table>
             <tbody>
               {kvalListe}
             </tbody>
           </table>
-          <div className='form-group form-row'>
-            <div className='col col-2'>
-              <label htmlFor='medlem'>Medlem: </label>
-            </div>
-            <div className='col col-3'>
-              <select ref='med' name='medlem' className='form-control form-control-lg' onChange={()=>{this.update()}}>{meldemer}</select>
-            </div>
-            <div className='col col-2'>
-              <label htmlFor='kvalik'> Kvalifikasjon: </label>
-            </div>
-            <div className='col col-3'>
-              <select className='form-control form-control-lg' name='kvalik' ref='kval'>{kvalifikasjoner}</select>
-            </div>
-            <div className='col col-2'>
-              <button className='btn btn-default' ref='lagMK'>Legg til</button>
-            </div>
-          </div>
+          <label htmlFor='medlem'>Medlem: </label> <select ref='med' name='medlem' className='form-control form-control-lg col-3' onChange={()=>{this.update()}}>{meldemer}</select> <label htmlFor='kvalik'> Kvalifikasjon: </label><select className='form-control form-control-lg col-3' name='kvalik' ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+
         </div>
         <br />
       </div>
@@ -3715,10 +3627,6 @@ class MedlemKvalifikasjoner extends React.Component {
         console.log(err);
       });
     };
-    this.refs.medlemKvalHelpButton.onclick = () => {
-      Popup.plugins().popunder('Her vises alle kvalifikasjoner for et bestemt medlem. Velg et medlem fra rullegardinmenyen og du vil få en oversikt over dette medlemmets kvalifikasjoner. Velg en kvalifikasjon og klikk legg til for å legge til en kvalifikasjon for et bestemt medlem.', medlemKvalHelpButton);
-    }
-
   }
   update() {
     KvalifikasjonService.getAllMK(this.refs.med.value).then((res) => {
@@ -3764,6 +3672,7 @@ class MedlemKvalifikasjoner extends React.Component {
   }
 }
 
+//Denne siden viser deg alle roller som finnes. Du kan velge å endre en rolle, fjerne den eller legge til nye.
 class Rolle extends React.Component {
   constructor() {
     super();
@@ -3836,7 +3745,44 @@ class Rolle extends React.Component {
   }
 }
 
+//Denne siden forklarer noen av funksjonene i appen
+class Hjelp extends React.Component {
+  render() {
+    let signedInUser = loginService.getSignedInUser();
+    if (signedInUser.admin === 1) {
+      return(
+        <div className='bd-content col-12'>
+          <div className='row'>
+            <div className='col'>
+              <h3 className='display-4'>Opprette arrangement</h3>
+              <p>
+                For å lage et nytt arrangement gå til arrangement-fanen og klikk knappen hvor det står «Opprett arrangement».
+                Deretter fyller du inn nødvendig informasjon.
+              </p>
+            </div>
+            <div className='col'>
+              <h3 className='display-4'>Kalle inn til arrangement</h3>
+              <p>
+              </p>
+            </div>
+            <div className='col'>
+              <h3 className='display-4'>Godkjenne bruker</h3>
+              <p>
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    } else {
+      return(
+        <div>
+        </div>
+      )
+    }
+  }
+}
 
+//Denne siden viser deg statistikk over medlemmer. Du kan velge mellom 4 parametre og få opp informasjon per bruker.
 class Statistik extends React.Component {
   constructor() {
     super();
@@ -4001,7 +3947,7 @@ ReactDOM.render((
 
         <Route exact path='/bruker/:id' component={BrukerSide} />
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
-        <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
+        <Route exact path='/sekvalifikasjoner/:id' component={SeKvalifikasjoner} />
         <Route exact path='/sokeResultat' component={VisSøkeResultat} />
         <Route exact path='/visArrangement/:id' component={VisArrangement} />
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
@@ -4010,6 +3956,7 @@ ReactDOM.render((
         <Route exact path='/T-kvalifikasjon' component={Kvalifikasjoner} />
         <Route exact path='/T-rolle' component={Rolle} />
         <Route exact path='/mineVakter' component={MineVakter} />
+        <Route exact path='/hjelp' component={Hjelp} />
         <Route exact path='/endreBrukerInfo/:id' component={EndreBrukerInfo} />
         <Route exact path='/statistikk' component={Statistik} />
       </Switch>
