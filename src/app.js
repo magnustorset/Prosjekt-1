@@ -3458,7 +3458,7 @@ class RolleKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Rolle:  <select ref='rolle' onChange={()=>{this.update()}}>{rolleListe}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
+          <label htmlFor='rolle'>Rolle: </label> <select ref='rolle' name='rolle' className='form-control form-control-lg col-3' onChange={()=>{this.update()}}>{rolleListe}</select><label htmlFor='kval'>Kvalifikasjon: </label> <select ref='kval' name='kval' className='form-control form-control-lg col-3' >{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -3551,7 +3551,7 @@ class MedlemKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          Medlem: <select ref='med' onChange={()=>{this.update()}}>{meldemer}</select> Kvalifikasjon: <select ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+          <label htmlFor='medlem'>Medlem: </label> <select ref='med' name='medlem' className='form-control form-control-lg col-3' onChange={()=>{this.update()}}>{meldemer}</select> <label htmlFor='kvalik'> Kvalifikasjon: </label><select className='form-control form-control-lg col-3' name='kvalik' ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
 
         </div>
         <br />
@@ -3756,8 +3756,8 @@ class Statistik extends React.Component {
     return(
       <div className='enkelContainer'>
           <div className='form-group'>
-            <label htmlFor='statType'>Velg statistikk type:</label>
-            <select ref='statType' className='form-control col-6' name='statType'>{statValg}</select>
+            <label htmlFor='statType'  >Velg statistikk type:</label>
+            <select ref='statType' className='form-control form-control-lg col-6' name='statType'>{statValg}</select>
           </div>
           <div className='form-group'>
             <label htmlFor='start'>Start:</label>
