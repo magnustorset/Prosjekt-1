@@ -287,7 +287,7 @@ background-color: white;
   float: right;
 }
 
-/*Kvalifikasjon side*/
+/*Kvalifikasjon side og utstyr side*/
 .test{
 
 }
@@ -298,20 +298,33 @@ background-color: white;
 .trKval:nth-child(even){
   background-color: #babbbc;
 }
-.kvalBold{
+.kvalBold td{
   font-weight: bold;
+  padding: 2px;
 }
 .kvaListe{
   float: left;
   padding-left: 2%;
-  width: 50%;
+  width: 40%;
 
 }
 .rolleKvaListe{
-
-  width: 33%;
+  float:left;
+  width: 50%;
 }
 .medlemKvaListe{
-  float:right;
+  float:left;
   width: 50%;
+}
+
+/*Statistikk siden*/
+.statistikk td{
+  font-weight: bold;
+  padding: 2px;
+}
+.resultat td{
+  padding: 2px;
+}
+.paddingButton{
+  margin-top: 4px;
 }

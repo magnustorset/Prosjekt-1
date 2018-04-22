@@ -2900,23 +2900,30 @@ class Utstyr extends React.Component {
   render() {
     let utstyrsListe = [];
 
-    utstyrsListe.push(<tr key={'utstyrsListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    utstyrsListe.push(<tr className='kvalBold' key={'utstyrsListe'}><td>Id</td><td>Navn</td></tr>);
     for (let item of this.utstyr) {
-      utstyrsListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
+      utstyrsListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
     }
 
     return(
       <div>
-        <div>
+        <div className='kvaListe'>
           <table>
             <tbody>
               {utstyrsListe}
             </tbody>
           </table>
-          Navn: <input className='sokeFelt' ref='utNavn'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          <div className='form-row'>
+          <label htmlFor='utNavn'>Navn:</label>
+          <input className='sokeFelt form-control col-4' ref='utNavn' name='utNavn' /> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          </div>
         </div>
+        <div className='rolleKvalListe'>
         <RolleUtstyr />
+        </div>
+        <div className='medlemKvaListe'>
         <ArrangementUtstyr />
+        </div>
         <br />
       </div>
     )
@@ -2976,9 +2983,9 @@ class RolleUtstyr extends React.Component {
     let utstyrsListe = [];
     let rolleListe = [];
     let utstyr = [];
-    utstyrsListe.push(<tr key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    utstyrsListe.push(<tr className='kvalBold' key={'r_utstyrsListe'}><td>Rolle</td><td>Utstyr</td><td>Antall</td></tr>);
     for (let item of this.rolleUtstyr) {
-      utstyrsListe.push(<tr key={item.r_id + ' - ' + item.u_id}><td>{item.r_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
+      utstyrsListe.push(<tr className='trKval' key={item.r_id + ' - ' + item.u_id}><td className='tableKval'>{item.r_navn}</td><td className='tableKval'>{item.u_navn}</td><td className='tableKval'>{item.antall}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.r_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.r_id, item.u_id)}}>Fjern</button></td></tr>);
     }
     for (let item of this.roller) {
       rolleListe.push(<option key={item.id} value={item.id} >{item.navn}</option>);
@@ -2996,7 +3003,14 @@ class RolleUtstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Rolle: <select ref='rolle' onChange={()=>{this.update()}}>{rolleListe}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          <div className='form-row'>
+            <label htmlFor='rolle'>Rolle: </label>
+            <select ref='rolle' name='rolle' className='form-control-lg' onChange={()=>{this.update()}}>{rolleListe}</select>
+            <label htmlFor='utstyr'>Rolle: </label>
+            <select ref='utstyr' name='utstyr' className='form-control-lg'>{utstyr}</select>
+            <label htmlFor='number'>Antall: </label>
+            <input type='number' className='sokeFelt form-control col-1' ref='antall' name='number'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          </div>
         </div>
         <br />
       </div>
@@ -3070,9 +3084,9 @@ class ArrangementUtstyr extends React.Component {
     let utstyrsListe = [];
     let utstyr = [];
     let arrangement = [];
-    utstyrsListe.push(<tr key={'a_utstyrsListe'}><td>Arrangement</td><td>Utstyr</td><td>Antall</td><td>Knapper</td></tr>);
+    utstyrsListe.push(<tr className='kvalBold' key={'a_utstyrsListe'}><td>Arrangement</td><td>Utstyr</td><td>Antall</td></tr>);
     for (let item of this.arrangememtUtstyr) {
-      utstyrsListe.push(<tr key={item.a_id + ' - ' + item.u_id}><td>{item.a_navn}</td><td>{item.u_navn}</td><td>{item.antall}</td><td><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
+      utstyrsListe.push(<tr className='trKval' key={item.a_id + ' - ' + item.u_id}><td className='tableKval'>{item.a_navn}</td><td className='tableKval'>{item.u_navn}</td><td className='tableKval'>{item.antall}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.a_id, item.u_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.a_id, item.u_id)}}>Fjern</button></td></tr>);
     }
     for (let item of this.utstyr) {
       utstyr.push(<option key={item.id} value={item.id} >{item.navn}</option>);
@@ -3091,7 +3105,18 @@ class ArrangementUtstyr extends React.Component {
               {utstyrsListe}
             </tbody>
           </table>
-          Arrangement: <select ref='arrangement' onChange={()=>{this.update()}}>{arrangement}</select> Utstyr: <select ref='utstyr'>{utstyr}</select> Antall: <input type='number' className='sokeFelt' ref='antall'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          <div className='form-group'>
+            <label htmlFor='ament'>Arragnemnet:</label>
+            <select ref='arrangement' name='ament' className='form-control-lg' onChange={()=>{this.update()}}>{arrangement}</select>
+
+            <label htmlFor='utstyr'>Utstyr:</label>
+            <select ref='utstyr' name='utstyr' className='form-control-lg'>{utstyr}</select>
+            <div className='form-row'>
+            <label htmlFor='number'>Antall:</label>
+            <input type='number' className='sokeFelt form-control col-1' ref='antall' name='number'/>
+             <button className='btn btn-default' ref='lagUt'>Legg til</button>
+             </div>
+            </div>
         </div>
         <br />
       </div>
@@ -3327,7 +3352,7 @@ class Kvalifikasjoner extends React.Component {
   render() {
     let kvalListe = [];
 
-    kvalListe.push(<tr className='kvalBold' key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet</td></tr>);
+    kvalListe.push(<tr className='kvalBold' key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet'(måneder)'</td></tr>);
     for (let item of this.kvalifikasjon) {
       kvalListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'>{item.varighet}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
     }
@@ -3340,7 +3365,7 @@ class Kvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          <div className='form-row'>
+          <div className='form-group'>
           <label htmlFor='kvNavn'>Navn:</label>
            <input className='sokeFelt form-control col-4' ref='kvNavn' name='kvNavn'/>
            <label htmlFor='kvVar'>Varighet:</label>
@@ -3508,7 +3533,7 @@ class MedlemKvalifikasjoner extends React.Component {
     let kvalifikasjoner = [];
     kvalListe.push(<tr className='kvalBold' key={'medKval'}><td>Medlem</td><td>Kvalifikasjon</td><td>Gyldig til</td></tr>);
     for (let item of this.medKval) {
-      kvalListe.push(<tr className='trKval' key={item.m_id + ' - ' + item.k_id}><td className='tableKval'>{item.m_navn}</td><td className='tableKval'>{item.k_navn}</td><td className='tableKval'>{moment(item.gyldig).format('YYYY-MM-DD')}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
+      kvalListe.push(<tr className='trKval' key={item.m_id + ' - ' + item.k_id}><td className='tableKval'>{item.m_navn}</td><td className='tableKval'>{item.k_navn}</td><td className='tableKval'>{moment(item.gyldig).format('DD-MM-YYYY')}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeKval(item.m_id, item.k_id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.m_id, item.k_id)}}>Fjern</button></td></tr>);
     }
     for (let item of this.meldemer) {
          meldemer.push(<option key={item.id} value={item.id} >{item.brukernavn}</option>);
@@ -3598,20 +3623,23 @@ class Rolle extends React.Component {
   render() {
     let rolleListe = [];
 
-    rolleListe.push(<tr key={'rolleListe'}><td>Id</td><td>Navn</td><td>Knapper</td></tr>);
+    rolleListe.push(<tr className='kvalBold' key={'rolleListe'}><td>Id</td><td>Navn</td></tr>);
     for (let item of this.roller) {
-      rolleListe.push(<tr key={item.id}><td>{item.id}</td><td>{item.navn}</td><td><button className='btn btn-default' onClick={() => {this.changeRolle(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeRolle(item.id)}}>Fjern</button></td></tr>);
+      rolleListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeRolle(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeRolle(item.id)}}>Fjern</button></td></tr>);
     }
 
     return(
       <div>
-        <div>
+        <div className='kvaListe'>
           <table>
             <tbody>
               {rolleListe}
             </tbody>
           </table>
-          Navn: <input ref='roNavn'/> <button className='btn btn-default' ref='lagRo'>Legg til</button>
+          <div className='form-group'>
+          <label htmlFor='roNavn'>Navn:</label>
+          <input ref='roNavn' name='roNavn' className='sokeFelt form-control col-4'/> <button className='btn btn-default' ref='lagRo'>Legg til</button>
+          </div>
         </div>
       </div>
     )
@@ -3711,9 +3739,9 @@ class Statistik extends React.Component {
     let statVisning = [];
     let statValg = [];
 
-    statVisning.push(<tr key={'statistikkListe'}><td>Id</td><td>Brukernavn</td><td>Antall</td></tr>);
+    statVisning.push(<tr className='statistikk' key={'statistikkListe'}><td>Id</td><td>Brukernavn</td><td>Antall</td></tr>);
     for(let item of this.statistikk) {
-      statVisning.push(<tr key={item.m_id}><td>{item.m_id}</td><td>{item.brukernavn}</td><td>{item.antall}</td></tr>);
+      statVisning.push(<tr className='resultat' key={item.m_id}><td>{item.m_id}</td><td><Link to={'/bruker/'+item.m_id}>{item.brukernavn}</Link></td><td>{item.antall}</td></tr>);
     }
 
     // statValg.push(<option key='Tomt' value='Tomt'>Velg type</option>);
@@ -3726,8 +3754,18 @@ class Statistik extends React.Component {
     // }
 
     return(
-      <div>
-        <select ref='statType'>{statValg}</select><select ref='statValue'></select> Start: <input type="datetime-local" ref="sDato" /> Slutt: <input type="datetime-local" ref="eDato" /><button ref='statVis'>Trykk</button>
+      <div className='enkelContainer'>
+          <div className='form-group'>
+            <label htmlFor='statType'>Velg statistikk type:</label>
+            <select ref='statType' className='form-control col-6' name='statType'>{statValg}</select>
+          </div>
+          <div className='form-group'>
+            <label htmlFor='start'>Start:</label>
+            <input type="datetime-local" ref="sDato" name='start' className='form-control col-5'/>
+            <label htmlFor='slutt'>Slutt:</label>
+            <input type="datetime-local" ref="eDato" name='slutt' className='form-control col-5'/>
+            <button className='btn btn-default paddingButton' ref='statVis'>Trykk</button>
+          </div>
         <div>
           <table>
             <tbody>
