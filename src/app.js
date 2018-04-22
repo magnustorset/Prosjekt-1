@@ -741,6 +741,7 @@ class Menu extends React.Component {
 }
 
 //Her defineres innlogging siden. Hvordan den skal se ut og funksjonaliteten til knappene og hva som skjer når de blir trykket
+//Her skriver du inn brukernavn og passord for å komme deg inn i selve appen
 class Innlogging extends React.Component {
   render () {
 
@@ -806,7 +807,7 @@ class Innlogging extends React.Component {
   };
 }
 
-
+//Har kan du opprette en ny bruker, fylle ut informasjon anvist av mal. Og ny bruker er opprettet
 class NyBruker extends React.Component {
   render () {
     return (
@@ -873,6 +874,8 @@ class NyBruker extends React.Component {
   }
 }
 
+//Start siden som kommer når du trykker glemt passord. Den viser et felt hvor du skriven inn din epost-adresse
+//Når du klikker på knappen blir en glemt passord forespørsel sendt
 class NyttPassord extends React.Component {
   render () {
     return (
@@ -914,6 +917,7 @@ class NyttPassord extends React.Component {
   }
 }
 
+//Her vises en side der du må skrive inn koden du fikk på epost for å komme videre, slik at du kan opprette nytt passord
 class ResetPassord extends React.Component {
   constructor() {
     super()
@@ -951,6 +955,7 @@ class ResetPassord extends React.Component {
     }
   }
 
+//Her skriver du inn nytt passord og godtar nytt passord. Og dermed er passordet ditt resatt.
 class NyttResetPassord extends React.Component {
   constructor() {
     super()
@@ -990,6 +995,7 @@ class NyttResetPassord extends React.Component {
   }
 }
 
+//Denne siden vises når du logger inn. Her får du melding av admin samt en kalender som viser alle kommende arrangement
 class StartSide extends React.Component {
   constructor() {
 
@@ -1059,6 +1065,7 @@ class StartSide extends React.Component {
   }
 }
 
+//
 class Arrangement extends React.Component{
   constructor(){
     super();
