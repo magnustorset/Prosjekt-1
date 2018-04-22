@@ -92,7 +92,7 @@ class EmailService {
 }
 // Class that performs database queries related to users
 class UserService {
-
+  //Henter brukere basert på søk
   searchUser(input){
     return new Promise((resolve, reject) =>{
       connection.query('SELECT * FROM medlem where tlf LIKE ? or epost LIKE ? or brukernavn LIKE ? or CONCAT(fornavn, " ", etternavn) LIKE ?', [input, input, input, input], (error, result)=>{
@@ -105,7 +105,7 @@ class UserService {
       });
     });
   }
-
+  //Henter alle brukere
   getUsers () {
     return new Promise((resolve, reject) =>{
     connection.query('SELECT * FROM medlem', (error, result) => {
@@ -118,7 +118,7 @@ class UserService {
     });
   });
   }
-
+  //Henter alle brukere og legger ved poststed
   getUser (id) {
     return new Promise((resolve, reject) => {
     connection.query('SELECT * FROM medlem INNER JOIN poststed ON poststed_postnr = postnr WHERE id=?', [id], (error, result) => {
@@ -131,7 +131,7 @@ class UserService {
     });
   });
   }
-
+  //Legger til ny bruker i databasen
   addUser (fornavn, etternavn, brukernavn, epost, medlemsnr, tlf, adresse, passord, postnr) {
     return new Promise((resolve, reject) =>{
     let pord = passwordHash.generate(passord);
@@ -145,10 +145,10 @@ class UserService {
     });
   });
   }
-
-  getUserQualifications (id, callback) {
+  //Henter kvalifikasjonene til brukeren
+  getUserQualifications (id) {
     return new Promise((resolve, reject) => {
-    connection.query('SELECT navn, varighet FROM kvalifikasjon, medlem_kvalifikasjon WHERE m_id = 18124 AND k_id = kvalifikasjon.id ', [id], (error, result) => {
+    connection.query('SELECT navn, varighet FROM kvalifikasjon, medlem_kvalifikasjon WHERE m_id = ? AND k_id = kvalifikasjon.id ', [id], (error, result) => {
 
       if(error){
         reject(error);
@@ -160,7 +160,7 @@ class UserService {
   });
   }
 
-
+  //Brukes i glemt passord for å sette nytt passord
   newPassword(passord, epost) {
     return new Promise((resolve, reject) => {
       let pord = passwordHash.generate(passord);
@@ -174,7 +174,7 @@ class UserService {
       })
     })
   }
-
+  //Endrer informasjonen til brukeren
   editUser (email, adress, tlf, zip, id,) {
     return new Promise((resolve, reject) => {
     connection.query('UPDATE medlem SET epost = ?, adresse = ?, tlf = ?, poststed_postnr = ? WHERE id = ?', [email, adress, tlf, zip, id], (error, result) => {
@@ -186,7 +186,7 @@ class UserService {
     });
   });
   }
-
+  //Brukes på endre passord siden. Også denne oppdaterer passordet
   editPassword(password, id, callback) {
     return new Promise((resolve, reject) => {
       let pord = passwordHash.generate(password);
@@ -199,7 +199,7 @@ class UserService {
     });
   });
   }
-
+  //Legger til passivmelding fra brukeren
   setPassive(from, to, id) {
     return new Promise((resolve, reject) => {
     connection.query('INSERT INTO passiv (m_id, f_dato, t_dato) values (?, ?, ?)', [id, from, to], (error, result) => {
@@ -215,6 +215,7 @@ class UserService {
 }
 
 class LoginService {
+  //Sjekker om brukernavn og passord stemmer over ens og lagrer brukeren i localstorage
   checkLogin (brukernavn, passord, callback) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT * from medlem WHERE epost = ? or brukernavn = ?', [brukernavn, brukernavn], (error, result) => {
@@ -237,18 +238,19 @@ class LoginService {
     });
   });
   }
-
+  //Henter den innloggede brukeren fra localstorage
   getSignedInUser() {
   let item = localStorage.getItem('signedInUser'); // Get User-object from browser
   if(!item) return null;
 
   return JSON.parse(item);
  }
+  //Fjerner informasjonen lagret i localstorage og dermed blir brukeren logget ut
   signOut() {
   localStorage.removeItem('signedInUser');
   localStorage.removeItem('loggedIn');
   }
-
+  //Henter brukeren som har bedt om nytt passord og setter inn id og kode i glemt passord tabbelen
   navn(kode, email) {
     let m_id
     return new Promise((resolve, reject) => {
@@ -279,7 +281,7 @@ class LoginService {
       })
     })
   }
-
+  //Sjekker om koden som er oppgitt stemmer overens med koden som ble gitt ut. Gjelder glemt passord
   emailCheck(email, kode) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT COUNT(*) as count from recovery inner join medlem on medlem.id = recovery.m_id where epost = ? AND kode = ? and forbruksdato > NOW()', [email, kode], (error, result) => {
@@ -460,7 +462,7 @@ class ArrangementService {
       });
     });
   }
-
+  //Henter arrangement du har godtatt utkalling til
   getYourArrangements(id){
     return new Promise((resolve, reject)=>{
       connection.query('SELECT a.navn,a.beskrivelse,a.starttidspunkt,a.sluttidspunkt,a.id from arrangement a inner join vakt v on v.a_id = a.id inner join medlem m on m.id = v.m_id where m.id = ?', [id] ,(error, result)=>{
@@ -473,6 +475,7 @@ class ArrangementService {
       })
     })
   }
+  //Henter alle arrangement
   getAllArrangement(){
     return new Promise((resolve, reject)=>{
       connection.query('SELECT * from arrangement',(error, result)=>{
@@ -485,7 +488,7 @@ class ArrangementService {
       })
     })
   }
-
+  //legger til nytt arrangement og finner id til kontaktpersonen
   addArrangement (tlf, navn, meetdate, startdate, enddate, desc, longitude, latitude, address) {
     let k_id;
     return new Promise((resolve, reject) =>{
@@ -511,6 +514,7 @@ class ArrangementService {
       });
     });
   }
+  //Legger til vakter som blir opprettet med arrangementet
   addArrVakter(vakter) {
     return new Promise((resolve, reject) =>{
       connection.query('INSERT INTO vakt (a_id, r_id) VALUES ?', [vakter], (error, result) => {
@@ -522,6 +526,7 @@ class ArrangementService {
       });
     });
   }
+  //legger til utstyr som skal være med på det spesifikke arrangementet
   addArrUtstyr(utstyr) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO a_utstyr (a_id, u_id, antall) VALUES ?', [utstyr], (error, result) => {
@@ -532,7 +537,7 @@ class ArrangementService {
       });
     });
   }
-
+  //Henter ut arrangement du søker på som ikke allerede har vært
   getArrangement(sok, callback){
     return new Promise((resolve, reject) =>{
         let today = new Date()
@@ -546,7 +551,7 @@ class ArrangementService {
     });
 
   }
-
+  //Henter informasjon om et arrangement på arrangements iden.
   showArrangement(id){
     return new Promise((resolve, reject) =>{
       connection.query('SELECT * from arrangement where id = ?', [id], (error, result) =>{
@@ -559,7 +564,7 @@ class ArrangementService {
       });
     });
   }
-
+  //Brukes ikke
   addShift(a_id, m_id, r_id){
     return new Promise((resolve, reject) =>{
       connection.query('UPDATE vakt SET m_id = ? WHERE a_id = ? AND r_id = ? AND m_id IS NULL LIMIT 1', [m_id, a_id, r_id], (error, result) =>{
@@ -572,7 +577,7 @@ class ArrangementService {
       });
     });
   }
-
+  //Henter rollene knyttet til et arrangement
   getRoles(a_id) {
     return new Promise((resolve, reject) =>{
       connection.query('SELECT r_id, COUNT(r_id) as antall, navn FROM vakt INNER JOIN rolle on r_id = rolle.id WHERE a_id = ? GROUP BY r_id', [a_id], (error, result) =>{
@@ -631,7 +636,7 @@ class AdministratorFunctions{
       });
     });
   }
-
+  //Deaktiverer brukeren
   deaktiverBruker(id){
     return new Promise((resolve, reject)=>{
       connection.query('UPDATE medlem set aktiv = ?,set admin = ? where id = ?', [false,false, id], (error, result)=>{
@@ -645,6 +650,7 @@ class AdministratorFunctions{
       });
     });
   }
+  //gjør brukeren til administrator
   makeUserAdmin(id){
     return new Promise((resolve, reject)=>{
       connection.query('UPDATE medlem set admin = ? where id = ? ',[true, id], (error,result)=>{
@@ -658,6 +664,7 @@ class AdministratorFunctions{
       });
     });
   }
+  //Fjerne bruker som administrator
   deleteAdmin(id){
     return new Promise((resolve, reject)=>{
       connection.query('UPDATE medlem set admin = ? where id = ? ',[false, id], (error,result)=>{
@@ -671,6 +678,7 @@ class AdministratorFunctions{
       });
     });
   }
+  //Henter brukere som ikker er aktivert
   ikkeAktiveBrukere(){
     return new Promise((resolve, reject) => {
       connection.query('SELECT * from medlem where aktiv = ?',[false], (error, result) =>{
@@ -683,7 +691,7 @@ class AdministratorFunctions{
       });
     });
   }
-
+  //aktiverer den brukeren
   aktiverBruker(id){
     return new Promise((resolve, reject) =>{
       connection.query('update medlem set aktiv = ? where id = ?', [true,id], (error,result)=>{
@@ -696,6 +704,7 @@ class AdministratorFunctions{
       });
     });
   }
+  //Henter melddingen som er lagret i tabellen
   getAdminMelding(){
     return new Promise((resolve, reject) =>{
       connection.query('SELECT * from Adminmelding where id = ?',[1], (error, result) =>{
@@ -708,6 +717,7 @@ class AdministratorFunctions{
       });
     });
   }
+  //Oppdaterer meldingen som ligger i tabellen
   updateAdminMelding(input){
     return new Promise((resolve, reject) =>{
       connection.query('UPDATE Adminmelding set melding = ? where id = ?', [input, 1], (error, result) =>{
