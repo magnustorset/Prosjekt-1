@@ -3352,7 +3352,7 @@ class Kvalifikasjoner extends React.Component {
   render() {
     let kvalListe = [];
 
-    kvalListe.push(<tr className='kvalBold' key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet'(måneder)'</td></tr>);
+    kvalListe.push(<tr className='kvalBold' key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet (måneder)</td></tr>);
     for (let item of this.kvalifikasjon) {
       kvalListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'>{item.varighet}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
     }
