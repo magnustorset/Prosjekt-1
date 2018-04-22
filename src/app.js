@@ -11,6 +11,8 @@ let eventen = []
 function push(eve){
   history.push('/visArrangement/'+ eve);
 }
+//Konstant som definerer kalenderen på minside og startsiden og innhold, startdato og
+//hva som skal skje når du klikker på eventer.
 const MyCalendar = props => (
   <div>
     <BigCalendar
@@ -49,6 +51,8 @@ let brukerEpost;
 let vis = []
 let velgBytteBruker = []
 
+//Konstant som definerer kartet som vises på nytt arrangement og endre arrangement
+//og hva som skal skje når markøren flyttes og du søker opp steder.
 const MapWithASearchBox = compose(
   withProps({
     googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
@@ -181,7 +185,7 @@ const MapWithASearchBox = compose(
           )}
           </GoogleMap>
 );
-
+//Konstant som definerer kartet som vises på vis arrangement.
 const MapWithAMarker = compose(
   withProps({
     googleMapURL: "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6bXXLKQ3YaTsHdzUVe5_56svleCvsip8&libraries=geometry,drawing,places",
@@ -242,6 +246,7 @@ const MapWithAMarker = compose(
           </GoogleMap>
 );
 
+//Definerer hvordan error meldinger skal vises fram.
 class ErrorMessage extends React.Component {
   constructor() {
     super();
@@ -282,6 +287,7 @@ class ErrorMessage extends React.Component {
 }
 let errorMessage; // ErrorMessage-instance
 
+//Klasse som definerer innholdet til popupen på sidene forandre bruker info og forandre passord
 class Prompt extends React.Component {
     constructor(props) {
         super(props);
@@ -313,6 +319,7 @@ class Prompt extends React.Component {
 
   /** Prompt plugin */
 
+//Her defineres utseendet til popupen på sidene forandre bruker info og forandre passord
 Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
     let promptValue = null;
 
@@ -345,6 +352,7 @@ Popup.registerPlugin('prompt', function (defaultValue, placeholder, callback) {
     });
   });
 
+//Klasse som definerer innholdet til popupen som dukker opp når du trykker bytt vakt på mine vakter siden
 class Prompt2 extends React.Component {
       constructor(props) {
           super(props);
@@ -379,6 +387,7 @@ class Prompt2 extends React.Component {
       }
   }
 
+//Her defineres utseendet til popupen når du trykker på bytt vakt på mine vakter siden
 Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
       let promptValue = 0;
 
@@ -415,6 +424,7 @@ Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
       });
     });
 
+//Klasse som definerer innholdet til popupen som dukker opp over info knappen når du trykker på den
 class popover extends React.Component {
     constructor(props) {
         super(props);
@@ -443,6 +453,7 @@ class popover extends React.Component {
     }
 }
 
+//Her defineres utseendet til popupen som dukker opp over info knappen
 Popup.registerPlugin('popover', function (content, target) {
     this.create({
         content: content,
@@ -464,6 +475,7 @@ Popup.registerPlugin('popover', function (content, target) {
     });
 });
 
+//Klasse som definerer innholdet til popupen som dukker opp under info knappen når du trykker på den
 class popunder extends React.Component {
     constructor(props) {
         super(props);
@@ -492,6 +504,7 @@ class popunder extends React.Component {
     }
 }
 
+//Her defineres utseendet til popupen som dukker opp under info knappen
 Popup.registerPlugin('popunder', function (content, target) {
     this.create({
         content: content,
@@ -512,7 +525,7 @@ Popup.registerPlugin('popunder', function (content, target) {
         }
     });
 });
-
+//Klasse som definerer innholdet til popupen som dukker opp til høyre for info knappen når du trykker på den
 class popright extends React.Component {
     constructor(props) {
         super(props);
@@ -541,6 +554,7 @@ class popright extends React.Component {
     }
 }
 
+//Her defineres utseendet til popupen som dukker opp til høyre for info knappen
 Popup.registerPlugin('popright', function (content, target) {
     this.create({
         content: content,
@@ -562,6 +576,8 @@ Popup.registerPlugin('popright', function (content, target) {
     });
 });
 
+//Her defineres navbaren som vises på toppen av siden. Hvordan den skal oppføre seg basert på variabelen signedInUser.
+//Og hvor de enkelte elemetene skal ta deg
 class Menu extends React.Component {
   render () {
       let displayValue;
@@ -724,6 +740,7 @@ class Menu extends React.Component {
   }
 }
 
+//Her defineres innlogging siden. Hvordan den skal se ut og funksjonaliteten til knappene og hva som skjer når de blir trykket
 class Innlogging extends React.Component {
   render () {
 
@@ -788,6 +805,7 @@ class Innlogging extends React.Component {
     }
   };
 }
+
 
 class NyBruker extends React.Component {
   render () {
