@@ -1567,7 +1567,7 @@ class MineSider extends React.Component {
       <div>
 
         <h1 className='title'>Min Side</h1>
-        <div className='vasrselDiv'>
+        <div className='varselDiv'>
           <table>
             <thead>
               <tr>
@@ -2918,10 +2918,10 @@ class Utstyr extends React.Component {
           <input className='sokeFelt form-control col-4' ref='utNavn' name='utNavn' /> <button className='btn btn-default' ref='lagUt'>Legg til</button>
           </div>
         </div>
-        <div className='rolleKvalListe'>
+        <div className='arrUtstyrListe'>
         <RolleUtstyr />
         </div>
-        <div className='medlemKvaListe'>
+        <div className='arrUtstyrListe'>
         <ArrangementUtstyr />
         </div>
         <br />
@@ -3354,7 +3354,18 @@ class Kvalifikasjoner extends React.Component {
 
     kvalListe.push(<tr className='kvalBold' key={'kvalListe'}><td>Id</td><td>Navn</td><td>Varighet (måneder)</td></tr>);
     for (let item of this.kvalifikasjon) {
-      kvalListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'>{item.varighet}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button></td></tr>);
+      kvalListe.push(
+        <tr className='trKval' key={item.id}>
+          <td className='tableKval'>{item.id}</td>
+          <td className='tableKval'>{item.navn}</td>
+          <td className='tableKval'>{item.varighet}</td>
+          <td className='tableKval'>
+            <button className='btn btn-default' onClick={() => {this.changeKval(item.id)}}>Endre</button>
+          </td>
+          <td className='tableKval'>
+            <button className='btn btn-default' onClick={() => {this.removeKval(item.id)}}>Fjern</button>
+          </td>
+        </tr>);
     }
 
     return(
@@ -3449,7 +3460,7 @@ class RolleKvalifikasjoner extends React.Component {
       kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
     }
     return(
-      <div>
+      <div className='lister'>
         <br />
         <p>Rolle-Kvalifikkasjons Liste</p>
         <div >
@@ -3458,7 +3469,10 @@ class RolleKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          <label htmlFor='rolle'>Rolle: </label> <select ref='rolle' name='rolle' className='form-control form-control-lg col-3' onChange={()=>{this.update()}}>{rolleListe}</select><label htmlFor='kval'>Kvalifikasjon: </label> <select ref='kval' name='kval' className='form-control form-control-lg col-3' >{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
+          <label htmlFor='rolle'>Rolle: </label>
+          <select ref='rolle' name='rolle' className='form-control form-control-lg col-5' onChange={()=>{this.update()}}>{rolleListe}</select>
+          <label htmlFor='kval'>Kvalifikasjon: </label>
+          <select ref='kval' name='kval' className='form-control form-control-lg col-5' >{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
         </div>
         <br />
       </div>
@@ -3542,7 +3556,7 @@ class MedlemKvalifikasjoner extends React.Component {
          kvalifikasjoner.push(<option key={item.id} value={item.id} >{item.navn}</option>);
        }
     return(
-      <div>
+      <div className='lister'>
         <br />
         <p>Medlem-Kvalifikasjons Liste</p>
         <div>
@@ -3551,7 +3565,10 @@ class MedlemKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          <label htmlFor='medlem'>Medlem: </label> <select ref='med' name='medlem' className='form-control form-control-lg col-3' onChange={()=>{this.update()}}>{meldemer}</select> <label htmlFor='kvalik'> Kvalifikasjon: </label><select className='form-control form-control-lg col-3' name='kvalik' ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
+          <label htmlFor='medlem'>Medlem: </label>
+          <select ref='med' name='medlem' className='form-control form-control-lg col-5' onChange={()=>{this.update()}}>{meldemer}</select>
+          <label htmlFor='kvalik'> Kvalifikasjon: </label>
+          <select className='form-control form-control-lg col-5' name='kvalik' ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
 
         </div>
         <br />

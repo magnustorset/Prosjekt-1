@@ -64,7 +64,7 @@ let mainWindow;
    const menu = Menu.buildFromTemplate(template)
 
   app.on('ready', () => {
-    mainWindow = new BrowserWindow({width: 1280, height: 800});
+    mainWindow = new BrowserWindow({width: 1360, height: 800});
 
     // Open Development Tools
     mainWindow.openDevTools();
