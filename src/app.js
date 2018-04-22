@@ -1062,7 +1062,7 @@ class StartSide extends React.Component {
   }
 }
 
-//Her vises alle kommende arrangement eller du kan søke etter arrangement på navn. Det ligger også lenke til å lage nytt arragement her
+//
 class Arrangement extends React.Component{
   constructor(){
     super();
@@ -1148,8 +1148,6 @@ class Arrangement extends React.Component{
   }
   }
 
-
-//Her lages nytt arrangement. Du fyller ut feltene, legger til vaktmal og roller samt utstyr. Sted og adresse legges til med kartet
 class NyttArrangement extends React.Component{
   constructor() {
     super();
@@ -1570,8 +1568,6 @@ class NyttArrangement extends React.Component{
   }
 }
 
-//Her vises din bruker informasjon. Det er lenker til å melde seg passiv,endre brukerinformasjon,endre passord og se dine Kvalifikasjoner
-//Det ligger også en kalender som viser kommende arrengementer for deg. Samt tilbakemelding på vaktbytter du har spurt om
 class MineSider extends React.Component {
   constructor() {
     super();
@@ -1673,12 +1669,11 @@ class MineSider extends React.Component {
       this.props.history.push('/forandrepassord');
     }
     this.refs.seeQualifications.onclick = () =>{
-      this.props.history.push('/sekvalifikasjoner/'+loginService.getSignedInUser().id);
+      this.props.history.push('/sekvalifikasjoner');
     }
   }
 }
 
-//Her melder du deg passiv ved å sette til og fra dato
 class Passiv extends React.Component {
   render() {
     return(
@@ -1740,7 +1735,6 @@ class Passiv extends React.Component {
   }
 }
 
-//Her ligger infoen din i felt, der du kan oppdatere til riktig info. Når du lagrer dukker det opp en popup som krever ditt passord for å lage endringene
 class ForandreBrukerInfo extends React.Component {
   constructor() {
     super();
@@ -1841,7 +1835,6 @@ class ForandreBrukerInfo extends React.Component {
   }
 }
 
-//Her kan du endre passord, For å lagre endringen dukker det opp et popup der du må skrive inn ditt gamle passord for å lagre endringene
 class ForandrePassord extends React.Component {
   constructor() {
     super();
@@ -1911,14 +1904,13 @@ class ForandrePassord extends React.Component {
   }
 }
 
-//Denne siden henter dine kvalifikasjoner og viser dem til deg
 class SeKvalifikasjoner extends React.Component {
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
 
     this.user = [];
     this.kvalifikasjoner = [];
-    this.id = this.props.match.params.id;
+    this.id = loginService.getSignedInUser().id;
 
   }
   render(){
@@ -1953,8 +1945,6 @@ class SeKvalifikasjoner extends React.Component {
   }
 }
 
-//Her vises brukere som må godkjennes fra class Godkjennbruker og vaktbytter som må behandles fra class Byttvakt
-//samt at du kan skrive inn ny melding som vil vises på startskjermen til alle brukere
 class Administrator extends React.Component{
   render(){
     return(
@@ -2027,7 +2017,6 @@ class Administrator extends React.Component{
   }
 }
 
-//Denne klassen henter og viser fram alle nye brukere som må godkjennes, samt alle deaktiverte brukere
 class GodkjennBruker extends React.Component {
   constructor(){
     super();
@@ -2070,7 +2059,6 @@ class GodkjennBruker extends React.Component {
   }
 }
 
-//Denne klassen henter alle vaktbytter der den nye vakten har godtatt den, men den krever fremdeles godkjenning av admin
 class ByttVakt extends React.Component{
   constructor(){
     super();
@@ -2115,7 +2103,6 @@ class ByttVakt extends React.Component{
   }
 }
 
-//Denne siden viser fram resultatet av søket du foretar deg i navbaren. Og lager linker som du kan følge for mere info
 class VisSøkeResultat extends React.Component {
   constructor(){
     super();
@@ -2149,9 +2136,6 @@ class VisSøkeResultat extends React.Component {
 }
 
 let sok;
-
-//Denne siden viser all informasjon brukeren du har søkt på vis du er admin, og bare epost og telefon nummer hvis du er vanlig brukere
-//Er du admin kan du også gjøre brukeren til admin eller fjerne han som admin. Deaktiver brukeren se brukerens kvalifikasjoner eller endre på brukerens informasjon
 class BrukerSide extends React.Component {
   constructor(props) {
     super(props)
@@ -2208,7 +2192,7 @@ class BrukerSide extends React.Component {
                 <td className="brukerSideButtons">{b}</td>
               </tr>
               <tr>
-                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner/'+this.id)}}>Se kvalifikasjoner</button></td>
+                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
                 <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/endreBrukerInfo/'+this.id)}}>Endre bruker info</button></td>
               </tr>
             </tbody>
@@ -2264,7 +2248,6 @@ class BrukerSide extends React.Component {
   }
 }
 
-//Denne siden er admin sin side for å endre informasjonen til andre brukere. For å lagre endringene kommer det en popup der admin må skrive inn sitt passord.
 class EndreBrukerInfo extends React.Component {
   constructor(props) {
     super(props);
@@ -2363,8 +2346,6 @@ class EndreBrukerInfo extends React.Component {
   }
 }
 
-//Denne klassen viser fram arrangementet du har trykket på, enten fra kalenderen eller fra arrangement siden. Som bruker kan du har melde interesse i arrangementet eller fjerne interessen
-//Som admin vil du få muligheten til å velge og kalle inn folk til arrangementet eller endre arrangementet
 class VisArrangement extends React.Component {
   constructor(props) {
     super(props)
@@ -2509,7 +2490,6 @@ class VisArrangement extends React.Component {
   }
 }
 
-//Her har admin mulighet til å endre på arrangementet. Endre start,slutt og oppmøte tidspunkt, samt oppmøtested og beskrivesle.
 class EndreArrangement extends React.Component {
   constructor(props){
     super(props);
@@ -2617,8 +2597,6 @@ class EndreArrangement extends React.Component {
   }
 }
 
-//På denne siden velger du hvem som skal bli innkalt til arrangement. Du velger hvilken rolle du skal fylles, får opp en liste over navn og trykker flytt for å flytte dem over til arrangementTableData
-//Når du har kalt inn alle trykker du save. Da vil det bli sendt ut epost om vaktutkalling til de du kalte inn.
 class Innkalling extends React.Component {
   constructor(props) {
     super(props);
@@ -2936,7 +2914,6 @@ class Innkalling extends React.Component {
   // }
 }
 
-//Denne siden viser en liste over utstyr som finnes. Du kan endre på navnene og legge til nytt utstyr. Inne i siden ligger også sidene rolleutstyr og arrangementutstyr.
 class Utstyr extends React.Component {
   constructor() {
     super();
@@ -3029,7 +3006,6 @@ class Utstyr extends React.Component {
   }
 }
 
-//Denne siden viser deg hvilke utstyr som er knyttet til hvilke roller. Her kan du legge til eller fjerne utstyr fra roller.
 class RolleUtstyr extends React.Component {
   constructor() {
     super();
@@ -3152,7 +3128,6 @@ class RolleUtstyr extends React.Component {
   }
 }
 
-//Denne siden viser deg utstyr knyttet til arrangement. Du kan fjerne utstyr fra arrangementet eller legge til utstyr.
 class ArrangementUtstyr extends React.Component {
   constructor() {
     super();
@@ -3277,8 +3252,6 @@ class ArrangementUtstyr extends React.Component {
   }
 }
 
-//Denne siden henter og viser deg arrangement du er utkalt til men ikke godtatt, arrangement du har godtatt og vaktbytte forespørsler som omfatter deg. Du kan også velge å bytte vakt selv
-//på de arrangementene du har godtatt.
 class MineVakter extends React.Component {
   constructor(){
     super();
@@ -3444,7 +3417,6 @@ class MineVakter extends React.Component {
   }
 }
 
-//Denne siden henter inn alle kvalifikasjoner som er laget. Du kan også endre de eller legge til nye. Den viser også sidene rollekvalifikajsoner og MedlemKvalifikasjoner
 class Kvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -3560,8 +3532,6 @@ class Kvalifikasjoner extends React.Component {
   }
 }
 
-//Denne siden viser hvilke kvalifikasjoner som er knyttet til hvilke roller. Du velger en rolle og siden viser deg hvilke kvalifikasjoner den har. Du kan også
-//legge til og fjerne kvalifikasjoner til rollene.
 class RolleKvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -3678,7 +3648,6 @@ class RolleKvalifikasjoner extends React.Component {
   }
 }
 
-//Denne siden viser deg en liste over medlemmer og hvilke kvalifikasjoner som er knyttet til dem. Du kan også legge til eller fjerne kvalifikasjoner fra medlemmer
 class MedlemKvalifikasjoner extends React.Component {
   constructor() {
     super();
@@ -3795,7 +3764,6 @@ class MedlemKvalifikasjoner extends React.Component {
   }
 }
 
-//Denne siden viser deg alle roller som finnes. Du kan velge å endre en rolle, fjerne den eller legge til nye.
 class Rolle extends React.Component {
   constructor() {
     super();
@@ -3868,48 +3836,7 @@ class Rolle extends React.Component {
   }
 }
 
-<<<<<<< HEAD
-//Denne siden forklarer noen av funksjonene i appen
-class Hjelp extends React.Component {
-  render() {
-    let signedInUser = loginService.getSignedInUser();
-    if (signedInUser.admin === 1) {
-      return(
-        <div className='bd-content col-12'>
-          <div className='row'>
-            <div className='col'>
-              <h3 className='display-4'>Opprette arrangement</h3>
-              <p>
-                For å lage et nytt arrangement gå til arrangement-fanen og klikk knappen hvor det står «Opprett arrangement».
-                Deretter fyller du inn nødvendig informasjon.
-              </p>
-            </div>
-            <div className='col'>
-              <h3 className='display-4'>Kalle inn til arrangement</h3>
-              <p>
-              </p>
-            </div>
-            <div className='col'>
-              <h3 className='display-4'>Godkjenne bruker</h3>
-              <p>
-              </p>
-            </div>
-          </div>
-        </div>
-      )
-    } else {
-      return(
-        <div>
-        </div>
-      )
-    }
-  }
-}
 
-//Denne siden viser deg statistikk over medlemmer. Du kan velge mellom 4 parametre og få opp informasjon per bruker.
-=======
-
->>>>>>> 779fffd67ff9ead2e1dcb692133b552146f48d9e
 class Statistik extends React.Component {
   constructor() {
     super();
@@ -4074,7 +4001,7 @@ ReactDOM.render((
 
         <Route exact path='/bruker/:id' component={BrukerSide} />
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
-        <Route exact path='/sekvalifikasjoner/:id' component={SeKvalifikasjoner} />
+        <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
         <Route exact path='/sokeResultat' component={VisSøkeResultat} />
         <Route exact path='/visArrangement/:id' component={VisArrangement} />
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
