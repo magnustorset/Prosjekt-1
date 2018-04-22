@@ -3977,7 +3977,7 @@ class Statistik extends React.Component {
 //
 
 
-
+//Her er adressen til alle sidene
 ReactDOM.render((
   <HashRouter>
     <div>
