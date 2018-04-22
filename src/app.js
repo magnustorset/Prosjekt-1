@@ -1062,7 +1062,7 @@ class StartSide extends React.Component {
   }
 }
 
-//
+//Her vises alle kommende arrangement eller du kan søke etter arrangement på navn. Det ligger også lenke til å lage nytt arragement her
 class Arrangement extends React.Component{
   constructor(){
     super();
