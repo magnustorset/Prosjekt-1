@@ -574,7 +574,7 @@ class Menu extends React.Component {
         Røde Kors</div>
 
       <div className='navbar-header'>
-        <button className='btn btn-default' onClick={()=>{this.collapseNavbar()}}
+        <button onClick={()=>{this.collapseNavbar()}}
         className="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" >
         <span className="navbar-toggler-icon"></span>
         </button>
@@ -605,9 +605,6 @@ class Menu extends React.Component {
           </li>
           <li className='nav-item'>
             <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
-          </li>
-          <li className='nav-item'>
-            <Link to='/hjelp' className="nav-link">Hjelp</Link>
           </li>
           <li className='nav-item'>
             <Link to='/statistikk' className="nav-link">Statistikk</Link>
@@ -2900,9 +2897,17 @@ class Utstyr extends React.Component {
   render() {
     let utstyrsListe = [];
 
-    utstyrsListe.push(<tr className='kvalBold' key={'utstyrsListe'}><td>Id</td><td>Navn</td></tr>);
+    utstyrsListe.push(<tr className='kvalBold' key={'utstyrsListe'}><td>Id</td><td>Navn</td><td></td><td><button className='btn btn-xs btn-default' id='utstyrsListeHelpButton' ref='utstyrsListeHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button></td></tr>);
     for (let item of this.utstyr) {
-      utstyrsListe.push(<tr className='trKval' key={item.id}><td className='tableKval'>{item.id}</td><td className='tableKval'>{item.navn}</td><td className='tableKval'><button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button><button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button></td></tr>);
+      utstyrsListe.push(
+        <tr className='trKval' key={item.id}>
+          <td className='tableKval'>{item.id}</td>
+          <td className='tableKval'>{item.navn}</td>
+          <td className='tableKval'>
+            <button className='btn btn-default' onClick={() => {this.changeUtstyr(item.id)}}>Endre</button>
+            <button className='btn btn-default' onClick={() => {this.removeUtstyr(item.id)}}>Fjern</button>
+          </td>
+        </tr>);
     }
 
     return(
@@ -2941,6 +2946,10 @@ class Utstyr extends React.Component {
         console.log(err);
       });
     };
+    this.refs.utstyrsListeHelpButton.onclick = () => {
+      Popup.plugins().popunder('Her vises alt utstyr du kan legge til i en utstyrsliste. For å legge til mer utstyr skriv inn navnet og klikk legg til. For å endre på et innslag skriver du navnet og klikker endre på innslaget du vil endre. Hvis du vil fjerne utstyr fra utstyrslisten klikker du fjern.', utstyrsListeHelpButton);
+    }
+
   }
   update() {
     UtstyrService.getAllUtstyr().then((res) => {
@@ -2996,20 +3005,37 @@ class RolleUtstyr extends React.Component {
     return(
       <div>
         <br />
-        <p>Rolle-Utstyrs Liste</p>
+        <p>Rolle-Utstyrs Liste
+          <button className='btn btn-xs btn-default' id='rolleUtstyrHelpButton' ref='rolleUtstyrHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+        </p>
         <div>
           <table>
             <tbody>
               {utstyrsListe}
             </tbody>
           </table>
-          <div className='form-row'>
-            <label htmlFor='rolle'>Rolle: </label>
-            <select ref='rolle' name='rolle' className='form-control-lg' onChange={()=>{this.update()}}>{rolleListe}</select>
-            <label htmlFor='utstyr'>Rolle: </label>
-            <select ref='utstyr' name='utstyr' className='form-control-lg'>{utstyr}</select>
-            <label htmlFor='number'>Antall: </label>
-            <input type='number' className='sokeFelt form-control col-1' ref='antall' name='number'/> <button className='btn btn-default' ref='lagUt'>Legg til</button>
+          <div className='form-group form-row'>
+            <div className='col col-2'>
+              <label htmlFor='rolle'>Rolle: </label>
+            </div>
+            <div className='col col-3'>
+              <select ref='rolle' name='rolle' className='form-control form-control-lg' onChange={()=>{this.update()}}>{rolleListe}</select>
+            </div>
+            <div className='col col-1'>
+              <label htmlFor='utstyr'>Utstyr: </label>
+            </div>
+            <div className='col col-2'>
+              <select ref='utstyr' name='utstyr' className='form-control form-control-lg'>{utstyr}</select>
+            </div>
+            <div className='col col-1'>
+              <label htmlFor='number'>Antall: </label>
+            </div>
+            <div className='col col-2'>
+              <input type='number' className='sokeFelt form-control' ref='antall' name='number'/>
+            </div>
+            <div className='col col-1'>
+              <button className='btn btn-default' ref='lagUt'>Legg til</button>
+            </div>
           </div>
         </div>
         <br />
@@ -3028,6 +3054,10 @@ class RolleUtstyr extends React.Component {
         console.log(err);
       });
     };
+    this.refs.rolleUtstyrHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises utstyr som er knyttet til en bestemt rolle. For å se utstyr knyttet til en rolle velg en rolle fra rullegardinmenyen. For å legge til utstyr for rollen velger du utstyr fra rullegardinmenyen merket utstyr og skriver inn antall, deretter klikker du legg til. For å endre et innslag velger du utstyret og antall du vil endre til og klikker endre.', rolleUtstyrHelpButton);
+    }
+
   }
   update() {
     UtstyrService.getAllRU(this.refs.rolle.value).then((res) => {
@@ -3098,25 +3128,38 @@ class ArrangementUtstyr extends React.Component {
     return(
       <div>
         <br />
-        <p>Arrangament-Utstyrs Liste</p>
+        <p>Arrangament-Utstyrs Liste
+          <button className='btn btn-xs btn-default' id='arrUtstyrHelpButton' ref='arrUtstyrHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button>
+        </p>
         <div>
           <table>
             <tbody>
               {utstyrsListe}
             </tbody>
           </table>
-          <div className='form-group'>
-            <label htmlFor='ament'>Arragnemnet:</label>
-            <select ref='arrangement' name='ament' className='form-control-lg' onChange={()=>{this.update()}}>{arrangement}</select>
-
-            <label htmlFor='utstyr'>Utstyr:</label>
-            <select ref='utstyr' name='utstyr' className='form-control-lg'>{utstyr}</select>
-            <div className='form-row'>
-            <label htmlFor='number'>Antall:</label>
-            <input type='number' className='sokeFelt form-control col-1' ref='antall' name='number'/>
-             <button className='btn btn-default' ref='lagUt'>Legg til</button>
-             </div>
+          <div className='form-group form-row'>
+            <div className='col col-2'>
+              <label htmlFor='ament'>Arrangement:</label>
             </div>
+            <div className='col-3'>
+              <select ref='arrangement' name='ament' className='form-control form-control-lg' onChange={()=>{this.update()}}>{arrangement}</select>
+            </div>
+            <div className='col col-1'>
+              <label htmlFor='utstyr'>Utstyr:</label>
+            </div>
+            <div className='col-2'>
+              <select ref='utstyr' name='utstyr' className='form-control form-control-lg'>{utstyr}</select>
+            </div>
+            <div className='col col-1'>
+              <label htmlFor='number'>Antall:</label>
+            </div>
+            <div className='col col-2'>
+              <input type='number' className='sokeFelt form-control' ref='antall' name='number'/>
+            </div>
+            <div className='col col-1'>
+              <button className='btn btn-default' ref='lagUt'>Legg til</button>
+            </div>
+          </div>
         </div>
         <br />
       </div>
@@ -3134,6 +3177,11 @@ class ArrangementUtstyr extends React.Component {
         console.log(err);
       });
     };
+
+    this.refs.arrUtstyrHelpButton.onclick = () => {
+      Popup.plugins().popright('Her vises utstyr som er knyttet til et bestemt arrangement. For å se utstyr knyttet til et arrangement velg et arrangement fra rullegardinmenyen. For å legge til utstyr på arrangementet velger du utstyr fra rullegardinmenyen merket utstyr og skriver inn antall, deretter klikker du legg til. For å endre et innslag velger du utstyret og antall du vil endre til og klikker endre.', arrUtstyrHelpButton);
+    }
+
   }
   update() {
     UtstyrService.getAllAU(this.refs.arrangement.value).then((res) => {
@@ -3376,13 +3424,23 @@ class Kvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          <div className='form-group'>
-          <label htmlFor='kvNavn'>Navn:</label>
-           <input className='sokeFelt form-control col-4' ref='kvNavn' name='kvNavn'/>
-           <label htmlFor='kvVar'>Varighet:</label>
-          <input className='sokeFelt form-control col-4'  ref='kvVar' name='kvVar'/>
-          <button className='btn btn-default' ref='lagKv'>Legg til</button>
-        </div>
+          <div className='form-group form-row'>
+            <div className='col col-1'>
+              <label htmlFor='kvNavn'>Navn:</label>
+            </div>
+            <div className='col col-5'>
+              <input className='sokeFelt form-control' ref='kvNavn' name='kvNavn'/>
+            </div>
+            <div className='col col-2'>
+              <label htmlFor='kvVar'>Varighet:</label>
+            </div>
+            <div className='col col-2'>
+              <input type='number' className='sokeFelt form-control'  ref='kvVar' name='kvVar'/>
+            </div>
+            <div className='col col-2'>
+              <button className='btn btn-default' ref='lagKv'>Legg til</button>
+            </div>
+          </div>
         </div>
         <div className='medlemKvaListe'>
         <MedlemKvalifikasjoner />
@@ -3469,10 +3527,23 @@ class RolleKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          <label htmlFor='rolle'>Rolle: </label>
-          <select ref='rolle' name='rolle' className='form-control form-control-lg col-5' onChange={()=>{this.update()}}>{rolleListe}</select>
-          <label htmlFor='kval'>Kvalifikasjon: </label>
-          <select ref='kval' name='kval' className='form-control form-control-lg col-5' >{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagRK'>Legg til</button>
+          <div className='form-group form-row'>
+            <div className='col col-2'>
+              <label htmlFor='rolle'>Rolle: </label>
+            </div>
+            <div className='col col-3'>
+              <select ref='rolle' name='rolle' className='form-control form-control-lg' onChange={()=>{this.update()}}>{rolleListe}</select>
+            </div>
+            <div className='col col-2'>
+              <label htmlFor='kval'>Kvalifikasjon: </label>
+            </div>
+            <div className='col col-3'>
+              <select ref='kval' name='kval' className='form-control form-control-lg' >{kvalifikasjoner}</select>
+            </div>
+            <div className='col col-2'>
+              <button className='btn btn-default' ref='lagRK'>Legg til</button>
+            </div>
+          </div>
         </div>
         <br />
       </div>
@@ -3565,11 +3636,23 @@ class MedlemKvalifikasjoner extends React.Component {
               {kvalListe}
             </tbody>
           </table>
-          <label htmlFor='medlem'>Medlem: </label>
-          <select ref='med' name='medlem' className='form-control form-control-lg col-5' onChange={()=>{this.update()}}>{meldemer}</select>
-          <label htmlFor='kvalik'> Kvalifikasjon: </label>
-          <select className='form-control form-control-lg col-5' name='kvalik' ref='kval'>{kvalifikasjoner}</select> <button className='btn btn-default' ref='lagMK'>Legg til</button>
-
+          <div className='form-group form-row'>
+            <div className='col col-2'>
+              <label htmlFor='medlem'>Medlem: </label>
+            </div>
+            <div className='col col-3'>
+              <select ref='med' name='medlem' className='form-control form-control-lg' onChange={()=>{this.update()}}>{meldemer}</select>
+            </div>
+            <div className='col col-2'>
+              <label htmlFor='kvalik'> Kvalifikasjon: </label>
+            </div>
+            <div className='col col-3'>
+              <select className='form-control form-control-lg' name='kvalik' ref='kval'>{kvalifikasjoner}</select>
+            </div>
+            <div className='col col-2'>
+              <button className='btn btn-default' ref='lagMK'>Legg til</button>
+            </div>
+          </div>
         </div>
         <br />
       </div>
@@ -3701,42 +3784,6 @@ class Rolle extends React.Component {
     }).catch((err) => {
       console.log(err);
     });
-  }
-}
-
-class Hjelp extends React.Component {
-  render() {
-    let signedInUser = loginService.getSignedInUser();
-    if (signedInUser.admin === 1) {
-      return(
-        <div className='bd-content col-12'>
-          <div className='row'>
-            <div className='col'>
-              <h3 className='display-4'>Opprette arrangement</h3>
-              <p>
-                For å lage et nytt arrangement gå til arrangement-fanen og klikk knappen hvor det står «Opprett arrangement».
-                Deretter fyller du inn nødvendig informasjon.
-              </p>
-            </div>
-            <div className='col'>
-              <h3 className='display-4'>Kalle inn til arrangement</h3>
-              <p>
-              </p>
-            </div>
-            <div className='col'>
-              <h3 className='display-4'>Godkjenne bruker</h3>
-              <p>
-              </p>
-            </div>
-          </div>
-        </div>
-      )
-    } else {
-      return(
-        <div>
-        </div>
-      )
-    }
   }
 }
 
@@ -3914,7 +3961,6 @@ ReactDOM.render((
         <Route exact path='/T-kvalifikasjon' component={Kvalifikasjoner} />
         <Route exact path='/T-rolle' component={Rolle} />
         <Route exact path='/mineVakter' component={MineVakter} />
-        <Route exact path='/hjelp' component={Hjelp} />
         <Route exact path='/endreBrukerInfo/:id' component={EndreBrukerInfo} />
         <Route exact path='/statistikk' component={Statistik} />
       </Switch>
