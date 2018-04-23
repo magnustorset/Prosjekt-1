@@ -1608,7 +1608,7 @@ class MineSider extends React.Component {
         eventen.push({id:ting.m_id + ting.f_dato, title:'Passiv', start: ting.f_dato, end:ting.t_dato})
       }
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Pasiv not found' + error);
+      if(errorMessage) errorMessage.set('Passiv not found');
     });
     userService.getUser(this.id).then((result) =>{
       this.user = result[0];
@@ -2544,7 +2544,6 @@ class EndreArrangement extends React.Component {
     longitude = 10.404471000000058
   }
   componentDidMount(){
-    console.log(address, longitude, latitude);
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
 
@@ -2569,7 +2568,7 @@ class EndreArrangement extends React.Component {
       arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,latitude,longitude,address,this.id).then((result)=>{
       history.push('/visArrangement/'+this.arrangement.id);
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement' + error);
+      if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement');
     });
 
     }
