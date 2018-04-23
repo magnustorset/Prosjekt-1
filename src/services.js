@@ -27,7 +27,6 @@ function connect () {
   })
 }
 connect()
-
 //oppkobling til epostserver
 let transporter = nodemailer.createTransport({
   host: 'mail.fastname.no',
@@ -38,7 +37,7 @@ let transporter = nodemailer.createTransport({
     pass: '25JyrJSCfe8h'
   },
   tls: {
-        // forhindrer error hos enkelte brukere
+        // do not fail on invalid certs
         rejectUnauthorized: false
       }
 });
@@ -91,7 +90,6 @@ class EmailService {
   }
 
 }
-
 // Class that performs database queries related to users
 class UserService {
   //Henter brukere basert på søk
@@ -734,7 +732,9 @@ class AdministratorFunctions{
   }
 }
 
+
 class VaktValg {
+  /* Henter alle brukere som er aktive og ikke er meldt passiv eller på et annet arrangement på samme tidspunkt (Fjerner også kontaktpersonen fra resultatet), og setter dem in på de rollene de fyller som er krevet til arrangementet */
   static lagListe3(id) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT ro.r_id, ro.m_id, le.brukernavn, le.interesse, le.vaktpoeng, 0 AS "registrert", 0 AS "opptatt", le.epost FROM ( SELECT rr.r_id, rr.antall, rr.m_id FROM ( SELECT r_id, COUNT(*) AS antall FROM rolle_kvalifikasjon rk GROUP BY r_id ) ra INNER JOIN ( SELECT r_id, m_id, COUNT(*) AS antall FROM medlem_kvalifikasjon mk INNER JOIN rolle_kvalifikasjon rk ON mk.k_id = rk.k_id WHERE mk.gyldig_til > CURDATE() GROUP BY r_id, m_id ) rr ON ra.r_id = rr.r_id WHERE ra.antall =  rr.antall ) ro INNER JOIN ( SELECT DISTINCT m.id, m.brukernavn, EXISTS (SELECT * FROM interesse i WHERE i.m_id = m.id AND i.a_id = ar.id) AS "interesse", m.vaktpoeng, m.epost FROM passiv p  RIGHT JOIN medlem m ON p.m_id = m.id  LEFT JOIN vakt v ON m.id = v.m_id CROSS JOIN ( SELECT * FROM arrangement WHERE id = ? ) ar WHERE m.aktiv = true  AND NOT(ar.starttidspunkt BETWEEN IFNULL(p.f_dato, 0)  AND IFNULL(p.t_dato, 0)) AND NOT EXISTS(SELECT * FROM arrangement ai INNER JOIN vakt vi ON ai.id = vi.a_id WHERE IFNULL(vi.m_id, 0) = m.id AND IFNULL(ai.starttidspunkt, 0) = ar.starttidspunkt) AND NOT(m.id = ar.kontaktperson) ) le ON ro.m_id = le.id WHERE ro.r_id IN ( SELECT DISTINCT r_id FROM vakt WHERE a_id = ? )', [id, id], (error, result) => {
@@ -747,7 +747,7 @@ class VaktValg {
       });
     });
   }
-
+  /* Henter alle som er registrert på arrangementet og setter dem in som registrert på den rollen de har */
   static getReg(id) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT v.r_id, m.id AS m_id, m.brukernavn, EXISTS (SELECT * FROM interesse i WHERE i.m_id = m.id AND i.a_id = a.id) AS "interesse", m.vaktpoeng, r_id AS "registrert", r_id AS "opptatt", m.epost FROM arrangement a INNER JOIN vakt v ON a.id = v.a_id INNER JOIN medlem m ON v.m_id = m.id WHERE a.id = ?', [id], (error, result) => {
@@ -760,7 +760,7 @@ class VaktValg {
       });
     });
   }
-
+  /* Setter personen på en ledig vakt av den valgte rollen i det valgte arrangementet */
   static setVakt(m_id, a_id, r_id, dato) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE vakt SET m_id = ?, utkallingstid = ? WHERE a_id = ? AND r_id = ? AND m_id IS NULL LIMIT 1', [m_id, dato, a_id, r_id], (error, result) => {
@@ -773,7 +773,7 @@ class VaktValg {
       });
     });
   }
-
+  /* Fjerner personen fra den vakten de har i arrangementet */
   static removeVakt(m_id, a_id, r_id) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE vakt SET m_id = NULL, utkallingstid = NULL, bekreftelsestid = NULL WHERE a_id = ? AND r_id = ? AND m_id = ? LIMIT 1', [a_id, r_id, m_id], (error, result) => {
@@ -788,7 +788,9 @@ class VaktValg {
   }
 }
 
+
 class PassivService {
+  /* Sjekker om personen kan melde seg passiv i den valgte perioden. (Sjekker at de ikke allerede er passiv eller meldt på et arrangement) */
   static kanMeld(m_id, start, slutt) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT COUNT(*) AS antall FROM medlem m WHERE m.id = ? AND NOT EXISTS ( SELECT * FROM passiv pi WHERE pi.m_id = m.id AND (? BETWEEN pi.f_dato AND pi.t_dato) OR (? BETWEEN pi.f_dato AND pi.t_dato)) AND NOT EXISTS ( SELECT * FROM arrangement ai INNER JOIN vakt vi ON ai.id = vi.a_id WHERE vi.m_id = m.id AND ((? BETWEEN ai.starttidspunkt AND ai.sluttidspunkt) OR (? BETWEEN ai.starttidspunkt AND ai.sluttidspunkt)))', [m_id, start, slutt, start, slutt], (error, result) => {
@@ -799,6 +801,7 @@ class PassivService {
       });
     });
   }
+  /* Setter medlemmet passiv i den utvalgte perioden. */
   static setPassiv(m_id, start, slutt) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO passiv VALUES(?, ?, ?)', [m_id, start, slutt], (error, result) => {
@@ -811,7 +814,9 @@ class PassivService {
   }
 }
 
+
 class UtstyrService {
+  /* Henter allt av utstyr i databasen. */
   static getAllUtstyr() {
     return new Promise((resolve, reject) => {
       connection.query('SELECT * FROM utstyr', (error, result) => {
@@ -822,6 +827,7 @@ class UtstyrService {
       });
     });
   }
+  /* Legger til utstyr. */
   static addUtstyr(navn) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO utstyr (navn) VALUES(?)', [navn], (error, result) => {
@@ -832,6 +838,7 @@ class UtstyrService {
       });
     });
   }
+  /* Endrer på utstyret. */
   static alterUtstyr(id, navn) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE utstyr SET navn = ? WHERE id = ?', [navn, id], (error, result) => {
@@ -842,6 +849,7 @@ class UtstyrService {
       });
     });
   }
+  /* Fjerner utstyret */
   static removeUtstyr(id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM utstyr WHERE id = ?', [id], (error, result) => {
@@ -854,6 +862,7 @@ class UtstyrService {
   }
 
 
+  /* Henter utstyrslistene for alle roller. */
   static getAllRU(id) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT r_id, u_id, r.navn AS "r_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN r_utstyr ru ON u.id = ru.u_id INNER JOIN rolle r ON ru.r_id = r.id where r_id = ?',[id], (error, result) => {
@@ -864,6 +873,7 @@ class UtstyrService {
       });
     });
   }
+  /* Legger til utstyr til en rolle */
   static addRU(r_id, u_id, antall) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO r_utstyr (r_id, u_id, antall) VALUES(?, ?, ?)', [r_id, u_id, antall], (error, result) => {
@@ -874,6 +884,7 @@ class UtstyrService {
       });
     });
   }
+  /* Endrer utstyret til en rolle */
   static alterRU(r_id, u_id, antall) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE r_utstyr SET antall = ? WHERE r_id = ? AND u_id = ?', [antall, r_id, u_id], (error, result) => {
@@ -884,6 +895,7 @@ class UtstyrService {
       });
     });
   }
+  /* Fjerner utstyr fra rollen */
   static removeRU(r_id, u_id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM r_utstyr WHERE r_id = ? AND u_id = ?', [r_id, u_id], (error, result) => {
@@ -895,6 +907,7 @@ class UtstyrService {
     });
   }
 
+  /* Henter utstyslisten til en rolle, hvor antallet av hvert utstyr ganges med antallet vakter som har den rollen. (Rolle og antall sendes in) (Brukes til å regne ut utstyrsliste til arrangement basert på rollene som er valgt) */
   static getRU(r_id, antall) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT u_id, antall*? AS "antall" FROM r_utstyr WHERE r_id = ?', [antall, r_id], (error, result) => {
@@ -906,6 +919,7 @@ class UtstyrService {
     });
   }
 
+  /* Henter utstyrslistene for alle arrangement. */
   static getAllAU(id) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT a_id, u_id, a.navn AS "a_navn", u.navn AS "u_navn", antall FROM utstyr u INNER JOIN a_utstyr au ON u.id = au.u_id INNER JOIN arrangement a ON au.a_id = a.id where a_id = ?',[id], (error, result) => {
@@ -916,6 +930,7 @@ class UtstyrService {
       });
     });
   }
+  /* Legger til utstyr til et arrangement. */
   static addAU(a_id, u_id, antall) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO a_utstyr (a_id, u_id, antall) VALUES(?, ?, ?)', [a_id, u_id, antall], (error, result) => {
@@ -926,6 +941,7 @@ class UtstyrService {
       });
     });
   }
+  /* Endrer på utstyret til et arrangement. */
   static alterAU(a_id, u_id, antall) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE a_utstyr SET antall = ? WHERE a_id = ? AND u_id = ?', [antall, a_id, u_id], (error, result) => {
@@ -936,6 +952,7 @@ class UtstyrService {
       });
     });
   }
+  /* Fjerner utstyr fra et arrangement. */
   static removeAU(a_id, u_id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM a_utstyr WHERE a_id = ? AND u_id = ?', [a_id, u_id], (error, result) => {
@@ -950,6 +967,7 @@ class UtstyrService {
 }
 
 class KvalifikasjonService {
+  /* Henter alle kvalifikasjoner i databasen. */
   static getAllKvalifikasjon() {
     return new Promise((resolve, reject) => {
       connection.query('SELECT * FROM kvalifikasjon', (error, result) => {
@@ -960,6 +978,7 @@ class KvalifikasjonService {
       });
     });
   }
+  /* Legger til en kvalifikasjon. */
   static addKvalifikasjon(navn, varighet) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO kvalifikasjon (navn, varighet) VALUES(?, ?)', [navn, varighet], (error, result) => {
@@ -970,6 +989,7 @@ class KvalifikasjonService {
       });
     });
   }
+  /* Endrere en kvalifikasjon. */
   static alterKvalifikasjon(id, navn, varighet) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE kvalifikasjon SET navn = ?, varighet = ? WHERE id = ?', [navn, varighet, id], (error, result) => {
@@ -980,6 +1000,7 @@ class KvalifikasjonService {
       });
     });
   }
+  /* Fjerner en kvalifikasjon. */
   static removeKvalifikasjon(id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM kvalifikasjon WHERE id = ?', [id], (error, result) => {
@@ -992,6 +1013,7 @@ class KvalifikasjonService {
   }
 
 
+  /* Henter alle kvalifikasjonskravene til rollene. */
   static getAllRK(id) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT r_id, k_id, r.navn AS "r_navn", k.navn AS "k_navn" FROM kvalifikasjon k INNER JOIN rolle_kvalifikasjon rk ON k.id = rk.k_id INNER JOIN rolle r ON rk.r_id = r.id where r_id = ?',[id], (error, result) => {
@@ -1002,6 +1024,7 @@ class KvalifikasjonService {
       });
     });
   }
+  /* Legger til kvalifikasjonskrav til en rolle. */
   static addRK(r_id, k_id) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO rolle_kvalifikasjon (r_id, k_id) VALUES(?, ?)', [r_id, k_id], (error, result) => {
@@ -1012,16 +1035,7 @@ class KvalifikasjonService {
       });
     });
   }
-  // static alterRK(r_id, k_id) {
-  //   return new Promise((resolve, reject) => {
-  //     connection.query('UPDATE rolle_kvalifikasjon SET antall = ? WHERE r_id = ? AND k_id = ?', [r_id, k_id], (error, result) => {
-  //       if(error) {
-  //         reject(error);
-  //       }
-  //       resolve(result);
-  //     });
-  //   });
-  // }
+  /* Fjerner kvalifikasjonskrav fra en rolle. */
   static removeRK(r_id, k_id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM rolle_kvalifikasjon WHERE r_id = ? AND k_id = ?', [r_id, k_id], (error, result) => {
@@ -1034,6 +1048,7 @@ class KvalifikasjonService {
   }
 
 
+  /* Henter alle kvalifikasjonene til alle brukere. */
   static getAllMK(id) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT m_id, k_id, m.brukernavn AS "m_navn", k.navn AS "k_navn", gyldig_til AS "gyldig" FROM medlem m INNER JOIN medlem_kvalifikasjon mk ON m.id = mk.m_id INNER JOIN kvalifikasjon k ON mk.k_id = k.id where m_id = ?',[id], (error, result) => {
@@ -1044,6 +1059,7 @@ class KvalifikasjonService {
       });
     });
   }
+  /* Legger til en kvalifikasjon til en bruker. */
   static addMK(m_id, k_id) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO medlem_kvalifikasjon (m_id, k_id, gyldig_til) VALUES(?, ?, (SELECT DATE_ADD(CURDATE(), INTERVAL varighet MONTH) FROM kvalifikasjon WHERE id = ?))', [m_id, k_id, k_id], (error, result) => {
@@ -1054,6 +1070,7 @@ class KvalifikasjonService {
       });
     });
   }
+  /* Oppdaterer datoen til en medlems kvalifikasjon. */
   static alterMK(m_id, k_id, gyldig) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE medlem_kvalifikasjon SET gyldig_til = (SELECT DATE_ADD(CURDATE(), INTERVAL varighet MONTH) FROM kvalifikasjon WHERE id = ?) WHERE m_id = ? AND k_id = ?', [k_id, m_id, k_id], (error, result) => {
@@ -1064,6 +1081,7 @@ class KvalifikasjonService {
       });
     });
   }
+  /* Fjerner en av brukerens kvalifikasjoner. */
   static removeMK(m_id, k_id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM medlem_kvalifikasjon WHERE m_id = ? AND k_id = ?', [m_id, k_id], (error, result) => {
@@ -1078,6 +1096,7 @@ class KvalifikasjonService {
 }
 
 class RolleService {
+  /* Henter alle roller */
   getAllRolle() {
     return new Promise((resolve, reject) => {
       connection.query('SELECT * FROM rolle', (error, result) => {
@@ -1088,6 +1107,7 @@ class RolleService {
       });
     });
   }
+  /* Legger til en rolle */
   addRolle(navn) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO rolle (navn) VALUES(?)', [navn], (error, result) => {
@@ -1098,6 +1118,7 @@ class RolleService {
       });
     });
   }
+  /* Endrer en rolle */
   alterRolle(id, navn) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE rolle SET navn = ? WHERE id = ?', [navn, id], (error, result) => {
@@ -1108,6 +1129,7 @@ class RolleService {
       });
     });
   }
+  /* Fjerner en rolle */
   removeRolle(id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM rolle WHERE id = ?', [id], (error, result) => {
@@ -1121,7 +1143,9 @@ class RolleService {
 
 }
 
+
 class MalService {
+  /* Henter alle vakt maler. */
   getMals() {
     return new Promise((resolve, reject) => {
       connection.query('SELECT * FROM vakt_mal', (error, result) => {
@@ -1132,6 +1156,7 @@ class MalService {
       });
     });
   }
+  /* Henter alle rollene i en vakt mal. */
   getMalRolls(id) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT * FROM mal_roller WHERE ml_id = ?', [id], (error, result) => {
@@ -1143,6 +1168,7 @@ class MalService {
     });
   }
 
+  /* Legger till en vakt mal. */
   addMal(navn) {
     return new Promise((resolve, reject) => {
       connection.query('INSERT INTO vakt_mal (navn) VALUES(?)', [navn], (error, result) => {
@@ -1153,8 +1179,10 @@ class MalService {
       });
     });
   }
+  /* Legger til roller i en vakt mal. */
   addMalRolls(id, rolls) {
     return new Promise((resolve, reject) => {
+      /* Denne spørringen sender in et nøstet array med verdiene. Dette gjør at vi slipper å lage for-løkker med insert setninger, som derretter må sjekkes i en Promise.all() setning for å opdatere siden etter det er ferdig. */
       let mr = [];
       for(let item of rolls) {
         mr.push([id, item.id, item.antall]);
@@ -1169,6 +1197,7 @@ class MalService {
     });
   }
 
+  /* Endrer navnet til en vakt mal. */
   alterMal(id, navn) {
     return new Promise((resolve, reject) => {
       connection.query('UPDATE vakt_mal SET navn = ? WHERE id = ?', [navn, id], (error, result) => {
@@ -1179,22 +1208,10 @@ class MalService {
       });
     });
   }
-  // alterMalRolls(id, rolls) {
-  //   return new Promise((resolve, reject) => {
-  //     let mr = [];
-  //     for(let item of rolls) {
-  //       mr.push([id, item.id, item.antall]);
-  //     }
-  //     console.log(mr);
-  //     connection.query('INSERT INTO mal_roller (ml_id, r_id, antall) VALUES ?', [mr], (error, result) => {
-  //       if(error) {
-  //         reject(error);
-  //       }
-  //       resolve(result);
-  //     });
-  //   });
-  // }
+  /* Det trengs ikke en metode for å redigere rollene til en vakt mal siden vi bare fjerner eksisterende roller og legger in de ønskede og vi alerede har metoder for det. */
 
+
+  /* Fjerner en vakt mal. */
   removeMal(id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM vakt_mal WHERE id = ?', [id], (error, result) => {
@@ -1205,6 +1222,7 @@ class MalService {
       });
     });
   }
+  /* Fjerner rollene til en vakt mal. */
   removeMalRolls(id) {
     return new Promise((resolve, reject) => {
       connection.query('DELETE FROM mal_roller WHERE ml_id = ?', [id], (error, result) => {
@@ -1218,6 +1236,7 @@ class MalService {
 }
 
 class StatistikkService {
+  /* Henter antallet vakter per medlem. */
   allMedAntVakter() { //Totale antallet vakter hvert medlem har tatt
     return new Promise((resolve, reject) => {
       connection.query('SELECT m_id, brukernavn, COUNT(*) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id GROUP BY m_id, brukernavn ORDER BY antall DESC', (error, result) => {
@@ -1228,6 +1247,7 @@ class StatistikkService {
       });
     });
   }
+  /* Henter antallet timer per medlem */
   allMedAntTimer() { //Totale antallet timer hvert medlem har tatt
     return new Promise((resolve, reject) => {
       connection.query('SELECT m_id, brukernavn, SUM(ROUND(TIME_TO_SEC(TIMEDIFF(sluttidspunkt, oppmootetidspunkt))/3600)) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id INNER JOIN arrangement a ON v.a_id = a.id GROUP BY m_id, brukernavn ORDER BY antall DESC', (error, result) => {
@@ -1239,6 +1259,7 @@ class StatistikkService {
     });
   }
 
+  /* Henter antallet timer per medlem mellom den deffinerte tiden */
   allMedAntTimerMDato(fra, til) { //Totale antallet timer hvert medlem har tatt
     return new Promise((resolve, reject) => {
       connection.query('SELECT m_id, brukernavn, SUM(ROUND(TIME_TO_SEC(TIMEDIFF(sluttidspunkt, oppmootetidspunkt))/3600)) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id INNER JOIN arrangement a ON v.a_id = a.id WHERE (oppmootetidspunkt BETWEEN ? AND ?) GROUP BY m_id, brukernavn ORDER BY antall DESC', [fra, til], (error, result) => {
@@ -1249,6 +1270,7 @@ class StatistikkService {
       });
     });
   }
+  /* Henter antallet vakter per medlem mellom den deffinerte tiden */
   allMedAntVaktMDato(fra, til) { //Totale antallet timer hvert medlem har tatt
     return new Promise((resolve, reject) => {
       connection.query('SELECT m_id, brukernavn, COUNT(*) AS antall FROM vakt v INNER JOIN medlem m ON v.m_id = m.id INNER JOIN arrangement a ON v.a_id = a.id WHERE (oppmootetidspunkt BETWEEN ? AND ?) GROUP BY m_id, brukernavn ORDER BY antall DESC', [fra, til], (error, result) => {
@@ -1259,7 +1281,6 @@ class StatistikkService {
       });
     });
   }
-
 }
 
 let userService = new UserService()
