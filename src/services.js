@@ -231,9 +231,6 @@ class LoginService {
       }else{
           login = false
         }
-        console.log(passwordHash.verify(passord,result[0].passord));
-        console.log(login);
-
         resolve(login);
     });
   });
@@ -259,14 +256,12 @@ class LoginService {
           reject(error);
           return;
         }
-        console.log(result);
         if (result.length === 0) {
           reject(error);
           return;
         }else{
             m_id = result[0].id;
         }
-        console.log(m_id);
         let date = new Date()
         date.setMinutes(date.getMinutes() + 30)
 
@@ -358,7 +353,6 @@ class ArrangementService {
           reject(error);
           return;
         }
-        console.log(result);
         resolve();
       });
     });
@@ -436,7 +430,6 @@ class ArrangementService {
           reject(error);
           return;
         }
-        console.log(result);
         resolve(result);
       });
     });
@@ -451,13 +444,11 @@ class ArrangementService {
           return;
         }
         vakt =result[0];
-        console.log(vakt);
         connection.query('insert into vaktBytte (aid,om_id,nm_id,bekreftelse,vakt_id,godtatt) values (?,?,?,?,?,?)',[vakt.a_id,vakt.m_id,overtakerid,false,vakt.id,false],(error,result)=>{
           if(error){
             reject(error);
             return;
           }
-          console.log('vakt byttet');
           resolve();
         });
       });
@@ -471,7 +462,6 @@ class ArrangementService {
           reject(error);
           return;
         }
-        console.log(result);
         resolve(result);
       });
     });
@@ -521,8 +511,6 @@ class ArrangementService {
     return new Promise((resolve, reject) =>{
       connection.query('SELECT * from medlem where tlf = ?', [tlf], (error, result) => {
         if(error){
-          console.log('tlf err');
-          console.log(error);
           reject(error);
           return;
         }
@@ -530,8 +518,6 @@ class ArrangementService {
 
         connection.query('INSERT INTO arrangement (navn, oppmootetidspunkt, starttidspunkt, sluttidspunkt,  beskrivelse, kontaktperson, longitute, latitute, address) values (?, ?, ?, ?, ?, ?, ?, ?,?)', [navn, meetdate, startdate, enddate, desc, k_id, longitude, latitude, address], (error, result) => {
           if(error){
-            console.log('arrangement err');
-            console.log(error);
             reject(error);
 
             return;
@@ -672,7 +658,6 @@ class AdministratorFunctions{
           return;
         }
 
-        console.log('Brukerene er deaktivert');
         resolve();
       });
     });
@@ -686,7 +671,6 @@ class AdministratorFunctions{
           return;
         }
 
-        console.log('Brukeren er nå admin');
         resolve();
       });
     });
@@ -700,7 +684,6 @@ class AdministratorFunctions{
           return;
         }
 
-        console.log('Brukeren er ikke admin lengre');
         resolve();
       });
     });
@@ -713,7 +696,6 @@ class AdministratorFunctions{
           reject(error);
           return;
         }
-        console.log(result);
         resolve(result);
       });
     });
@@ -726,7 +708,6 @@ class AdministratorFunctions{
           reject(error);
           return;
         }
-        console.log('Brukeren er nå aktiv');
         resolve();
       });
     });
@@ -769,7 +750,6 @@ class VaktValg {
           reject(error);
           return;
         }
-        console.log(result);
         resolve(result);
       });
     });
@@ -782,7 +762,6 @@ class VaktValg {
           reject(error);
           return;
         }
-        console.log(result);
         resolve(result);
       });
     });
@@ -795,7 +774,6 @@ class VaktValg {
           reject(error);
           return;
         }
-        console.log(result);
         resolve(result);
       });
     });
@@ -808,7 +786,6 @@ class VaktValg {
           reject(error);
           return;
         }
-        console.log(result);
         resolve(result);
       });
     });
@@ -1214,7 +1191,6 @@ class MalService {
       for(let item of rolls) {
         mr.push([id, item.id, item.antall]);
       }
-      console.log(mr);
       connection.query('INSERT INTO mal_roller (ml_id, r_id, antall) VALUES ?', [mr], (error, result) => {
         if(error) {
           reject(error);
