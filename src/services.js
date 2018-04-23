@@ -641,7 +641,7 @@ class AdministratorFunctions{
   //Deaktiverer brukeren
   deaktiverBruker(id){
     return new Promise((resolve, reject)=>{
-      connection.query('UPDATE medlem set aktiv = ?,set admin = ? where id = ?', [false,false, id], (error, result)=>{
+      connection.query('UPDATE medlem set aktiv = ? where id = ?', [false, id], (error, result)=>{
         if(error){
           reject(error);
           return;
