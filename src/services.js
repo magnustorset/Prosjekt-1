@@ -92,6 +92,18 @@ class EmailService {
 }
 // Class that performs database queries related to users
 class UserService {
+  //henter passiv meldinger
+  getPassiv(id){
+    return new Promise((resolve,reject)=>{
+      connection.query('select * from passiv where m_id = ?',[id], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+        resolve(result);
+      });
+    });
+  }
   //Henter brukere basert på søk
   searchUser(input){
     return new Promise((resolve, reject) =>{

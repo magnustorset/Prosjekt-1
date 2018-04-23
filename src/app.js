@@ -8,8 +8,10 @@ import BigCalendar from 'react-big-calendar';
 import Moment from 'moment'
 BigCalendar.momentLocalizer(moment);
 let eventen = []
-function push(eve){
-  history.push('/visArrangement/'+ eve);
+function push(eve,n){
+  if(n!='Passiv'){
+    history.push('/visArrangement/'+ eve);
+  }
 }
 //Konstant som definerer kalenderen på minside og startsiden og innhold, startdato og
 //hva som skal skje når du klikker på eventer.
@@ -22,7 +24,7 @@ const MyCalendar = props => (
       endAccessor='end'
       style={{height: '400px'}}
       defaultDate={new Date()}
-      onSelectEvent={event => push(event.id)}
+      onSelectEvent={event => push(event.id,event.title)}
     />
   </div>
 );
@@ -1587,6 +1589,9 @@ class MineSider extends React.Component {
       </div>
     )
   }
+  componentWillUnmount(){
+    eventen = []
+  }
   componentDidMount(){
     arrangementService.varsler(loginService.getSignedInUser().id).then((result)=>{
       this.varsler = result;
@@ -1596,10 +1601,17 @@ class MineSider extends React.Component {
     });
     arrangementService.getYourArrangements(loginService.getSignedInUser().id).then((result)=>{
       for(let ting of result){
-        eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
+        eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt})
       }
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Finner ikke dine arrangement');
+    });
+    userService.getPassiv(loginService.getSignedInUser().id).then((result)=>{
+      for(let ting of result){
+        eventen.push({id:ting.m_id + ting.f_dato, title:'Passiv', start: ting.f_dato, end:ting.t_dato})
+      }
+    }).catch((error)=>{
+      if(errorMessage) errorMessage.set('Pasiv not found' + error);
     });
     userService.getUser(this.id).then((result) =>{
       this.user = result[0];
