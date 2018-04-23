@@ -676,7 +676,7 @@ class Menu extends React.Component {
               <input  ref='serachFieldUser' type='text' placeholder='Søk etter medlem' className='form-control sokeFelt' />
             </li>
             <li>
-              <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat')}}>Søk</button>
+              <button className='btn btn-default'  ref='serachUsersButton' className='form-control' onClick={()=>{history.push('/sokeResultat'); this.searchUser()}}>Søk</button>
             </li>
             <li className='spaceBetweenSearchAndLogout'>
               <button className='btn btn-default'  className='button' onClick={() => {this.logOut()}}><span className='glyphicon glyphicon-log-out' /></button>
@@ -1672,7 +1672,7 @@ class MineSider extends React.Component {
       this.props.history.push('/forandrepassord');
     }
     this.refs.seeQualifications.onclick = () =>{
-      this.props.history.push('/sekvalifikasjoner');
+      this.props.history.push('/sekvalifikasjoner/'+this.id);
     }
   }
 }
@@ -1912,12 +1912,12 @@ class ForandrePassord extends React.Component {
 
 //Denne siden henter dine kvalifikasjoner og viser dem til deg
 class SeKvalifikasjoner extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.user = [];
     this.kvalifikasjoner = [];
-    this.id = loginService.getSignedInUser().id;
+    this.id = this.props.match.params.id;
 
   }
   render(){
@@ -2207,7 +2207,7 @@ class BrukerSide extends React.Component {
                 <td className="brukerSideButtons">{b}</td>
               </tr>
               <tr>
-                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner')}}>Se kvalifikasjoner</button></td>
+                <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/sekvalifikasjoner/'+ this.id)}}>Se kvalifikasjoner</button></td>
                 <td className="brukerSideButtons"><button className='btn btn-default' onClick={() =>{history.push('/endreBrukerInfo/'+this.id)}}>Endre bruker info</button></td>
               </tr>
             </tbody>
@@ -4032,7 +4032,7 @@ ReactDOM.render((
 
         <Route exact path='/bruker/:id' component={BrukerSide} />
         <Route exact path='/godkjennebruker' component={GodkjennBruker} />
-        <Route exact path='/sekvalifikasjoner' component={SeKvalifikasjoner} />
+        <Route exact path='/sekvalifikasjoner/:id' component={SeKvalifikasjoner} />
         <Route exact path='/sokeResultat' component={VisSøkeResultat} />
         <Route exact path='/visArrangement/:id' component={VisArrangement} />
         <Route exact path='/endreArrangement/:id' component={EndreArrangement} />
