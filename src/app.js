@@ -75,13 +75,16 @@ const MapWithASearchBox = compose(
         markers: [],
         onMapMounted: ref => {
           refs.map = ref;
-
         },
         onBoundsChanged: () => {
+          let latlng = {lat: latitude, lng: longitude};
+          let marker = new google.maps.Marker({
+            position: latlng
+          });
           this.setState({
             bounds: refs.map.getBounds(),
             center: refs.map.getCenter(),
-          })
+          });
         },
         onMarkerMounted: ref =>{
           refs.marker = ref;
@@ -181,6 +184,9 @@ const MapWithASearchBox = compose(
             onDragEnd={props.dragMarker}
             />
           )}
+          <Marker
+          position = {{lat: latitude, lng: longitude}}
+          />
           </GoogleMap>
 );
 //Konstant som definerer kartet som vises på vis arrangement.
@@ -1314,9 +1320,8 @@ class NyttArrangement extends React.Component{
 
       arrangementService.addArrangement(this.refs.k_tlf.value, this.refs.a_name.value, this.refs.a_meetdate.value, this.refs.a_startdate.value, this.refs.a_enddate.value, this.refs.a_desc.value, longitude,latitude,address).then((res) => {
         address = ''
-        longitude = ''
-        latitude = ''
-
+        longitude = 0
+        latitude = 0
         history.push('/Arrangement')
 
         let vakter = [];
@@ -2421,7 +2426,10 @@ class VisArrangement extends React.Component {
     let a = moment(variabel).format('DD.MM.YY HH:mm');
     return a;
   }
-
+  componentWillUnmount(){
+    latitude = 63.4123278
+    longitude = 10.404471000000058
+  }
 
   componentDidMount(){
     arrangementService.getInterest(loginService.getSignedInUser().id,this.id).then((result)=>{
@@ -2434,6 +2442,8 @@ class VisArrangement extends React.Component {
       this.arrangement = result[0];
       mapLat = this.arrangement.latitute;
       mapLng = this.arrangement.longitute;
+      latitude = this.arrangement.latitute;
+      longitude = this.arrangement.longitute;
     this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
         this.user = result[0];
@@ -2525,6 +2535,7 @@ class EndreArrangement extends React.Component {
     longitude = 10.404471000000058
   }
   componentDidMount(){
+    console.log(address, longitude, latitude);
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
 
@@ -2533,7 +2544,7 @@ class EndreArrangement extends React.Component {
       this.state.starttidspunkt = this.changeDate(this.arrangement.starttidspunkt);
       this.state.sluttidspunkt = this.changeDate(this.arrangement.sluttidspunkt);
       this.state.oppmotested = this.arrangement.address;
-      latitude = this.arrangement.latitude;
+      latitude = this.arrangement.latitute;
       longitude = this.arrangement.longitute;
       this.forceUpdate();
       userService.getUser(result[0].kontaktperson).then((result)=>{
@@ -2549,7 +2560,7 @@ class EndreArrangement extends React.Component {
       arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,latitude,longitude,address,this.id).then((result)=>{
       history.push('/visArrangement/'+this.arrangement.id);
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement');
+      if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement' + error);
     });
 
     }
