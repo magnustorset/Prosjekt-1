@@ -27,6 +27,7 @@ function connect () {
   })
 }
 connect()
+
 //oppkobling til epostserver
 let transporter = nodemailer.createTransport({
   host: 'mail.fastname.no',
@@ -37,7 +38,7 @@ let transporter = nodemailer.createTransport({
     pass: '25JyrJSCfe8h'
   },
   tls: {
-        // do not fail on invalid certs
+        // forhindrer error hos enkelte brukere
         rejectUnauthorized: false
       }
 });
@@ -90,6 +91,7 @@ class EmailService {
   }
 
 }
+
 // Class that performs database queries related to users
 class UserService {
   //Henter brukere basert på søk
@@ -732,7 +734,6 @@ class AdministratorFunctions{
   }
 }
 
-
 class VaktValg {
   static lagListe3(id) {
     return new Promise((resolve, reject) => {
@@ -787,7 +788,6 @@ class VaktValg {
   }
 }
 
-
 class PassivService {
   static kanMeld(m_id, start, slutt) {
     return new Promise((resolve, reject) => {
@@ -810,7 +810,6 @@ class PassivService {
     });
   }
 }
-
 
 class UtstyrService {
   static getAllUtstyr() {
@@ -1121,7 +1120,6 @@ class RolleService {
   }
 
 }
-
 
 class MalService {
   getMals() {
