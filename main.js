@@ -66,9 +66,6 @@ let mainWindow;
   app.on('ready', () => {
     mainWindow = new BrowserWindow({width: 1360, height: 800});
 
-    // Open Development Tools
-    mainWindow.openDevTools();
-
     mainWindow.loadURL('file://' + __dirname + '/index.html');
 
      Menu.setApplicationMenu(menu)
