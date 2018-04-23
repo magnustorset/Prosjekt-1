@@ -292,9 +292,6 @@ background-color: white;
 }
 
 /*Kvalifikasjon side og utstyr side*/
-.test{
-
-}
 .tableKval{
   padding: 2px;
   border-bottom: 1px solid black;
@@ -336,4 +333,18 @@ background-color: white;
 }
 .paddingButton{
   margin-top: 4px;
+}
+
+/* Innkallingsside */
+.innkallingTabell thead {
+  font-weight: bold;
+
+}
+
+.innkallingTabell  {
+  padding-right: 20px;
+}
+
+.iTHead td {
+  padding-right: 20px;
 }
