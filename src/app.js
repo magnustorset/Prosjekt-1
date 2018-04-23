@@ -789,7 +789,7 @@ class Innlogging extends React.Component {
         }
         if(signedInUser.aktiv != 1){
           localStorage.removeItem('signedInUser');
-          alert('Administrator har ikke godkjent brukeren din enda.');
+          Popup.alert('Administrator har ikke godkjent brukeren din enda.');
         }
       }).catch((error) => {
         if(errorMessage) errorMessage.set('Login feilet');
