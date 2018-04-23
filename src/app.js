@@ -746,11 +746,11 @@ class Innlogging extends React.Component {
       </div>
         <div className='form-group'>
           <label htmlFor='brukernavn'>Brukernavn:</label>
-          <input type="text" ref="unInput" className="form-control col-6 sokeFelt" defaultValue="sindersopp@hotmail.com" name='brukernavn'/>
+          <input type="text" ref="unInput" className="form-control col-6 sokeFelt"  name='brukernavn'/>
         </div>
         <div className='form-group'>
           <label htmlFor='passord'>Passord:</label>
-          <input type="password" ref="pwInput" className="form-control col-4 sokeFelt" defaultValue="passord" name='passord'/>
+          <input type="password" ref="pwInput" className="form-control col-4 sokeFelt"  name='passord'/>
         </div>
         <div className='form-group'>
           <button className="btn btn-primary btn-lg" ref="innlogginButton">Logg inn</button>
@@ -785,7 +785,7 @@ class Innlogging extends React.Component {
           Popup.alert('Administrator har ikke godkjent brukeren din enda.');
         }
       }).catch((error) => {
-        if(errorMessage) errorMessage.set('Login feilet');
+        Popup.alert('Vennligst skriv et gyldig brukernavn og passord.')
       });
     }
     this.refs.newPasswordButton.onclick = () => {
@@ -804,43 +804,43 @@ class NyBruker extends React.Component {
       <div className='Rot_nybruker'>
          <div className='form-group'>
             <label htmlFor='fornavn'>Fornavn:</label>
-            <input type="text" ref="fornavnInput" className='form-control col-6 sokeFelt' defaultValue="Fornan" name='fornavn'/>
+            <input type="text" ref="fornavnInput" className='form-control col-6 sokeFelt' placeholder="Fornavn" name='fornavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='etternavn'>Etternavn:</label>
-            <input type="text" ref="etternavnInput" className='form-control col-6 sokeFelt' defaultValue="Etternavn" name='etternavn'/>
+            <input type="text" ref="etternavnInput" className='form-control col-6 sokeFelt' placeholder="Etternavn" name='etternavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='brukernavn'>Brukernavn:</label>
-            <input type="text" ref="brukernavnInput" className='form-control col-6 sokeFelt'  defaultValue="Brukernavn" name='brukernavn'/>
+            <input type="text" ref="brukernavnInput" className='form-control col-6 sokeFelt'  placeholder="Brukernavn" name='brukernavn'/>
         </div>
         <div className='form-group'>
             <label htmlFor='epost'>Epost:</label>
-            <input type="email" ref="epostInput" className='form-control col-6 sokeFelt' defaultValue='dinepost@dinepost.no' name='epost'/>
+            <input type="email" ref="epostInput" className='form-control col-6 sokeFelt' placeholder='dinepost@dinepost.no' name='epost'/>
         </div>
         <div className='form-group'>
             <label htmlFor='medlemsnr'>Medlemsnr:</label>
-            <input type="number" ref="medlemsnrInput" className='form-control col-6 sokeFelt' defaultValue='98123'  name='medlemsnr'/>
+            <input type="number" ref="medlemsnrInput" className='form-control col-6 sokeFelt' placeholder='Medlemmsnummer'  name='medlemsnr'/>
         </div>
         <div className='form-group'>
             <label htmlFor='telefon'>Telefonnummer:</label>
-            <input type="number" ref="tlfInput" className='form-control col-6 sokeFelt' defaultValue='91909293' name='telefon'/>
+            <input type="number" ref="tlfInput" className='form-control col-6 sokeFelt' placeholder='Telefon' name='telefon'/>
         </div>
         <div className='form-group'>
             <label htmlFor='adresse'>Gateadresse:</label>
-            <input type="text" ref="adresseInput" className='form-control col-6 sokeFelt' defaultValue='Brandhaugveita 4' name='adressse'/>
+            <input type="text" ref="adresseInput" className='form-control col-6 sokeFelt' placeholder='Gateadresse' name='adressse'/>
         </div>
         <div className='form-group'>
             <label htmlFor='postnr'>Postnummer:</label>
-            <input type="text" ref="postnrInput" className='form-control col-6 sokeFelt' defaultValue='0000' name='postnr'/>
+            <input type="text" ref="postnrInput" className='form-control col-6 sokeFelt' placeholder='Postnr' name='postnr'/>
         </div>
         <div className='form-group'>
             <label htmlFor='passord'>Passord:</label>
-            <input type="password" ref="passwordInput1" className='form-control col-6 sokeFelt' defaultValue='*****' name='passord'/>
+            <input type="password" ref="passwordInput1" className='form-control col-6 sokeFelt' placeholder='Passord' name='passord'/>
         </div>
         <div className='form-group'>
             <label htmlFor='gpassord'>Gjenta passord:</label>
-            <input type="password" ref="passwordInput2" className='form-control col-6 sokeFelt' defaultValue='*****' name='gpassord'/>
+            <input type="password" ref="passwordInput2" className='form-control col-6 sokeFelt' placeholder='*****' name='gpassord'/>
         </div>
         <div className='form-group'>
             <button className='btn btn-default' ref="createuserButton">Ferdig</button>
@@ -872,7 +872,7 @@ class NyttPassord extends React.Component {
         <div className='Rot container'>
           <div className='form-group'>
             <label htmlFor='epost'>E-post: </label>
-            <input type='email' name='epost' className='form-control col-6 sokeFelt' ref='nyEpostInput' defaultValue='magnus.torset@gmail.com' /> <br />
+            <input type='email' name='epost' className='form-control col-6 sokeFelt' ref='nyEpostInput' /> <br />
           </div>
           <div className='form-group'>
             <button className='btn btn-default' ref='newPasswordButton'>Be om nytt passord</button>
@@ -1191,7 +1191,7 @@ class NyttArrangement extends React.Component{
         <div className='Rot_nyttArrangement'>
           <div className='form-group break'>
             <label htmlFor='navn'>Navn: </label>
-            <input type="text" name='navn' className="form-control col-8 sokeFelt" ref="a_name" defaultValue="Test" />
+            <input type="text" name='navn' className="form-control col-8 sokeFelt" ref="a_name"  />
           </div>
           <div className='form-group'>
             <label htmlFor='startdato'>Startdato: </label>
@@ -1211,7 +1211,7 @@ class NyttArrangement extends React.Component{
           </div>
           <div className='form-group break'>
             <label htmlFor='beskrivelse'>Beskrivelse: </label>
-            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8 sokeFelt" defaultValue="En tekstlig beskrivelse"/>
+            <textarea rows="4" ref="a_desc" name='beskrivelse' className="form-control col-8 sokeFelt" />
           </div>
           <div className='form-group formFritekst'>
             <label>Kontaktperson: </label>
@@ -1219,11 +1219,11 @@ class NyttArrangement extends React.Component{
           <div className='form-row'>
             <div className='col'>
               <label htmlFor='k_navn'>Navn: </label>
-              <input type="text" name='k_name' className="form-control sokeFelt" ref="k_name" defaultValue="Lars" />
+              <input type="text" name='k_name' className="form-control sokeFelt" ref="k_name"  />
             </div>
             <div className='col break'>
               <label htmlFor='k_tlf'>Telefon: </label>
-              <input type="number" name='k_tlf' className="form-control sokeFelt" ref="k_tlf" defaultValue="95485648" />
+              <input type="number" name='k_tlf' className="form-control sokeFelt" ref="k_tlf" />
             </div>
           </div>
           <div className='form-group'>

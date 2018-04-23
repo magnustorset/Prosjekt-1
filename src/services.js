@@ -216,7 +216,7 @@ class UserService {
 
 class LoginService {
   //Sjekker om brukernavn og passord stemmer over ens og lagrer brukeren i localstorage
-  checkLogin (brukernavn, passord, callback) {
+  checkLogin (brukernavn, passord) {
     return new Promise((resolve, reject) => {
       connection.query('SELECT * from medlem WHERE epost = ? or brukernavn = ?', [brukernavn, brukernavn], (error, result) => {
         if(error){
@@ -224,13 +224,20 @@ class LoginService {
           return;
         }
         let login = false
+
+        if (result.length === 0) {
+          reject(error)
+        }
+
         if (passwordHash.verify(passord,result[0].passord)) {
           login = true
           localStorage.setItem('loggedIn', true);
           localStorage.setItem('signedInUser', JSON.stringify(result[0])); // Store User-object in browser
       }else{
           login = false
+          reject(error)
         }
+        console.log(login);
         resolve(login);
     });
   });
