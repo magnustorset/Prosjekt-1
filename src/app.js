@@ -670,9 +670,6 @@ class Menu extends React.Component {
             <li className='nav-item'>
               <Link to='/mineVakter' className="nav-link">Mine Vakter</Link>
             </li>
-            <li className='nav-item'>
-              <Link to='/hjelp' className="nav-link">Hjelp</Link>
-            </li>
           </ul>
           <ul className="nav navbar-nav navbar-right">
             <li className='hopp'>
