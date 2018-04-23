@@ -75,7 +75,6 @@ const MapWithASearchBox = compose(
         markers: [],
         onMapMounted: ref => {
           refs.map = ref;
-          console.log('Kartet lastet');
 
         },
         onBoundsChanged: () => {
@@ -86,7 +85,6 @@ const MapWithASearchBox = compose(
         },
         onMarkerMounted: ref =>{
           refs.marker = ref;
-          console.log('Markør');
         },
         onSearchBoxMounted: ref => {
           refs.searchBox = ref;
@@ -215,12 +213,10 @@ const MapWithAMarker = compose(
         markers: [],
         onMapMounted: ref => {
           refs.map = ref;
-          console.log('Kartet lastet');
 
         },
         onMarkerMounted: ref =>{
           refs.marker = ref;
-          console.log('Markør');
         },
       })
     },
@@ -393,7 +389,6 @@ Popup.registerPlugin('prompt2', function (defaultValue, placeholder, callback) {
 
       let promptChange = function (value) {
           promptValue = value;
-          console.log(value);
       };
 
       this.create({
@@ -705,7 +700,7 @@ class Menu extends React.Component {
           this.refs.serachFieldUser.value = '';
         }
       }).catch((error)=>{
-        if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter' + error);
+        if(errorMessage) errorMessage.set('Finner ikke brukeren du søker etter');
       });
   }
   collapseNavbar(){
@@ -778,12 +773,10 @@ class Innlogging extends React.Component {
       loginService.checkLogin(this.refs.unInput.value, this.refs.pwInput.value).then((login) => {
         let signedInUser = loginService.getSignedInUser();
         if (login && signedInUser.admin === 1 && signedInUser.aktiv === 1) {
-          console.log('Innlogget som admin');
           brukerlogedin = true;
           history.push('/start');
         }
         if(login && signedInUser.admin !=1 && signedInUser.aktiv === 1){
-          console.log('Innlogget som bruker');
           brukerlogedin = true;
           history.push('/start');
         }
@@ -861,10 +854,9 @@ class NyBruker extends React.Component {
     this.refs.createuserButton.onclick = () => {
       if (this.refs.passwordInput1.value === this.refs.passwordInput2.value) {
         userService.addUser(this.refs.fornavnInput.value, this.refs.etternavnInput.value, this.refs.brukernavnInput.value, this.refs.epostInput.value, this.refs.medlemsnrInput.value, this.refs.tlfInput.value,this.refs.adresseInput.value, this.refs.passwordInput1.value,this.refs.postnrInput.value).then(() => {
-          console.log('User added')
           this.props.history.push('/');
         }).catch((error) => {
-          if(errorMessage) errorMessage.set('Kunne ikke legge til ny bruker' +error);
+          if(errorMessage) errorMessage.set('Kunne ikke legge til ny bruker');
         });
       }
     }
@@ -899,7 +891,6 @@ class NyttPassord extends React.Component {
       let emailCheck = Math.floor(Math.random() * 100000);
       loginService.navn(emailCheck, brukerEpost).then(() => {
         emailService.newPassword(brukerEpost, emailCheck).then(() => {
-          console.log('Epost sendt');
           this.props.history.push('/kode')
         }).catch((error) =>{
           if(errorMessage) errorMessage.set('Finner ikke epost');
@@ -939,10 +930,8 @@ class ResetPassord extends React.Component {
   }
 
   componentDidMount() {
-    console.log(brukerEpost);
     this.refs.kodeButton.onclick = () => {
       loginService.emailCheck(brukerEpost, this.refs.kodeInput.value).then(() => {
-        console.log('Riktig kode');
         emailCode = true
         this.props.history.push('/resetpassord')
       }).catch((error) =>{
@@ -982,7 +971,6 @@ class NyttResetPassord extends React.Component {
     this.refs.byttPassordButton.onclick = () => {
       if (emailCode && this.refs.passordInput1.value === this.refs.passordInput2.value) {
         userService.newPassword(this.refs.passordInput1.value, brukerEpost).then(() => {
-          console.log('Passord byttet');
           this.props.history.push('/')
         }).catch((error) =>{
           if(errorMessage) errorMessage.set('Kunne ikke bytte passord');
@@ -1043,12 +1031,10 @@ class StartSide extends React.Component {
       }
 
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
     });
     userService.getUser(this.id).then((result) =>{
-      console.log(this.id);
       this.user = result[0];
-      console.log(this.user);
       this.forceUpdate();
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
@@ -1057,7 +1043,7 @@ class StartSide extends React.Component {
       this.state.melding = result[0].melding;
       this.forceUpdate();
     }).catch((error) =>{
-      if(errorMessage) errorMessage.set('Finner ikke melding' + error);
+      if(errorMessage) errorMessage.set('Finner ikke melding');
     });
   }
 }
@@ -1138,7 +1124,6 @@ class Arrangement extends React.Component{
   }
   hentArrangement(){
     arrangementService.getArrangement(this.refs.searchArrangement.value + '%').then((result) => {
-      console.log(result);
       this.arrangement= '';
       this.arrangement = result;
       this.forceUpdate();
@@ -1177,7 +1162,7 @@ class NyttArrangement extends React.Component{
         <tr key={item.id} className='arrangementVaktTabell'>
           <td className='arrangementVaktTabellData'><span className='tableText'>Rolle:</span> {item.navn}</td>
           <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="25" defaultValue={item.antall} onChange={(event) => {item.antall = +event.target.value}} /></td>
-          <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.vakter.splice(i, 1); console.log(this.vakter); this.forceUpdate()}}>Fjern</button></td>
+          <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.vakter.splice(i, 1); this.forceUpdate()}}>Fjern</button></td>
         </tr>);
     }
 
@@ -1194,7 +1179,7 @@ class NyttArrangement extends React.Component{
         <tr key={item.id} className='arrangementVaktTabell'>
           <td className='arrangementVaktTabellData'><span className='tableText'>Utstyr:</span> {item.navn}</td>
           <td className='arrangementVaktTabellData'><span className='tableText'>Antall: </span><input type="number" step="1" min="1" max="500" defaultValue={item.antall} onChange={(event) => {item.antall = +event.target.value}} /></td>
-          <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.utListe.splice(i, 1); console.log(this.utListe); this.forceUpdate()}}>Fjern</button></td>
+          <td className='arrangementVaktTabellData'><button className='btn btn-default' onClick={() => {this.utListe.splice(i, 1); this.forceUpdate()}}>Fjern</button></td>
         </tr>);
     }
 
@@ -1313,24 +1298,16 @@ class NyttArrangement extends React.Component{
       this.roller = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log('ERROR: ROLLE_SQL_FAIL');
-      console.log(err);
     })
     malService.getMals().then((res) => { //Finnished
-      console.log('getMals Sukse!');
-      console.log(res);
       this.maler = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log('getMals feil!');
-      console.log(err);
     });
     UtstyrService.getAllUtstyr().then((res) => {
-      console.log(res);
       this.utstyr = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
 
     this.refs.arrangementButton.onclick = () => {
@@ -1356,18 +1333,13 @@ class NyttArrangement extends React.Component{
 
 
 
-        console.log(vakter);
         arrangementService.addArrVakter(vakter).then((res) => {
-          console.log('Vakter sukse!');
         }).catch((err) => {
           if(errorMessage) errorMessage.set('Kunne ikke legge til vakter');
         });
 
-        console.log(utstyr);
         arrangementService.addArrUtstyr(utstyr).then((res) => {
-          console.log('Vakter sukse!');
         }).catch((err) => {
-          console.log(err);
           if(errorMessage) errorMessage.set('Kunne ikke legge til utstyr');
         });
 
@@ -1393,76 +1365,53 @@ class NyttArrangement extends React.Component{
       let id = this.refs.mal.value;
 
       malService.getMalRolls(id).then((res) => {
-        console.log(res);
 
         let vakter = [];
         for(let item of res) {
           vakter.push({id: item.r_id, navn: this.addify(item.r_id), antall: item.antall});
         }
-        console.log(vakter);
         this.vakter = vakter;
 
         this.componentDidMount();
       }).catch((err) => {
-        console.log('getMalRolls error!');
       });
     }
     this.refs.slettMal.onclick = () => {
       let id = this.refs.mal.value;
 
       malService.removeMalRolls(id).then((res) => {
-        console.log('removeMalRolls sukse!');
         malService.removeMal(id).then((res) => {
-          console.log('removeMal sukse!');
           this.componentDidMount();
         }).catch((err) => {
-          console.log('removeMal feil!');
         });
       }).catch((err) => {
-        console.log('removeMalRolls feil!');
       });
     }
     this.refs.endreMal.onclick = () => { //Finnished
       let id = this.refs.mal.value;
       let navn = this.refs.malNavn.value;
-      console.log(id, navn);
 
       malService.alterMal(id, navn).then((res) => {
-        console.log('alterMal sukse!');
         malService.removeMalRolls(id).then((res) => {
-          console.log('removeMalRolls sukse!');
           malService.addMalRolls(id, this.vakter).then((res) => {
-            console.log('addMalRolls sukse!');
             this.componentDidMount();
           }).catch((err) => {
-            console.log('addMalRolls Feil!');
 
           })
         }).catch((err) => {
-          console.log('removeMalRolls error!');
         })
       }).catch((err) => {
-        console.log('alterMal error!');
       })
     }
     this.refs.leggTilMal.onclick = () => { //Finnished
       let navn = this.refs.malNavn.value;
-      console.log(navn);
       malService.addMal(navn).then((res) => {
-        console.log('addMal Sukse!');
-        console.log(res);
 
         malService.addMalRolls(res.insertId, this.vakter).then((res) => {
-          console.log('addMalRolls sukse!');
-          console.log(res);
           this.componentDidMount();
         }).catch((err) => {
-          console.log('addMalRolls Feil!');
-          console.log(err);
         })
       }).catch((err) => {
-        console.log('addMal Feil!');
-        console.log(err);
       })
     }
 
@@ -1542,8 +1491,6 @@ class NyttArrangement extends React.Component{
             temp[thing.u_id] += thing.antall;
           }
         }).catch((err) => {
-          console.log('Little err!');
-          console.log(err);
         })
       );
     }
@@ -1563,8 +1510,6 @@ class NyttArrangement extends React.Component{
 
       this.forceUpdate();
     }).catch((err) => {
-      console.log('Big err!');
-      console.log(err);
     });
   }
 }
@@ -1642,20 +1587,17 @@ class MineSider extends React.Component {
       this.varsler = result;
       this.forceUpdate()
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke varsler' + error);
+      if(errorMessage) errorMessage.set('Finner ikke varsler');
     });
     arrangementService.getYourArrangements(loginService.getSignedInUser().id).then((result)=>{
       for(let ting of result){
         eventen.push({id:ting.id, title:ting.navn, start:ting.starttidspunkt, end:ting.sluttidspunkt, desc:ting.beskrivelse})
       }
-      console.log(eventen)
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke dine arrangement' + error);
+      if(errorMessage) errorMessage.set('Finner ikke dine arrangement');
     });
     userService.getUser(this.id).then((result) =>{
-      console.log(this.id);
       this.user = result[0];
-      console.log(this.user);
       this.forceUpdate();
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
@@ -1710,25 +1652,19 @@ class Passiv extends React.Component {
   componentDidMount() {
     this.refs.setPassive.onclick = () => {
       let m_id = loginService.getSignedInUser().id;
-      console.log(m_id);
       let start = this.refs.passivFra.value
       let slutt = this.refs.passivTil.value
       if(start <= slutt) {
         PassivService.kanMeld(m_id, start, slutt).then((res) => {
-          console.log(res);
           if(res[0].antall) {
             PassivService.setPassiv(m_id, start, slutt).then((res) => {
-              console.log(res);
             }).catch(() => {
-              console.log(error);
               if(errorMessage) errorMessage.set('Error');
             });
             history.push('/minside')
           } else {
-            console.log('Du er opptatt på denne tiden.');
           }
         }).catch((error) =>{
-          console.log(error);
           if(errorMessage) errorMessage.set('Kunne ikke sette deg passiv');
         });
       } else {
@@ -1798,9 +1734,7 @@ class ForandreBrukerInfo extends React.Component {
   }
   componentDidMount(){
     userService.getUser(this.id).then((result) =>{
-      console.log(this.id);
       this.user = result[0];
-      console.log(this.user);
       this.forceUpdate();
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
@@ -1876,9 +1810,7 @@ class ForandrePassord extends React.Component {
 
   componentDidMount() {
     userService.getUser(this.id).then((result) =>{
-      console.log(this.id);
       this.user = result[0];
-      console.log(this.user);
       this.forceUpdate();
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
@@ -1924,7 +1856,6 @@ class SeKvalifikasjoner extends React.Component {
     let counter = 0;
     let kvalList = [];
     for(let kval of this.kvalifikasjoner){
-      console.log(kval);
       kvalList.push(<li className='list-group-item col-5' key={counter}>{kval.navn}</li>);
       counter++;
     }
@@ -1946,7 +1877,7 @@ class SeKvalifikasjoner extends React.Component {
 
       this.forceUpdate();
     }).catch((error: Error) => {
-      if(errorMessage) errorMessage.set("Failed getting qualifications" + error);
+      if(errorMessage) errorMessage.set("Failed getting qualifications"  );
     });
 
   }
@@ -2047,15 +1978,14 @@ class GodkjennBruker extends React.Component {
   }
   godkjenneBruker(id) {
     administratorFunctions.aktiverBruker(id).then(()=>{
-      console.log('Bruker er aktivert')
       administratorFunctions.ikkeAktiveBrukere().then((result)=>{
         this.ikkeAktive = result;
         this.forceUpdate();
       }).catch((error)=>{
-        if(errorMessage){errorMessage.set('Kunne ikke hente brukere' +error)};
+        if(errorMessage){errorMessage.set('Kunne ikke hente brukere')};
       });
     }).catch((error)=>{
-      if(errorMessage){errorMessage.set('Kunne ikke aktivere bruker' +error)};
+      if(errorMessage){errorMessage.set('Kunne ikke aktivere bruker')};
     });
   }
   componentDidMount() {
@@ -2064,7 +1994,7 @@ class GodkjennBruker extends React.Component {
       this.ikkeAktive = result;
       this.forceUpdate();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Kunne ikke laste ikke aktiv brukere' + error);
+      if(errorMessage) errorMessage.set('Kunne ikke laste ikke aktiv brukere');
     });
   }
 }
@@ -2078,7 +2008,7 @@ class ByttVakt extends React.Component{
   render(){
     let vakter = []
     for(let bytte of this.vaktbytter){
-      vakter.push(<tr key={bytte.id}><td><Link to={'/bruker/'+bytte.om_id}>{bytte.byttenavn}</Link>, vil bytte vakt med <Link to={'/bruker/'+bytte.nm_id}>{bytte.navn}</Link> på arrangement <Link to={'/visArrangement/'+bytte.aid}>{bytte.arrangement} </Link>som {bytte.rollenavn}</td><td><button className='btn btn-default' onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id)}}>Godta</button><button className='btn btn-default' onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
+      vakter.push(<tr key={bytte.id}><td><Link to={'/bruker/'+bytte.om_id}>{bytte.byttenavn}</Link>, vil bytte vakt med <Link to={'/bruker/'+bytte.nm_id}>{bytte.navn}</Link> på arrangement <Link to={'/visArrangement/'+bytte.aid}>{bytte.arrangement} </Link>som {bytte.rollenavn}</td><td><button className='btn btn-default' onClick={()=>{this.godtaVaktBytte(bytte.id,bytte.nm_id,bytte.vakt_id, bytte.om_id)}}>Godta</button><button className='btn btn-default' onClick={()=>{this.avsloVaktBytte(bytte.id)}}>Avslå</button></td></tr>)
     }
     return(
       <div>
@@ -2094,14 +2024,26 @@ class ByttVakt extends React.Component{
     administratorFunctions.avsloVaktBytte(vaktid).then(()=>{
       this.componentDidMount();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Fikk ikke avlått vaktbytte' + error);
+      if(errorMessage) errorMessage.set('Fikk ikke avlått vaktbytte');
     });
   }
-  godtaVaktBytte(vaktBytteid,personid,vakt_id){
+  godtaVaktBytte(vaktBytteid,personid,vakt_id, om_id){
     administratorFunctions.godtaVaktBytte(vaktBytteid,personid,vakt_id).then(()=>{
+
+      arrangementService.vaktpoengPluss(personid).then(()=>{
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Klarte ikke legge til vaktpoeng');
+      });
+
+      arrangementService.vaktpoengMinus(om_id).then(()=>{
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Klarte ikke trekke fra vaktpoeng');
+      });
+
+
       this.componentDidMount();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Fikk ikke godtatt vakt' + error);
+      if(errorMessage) errorMessage.set('Fikk ikke godtatt vakt');
     });
   }
   componentDidMount(){
@@ -2109,7 +2051,7 @@ class ByttVakt extends React.Component{
       this.vaktbytter = result;
       this.forceUpdate();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
+      if(errorMessage) errorMessage.set('Finner ikke vaktbytter');
     });
   }
 }
@@ -2320,9 +2262,7 @@ class EndreBrukerInfo extends React.Component {
   }
   componentDidMount(){
     userService.getUser(this.id).then((result) =>{
-      console.log(this.id);
       this.user = result[0];
-      console.log(this.user);
       this.forceUpdate();
     }).catch((error) =>{
       if(errorMessage) errorMessage.set('Finner ikke bruker');
@@ -2488,7 +2428,7 @@ class VisArrangement extends React.Component {
       this.interesse = result;
       this.forceUpdate();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Noe gikk galt' + error);
+      if(errorMessage) errorMessage.set('Noe gikk galt');
     });
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
@@ -2502,7 +2442,7 @@ class VisArrangement extends React.Component {
         if(errorMessage) errorMessage.set('Finner ikke bruker');
       });
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
+      if(errorMessage) errorMessage.set('Finner ikke dette arrangementet' );
     });
 
   }
@@ -2603,13 +2543,13 @@ class EndreArrangement extends React.Component {
         if(errorMessage) errorMessage.set('Finner ikke bruker');
       });
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke dette arrangementet'+ error);
+      if(errorMessage) errorMessage.set('Finner ikke dette arrangementet' );
     });
     this.refs.lagreEndringer.onclick = () =>{
       arrangementService.updateArrangement(this.refs.text.value,this.refs.oppmøte.value,this.refs.start.value,this.refs.slutt.value,latitude,longitude,address,this.id).then((result)=>{
       history.push('/visArrangement/'+this.arrangement.id);
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement' + error);
+      if(errorMessage) errorMessage.set('Kan ikke oppdaterer arrangement');
     });
 
     }
@@ -2633,9 +2573,6 @@ class Innkalling extends React.Component {
     let rolle = []
     let ikkeValgtePersoner = []
     let valgtePersoner = []
-    // console.log(this.roller);
-    console.log(this.ikkeValgte);
-    console.log(this.valgte);
 
     for(let i in this.ikkeValgte){
       let item = this.ikkeValgte[i];
@@ -2712,7 +2649,6 @@ class Innkalling extends React.Component {
   componentDidMount() {
     arrangementService.showArrangement(this.id).then((result)=>{
       this.arrangement = result[0];
-      console.log(result[0]);
     }).catch((error)=>{
       if(errorMessage) errorMessage.set('Finner ikke arrangement')
     })
@@ -2721,29 +2657,21 @@ class Innkalling extends React.Component {
       if (result && result[0]) {
         this.r = result[0].r_id;
       }
-      // console.log(result);
       this.forceUpdate()
     }).catch((error) => {
-      console.log(error);
-      if(errorMessage) errorMessage.set('Fant ingen roller i dette arrnagementet' + error)
+      if(errorMessage) errorMessage.set('Fant ingen roller i dette arrnagementet')
     })
 
     VaktValg.lagListe3(this.id).then((res)=>{
-      // console.log(res);
       this.ikkeValgte = res;
       this.forceUpdate();
     }).catch((err)=>{
-      console.log('Feil med resultatet');
-      console.log(err);
     });
 
     VaktValg.getReg(this.id).then((res)=>{
-      // console.log(res);
       this.valgte = res;
       this.forceUpdate();
     }).catch((err)=>{
-      console.log('Feil med resultatet');
-      console.log(err);
     });
 
     this.refs.button.onclick = () => {
@@ -2752,7 +2680,6 @@ class Innkalling extends React.Component {
     }
 
     this.refs.save.onclick = () => {
-      console.log(this.roller);
 
       let leggTil = [];
       let fjern = [];
@@ -2787,9 +2714,6 @@ class Innkalling extends React.Component {
           });
         }
       }
-      console.log(ignorer);
-      console.log(fjern);
-      console.log(leggTil);
 
       for(let item of this.roller) {
         let count = 0;
@@ -2799,62 +2723,34 @@ class Innkalling extends React.Component {
           }
         }
         for(let med of ignorer) {
-          console.log('dawdsd');
           if (med.r_id === item.r_id) {
-            console.log('greawdas');
             count++;
           }
         }
         if (count > item.antall) {
-          console.log('Error');
           return;
         }
       }
 
-      console.log(fjern);
-      console.log(leggTil);
-
       let proms = [];
       for(let item of fjern) {
-        console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
         proms.push(VaktValg.removeVakt(item.m_id, this.id, item.r_id));
       }
       Promise.all(proms).then(() => {
-        console.log('Middels sukse!');
         let proms = []
         for(let item of leggTil) {
-          console.log(item.m_id + ' - ' + this.id + ' - ' + item.r_id);
           proms.push(VaktValg.setVakt(item.m_id, this.id, item.r_id, new Date()).then((res) => {
-            console.log('Mini sukse');
-            console.log(res);
-            console.log(item.epost);
-            console.log(this.getRollName(item.r_id));
-            console.log(this.arrangement.navn);
-            console.log(this.arrangement.oppmootetidspunkt);
-            console.log(moment(this.arrangement.oppmootetidspunkt).format('DD-MM-YYYY HH:mm'));
             emailService.innkalling(item.epost, this.getRollName(item.r_id), this.arrangement.navn, moment(this.arrangement.oppmootetidspunkt).format('DD-MM-YYYY HH:mm')).then((res) => {
-              console.log('mikro sukse');
-              console.log(res);
             }).catch((err) => {
-              console.log('mikro feil');
-              console.log(err);
             });
           }).catch((err) => {
-            console.log('Mini feil');
-            console.log(err);
           }));
         }
-        console.log(proms);
         Promise.all(proms).then((res) => {
-          console.log('MASSIV SUKSE!!!!');
           this.componentDidMount();
         }).catch((err) => {
-          console.log('MASSIV FEIL!!!');
-          console.log(err);
         });
       }).catch((err)=>{
-        console.log('Something went wrong.');
-        console.log(err);
       });
 
     }
@@ -2862,7 +2758,6 @@ class Innkalling extends React.Component {
   }
 
   leggTil(i) {
-    console.log(i);
     let flytt = this.ikkeValgte[i].m_id;
     let roll = this.ikkeValgte[i].r_id;
     for (let per of this.valgte) {
@@ -2876,10 +2771,7 @@ class Innkalling extends React.Component {
   }
 
   taVekk(i) {
-    console.log(i);
-    console.log(this.valgte);
     let flytt = this.valgte[i].m_id;
-    console.log(flytt);
     this.ikkeValgte.push(this.valgte.splice(i,1)[0]);
     this.settOpptatt(flytt, 0);
     this.forceUpdate();
@@ -2900,39 +2792,17 @@ class Innkalling extends React.Component {
   }
 
   settOpptatt(m_id, r_id) {
-    console.log(m_id, r_id);
     for (var i = 0; i < this.valgte.length; i++) {
       if (this.valgte[i].m_id === m_id) {
-        // console.log(m_id);
-        // console.log(this.valgte[i].opptatt);
-        // console.log(r_id);
         this.valgte[i].opptatt = r_id;
-        // console.log(this.valgte[i].opptatt);
       }
     }
     for (var i = 0; i < this.ikkeValgte.length; i++) {
       if (this.ikkeValgte[i].m_id === m_id) {
-        // console.log(m_id);
-        // console.log(this.valgte[i].opptatt);
-        // console.log(r_id);
         this.ikkeValgte[i].opptatt = r_id;
-        // console.log(this.valgte[i].opptatt);
       }
     }
   }
-
-  // setOpptatt(m_id, r_id) {
-  //   for (item of this.ikkeValgte) {
-  //     if (item.m_id === m_id) {
-  //       item.opptatt = r_id
-  //     }
-  //   }
-  //   for (item of this.valgte) {
-  //     if (item.m_id === m_id) {
-  //       item.opptatt = r_id;
-  //     }
-  //   }
-  // }
 }
 
 //Denne siden viser en liste over utstyr som finnes. Du kan endre på navnene og legge til nytt utstyr. Inne i siden ligger også sidene rolleutstyr og arrangementutstyr.
@@ -2984,13 +2854,10 @@ class Utstyr extends React.Component {
     this.update();
 
     this.refs.lagUt.onclick = () => {
-      console.log(this.refs.utNavn.value);
       UtstyrService.addUtstyr(this.refs.utNavn.value).then((res) => {
-        console.log(res);
         this.refs.utNavn.value = '';
         this.update();
       }).catch((err) => {
-        console.log(err);
       });
     };
     this.refs.utstyrsListeHelpButton.onclick = () => {
@@ -3000,30 +2867,22 @@ class Utstyr extends React.Component {
   }
   update() {
     UtstyrService.getAllUtstyr().then((res) => {
-      console.log(res);
       this.utstyr = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
   }
 
   changeUtstyr(id) {
-    console.log('Endre: ' + id);
     UtstyrService.alterUtstyr(id, this.refs.utNavn.value).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
   removeUtstyr(id) {
-    console.log('Fjern: ' + id);
     UtstyrService.removeUtstyr(id).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
 }
@@ -3094,12 +2953,9 @@ class RolleUtstyr extends React.Component {
     this.update();
 
     this.refs.lagUt.onclick = () => {
-      console.log('Click');
       UtstyrService.addRU(this.refs.rolle.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
-        console.log(res);
         this.update();
       }).catch((err) => {
-        console.log(err);
       });
     };
     this.refs.rolleUtstyrHelpButton.onclick = () => {
@@ -3109,44 +2965,32 @@ class RolleUtstyr extends React.Component {
   }
   update() {
     UtstyrService.getAllRU(this.refs.rolle.value).then((res) => {
-      console.log(res);
       this.rolleUtstyr = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
     rolleService.getAllRolle().then((res) => {
-      console.log(res);
       this.roller = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
   });
   UtstyrService.getAllUtstyr().then((res) => {
-    console.log(res);
     this.utstyr = res;
     this.forceUpdate();
   }).catch((err) => {
-    console.log(err);
   });
   }
 
   changeUtstyr(r_id, u_id) {
-    console.log('Endre');
     UtstyrService.alterRU(r_id, u_id, this.refs.antall.value).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
   removeUtstyr(r_id, u_id) {
-    console.log('Fjern');
     UtstyrService.removeRU(r_id, u_id).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
 }
@@ -3218,12 +3062,9 @@ class ArrangementUtstyr extends React.Component {
     this.update();
 
     this.refs.lagUt.onclick = () => {
-      console.log('Click');
       UtstyrService.addAU(this.refs.arrangement.value, this.refs.utstyr.value, this.refs.antall.value).then((res) => {
-        console.log(res);
         this.update();
       }).catch((err) => {
-        console.log(err);
       });
     };
 
@@ -3234,44 +3075,32 @@ class ArrangementUtstyr extends React.Component {
   }
   update() {
     UtstyrService.getAllAU(this.refs.arrangement.value).then((res) => {
-      console.log(res);
       this.arrangememtUtstyr = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
     UtstyrService.getAllUtstyr().then((res) => {
-      console.log(res);
       this.utstyr = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
     arrangementService.getAllArrangement().then((res) => {
-      console.log(res);
       this.arrangement = res;
       this.forceUpdate();
     }).catch((err)=>{
-      console.log(err);
     });
   }
 
   changeUtstyr(a_id, u_id) {
-    console.log('Endre');
     UtstyrService.alterAU(a_id, u_id, this.refs.antall.value).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
   removeUtstyr(a_id, u_id) {
-    console.log('Fjern');
     UtstyrService.removeAU(a_id, u_id).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
 }
@@ -3364,7 +3193,7 @@ class MineVakter extends React.Component {
     arrangementService.ikkeGodtaVaktBytte(vaktid).then(()=>{
       this.componentDidMount();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Du fikk ikke avslått vakten' + error);
+      if(errorMessage) errorMessage.set('Du fikk ikke avslått vakten');
     });
   }
   vaktGodtatt(vaktid){
@@ -3373,10 +3202,10 @@ class MineVakter extends React.Component {
         this.vaktbytter = result;
         this.forceUpdate();
       }).catch((error)=>{
-        if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
+        if(errorMessage) errorMessage.set('Finner ikke vaktbytter');
       });
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Du fikk ikke godtatt vaktbytte' + error);
+      if(errorMessage) errorMessage.set('Du fikk ikke godtatt vaktbytte');
     });
   }
   //Send forespørsel om vaktbytte
@@ -3391,23 +3220,26 @@ class MineVakter extends React.Component {
       velgBytteBruker = søl;
       Popup.plugins(vaktid).prompt2('', 'Velg bruker', function (value,signedInUser) {
         arrangementService.byttVakt(vaktid,value).then(()=>{
-          console.log(value);
           history.push('/mineVakter');
         }).catch((error)=>{
-          if(errorMessage) errorMessage.set('Får ikke byttet vakt' + error);
+          if(errorMessage) errorMessage.set('Får ikke byttet vakt');
         });
       });
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke det du leter etter' + error);
+      if(errorMessage) errorMessage.set('Finner ikke det du leter etter');
     });
 
   }
   //Godta vakt du er utkalt til
   godta(value){
     arrangementService.godtaVakt(new Date(),value,loginService.getSignedInUser().id).then(()=>{
+      arrangementService.vaktpoengPluss(loginService.getSignedInUser().id).then(()=>{
+      }).catch((error)=>{
+        if(errorMessage) errorMessage.set('Klarte legge til vaktpoeng');
+      });
       this.componentDidMount();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Karte ikke godta vakt' + error);
+      if(errorMessage) errorMessage.set('Klarte ikke godta vakt');
     });
   }
   componentDidMount() {
@@ -3415,19 +3247,19 @@ class MineVakter extends React.Component {
       this.vaktbytter = result;
       this.forceUpdate();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke vaktbytter' + error);
+      if(errorMessage) errorMessage.set('Finner ikke vaktbytter');
     });
     arrangementService.getGodkjenteArrangement(loginService.getSignedInUser().id).then((result)=>{
       this.godkjente = result;
       this.forceUpdate();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
     });
     arrangementService.getUtkaltArrangement(loginService.getSignedInUser().id).then((result)=>{
       this.ikkeGodkjente = result;
       this.forceUpdate();
     }).catch((error)=>{
-      if(errorMessage) errorMessage.set('Finner ikke arrangement' + error);
+      if(errorMessage) errorMessage.set('Finner ikke arrangement');
     });
 
     this.refs.ikkeGodkjentVaktHelpButton.onclick = () => {
@@ -3494,7 +3326,7 @@ class Kvalifikasjoner extends React.Component {
               <label htmlFor='kvVar'>Varighet:</label>
             </div>
             <div className='col col-2'>
-              <input type='number' className='sokeFelt form-control'  ref='kvVar' name='kvVar'/>
+              <input type='number' className='sokeFelt form-control'ref='kvVar' name='kvVar'/>
             </div>
             <div className='col col-2'>
               <button className='btn btn-default' ref='lagKv'>Legg til</button>
@@ -3516,12 +3348,9 @@ class Kvalifikasjoner extends React.Component {
     this.update();
 
     this.refs.lagKv.onclick = () => {
-      console.log(this.refs.kvNavn.value);
       KvalifikasjonService.addKvalifikasjon(this.refs.kvNavn.value, this.refs.kvVar.value).then((res) => {
-        console.log(res);
         this.update();
       }).catch((err) => {
-        console.log(err);
       });
     };
     this.refs.kvalListeHelpButton.onclick = () => {
@@ -3531,30 +3360,22 @@ class Kvalifikasjoner extends React.Component {
   }
   update() {
     KvalifikasjonService.getAllKvalifikasjon().then((res) => {
-      console.log(res);
       this.kvalifikasjon = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
   }
 
   changeKval(id) {
-    console.log('Endre: ' + id);
     KvalifikasjonService.alterKvalifikasjon(id, this.refs.kvNavn.value, this.refs.kvVar.value).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
   removeKval(id) {
-    console.log('Fjern: ' + id);
     KvalifikasjonService.removeKvalifikasjon(id).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
 }
@@ -3620,12 +3441,9 @@ class RolleKvalifikasjoner extends React.Component {
     this.update();
 
     this.refs.lagRK.onclick = () => {
-      console.log('Click');
       KvalifikasjonService.addRK(this.refs.rolle.value, this.refs.kval.value).then((res) => {
-        console.log(res);
         this.update();
       }).catch((err) => {
-        console.log(err);
       });
     };
 
@@ -3636,43 +3454,25 @@ class RolleKvalifikasjoner extends React.Component {
   }
   update() {
     KvalifikasjonService.getAllRK(this.refs.rolle.value).then((res) => {
-      console.log(res);
       this.rolleKval = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
     KvalifikasjonService.getAllKvalifikasjon().then((res) => {
-      console.log(res);
       this.kvalifikasjoner = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
     rolleService.getAllRolle().then((res) => {
-      console.log(res);
       this.roller = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
   });
   }
-  changeKval(r_id, k_id) {
-    console.log('Endre');
-    // KvalifikasjonService.alterRK(r_id, k_id).then((res) => {
-    //   console.log(res);
-    //   this.update();
-    // }).catch((err) => {
-    //   console.log(err);
-    // });
-  }
   removeKval(r_id, k_id) {
-    console.log('Fjern');
     KvalifikasjonService.removeRK(r_id, k_id).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
 }
@@ -3737,12 +3537,9 @@ class MedlemKvalifikasjoner extends React.Component {
     this.update();
 
     this.refs.lagMK.onclick = () => {
-      console.log('Click');
       KvalifikasjonService.addMK(this.refs.med.value, this.refs.kval.value).then((res) => {
-        console.log(res);
         this.update();
       }).catch((err) => {
-        console.log(err);
       });
     };
     this.refs.medlemKvalHelpButton.onclick = () => {
@@ -3752,44 +3549,32 @@ class MedlemKvalifikasjoner extends React.Component {
   }
   update() {
     KvalifikasjonService.getAllMK(this.refs.med.value).then((res) => {
-      console.log(res);
       this.medKval = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
     KvalifikasjonService.getAllKvalifikasjon().then((res) => {
-      console.log(res);
       this.kvalifikasjoner = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
     userService.getUsers().then((res) => {
-      console.log(res);
       this.meldemer = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
   }
 
   changeKval(m_id, k_id) {
-    console.log('Endre');
     KvalifikasjonService.alterMK(m_id, k_id, new Date()).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
   removeKval(m_id, k_id) {
-    console.log('Fjern');
     KvalifikasjonService.removeMK(m_id, k_id).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
 }
@@ -3828,41 +3613,30 @@ class Rolle extends React.Component {
     this.update();
 
     this.refs.lagRo.onclick = () => {
-      console.log(this.refs.roNavn.value);
       rolleService.addRolle(this.refs.roNavn.value).then((res) => {
-        console.log(res);
         this.update();
       }).catch((err) => {
-        console.log(err);
       });
     };
   }
   update() {
     rolleService.getAllRolle().then((res) => {
-      console.log(res);
       this.roller = res;
       this.forceUpdate();
     }).catch((err) => {
-      console.log(err);
     });
   }
 
   changeRolle(id) {
-    console.log('Endre: ' + id);
     rolleService.alterRolle(id, this.refs.roNavn.value).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
   removeRolle(id) {
-    console.log('Fjern: ' + id);
     rolleService.removeRolle(id).then((res) => {
-      console.log(res);
       this.update();
     }).catch((err) => {
-      console.log(err);
     });
   }
 }
@@ -3900,7 +3674,7 @@ class Statistik extends React.Component {
     return(
       <div className='enkelContainer'>
           <div className='form-group'>
-            <label htmlFor='statType'  >Velg statistikk type:</label>
+            <label htmlFor='statType'>Velg statistikk type:</label>
             <select ref='statType' className='form-control form-control-lg col-6' name='statType'>{statValg}</select>
           </div>
           <div className='form-group'>
@@ -3927,55 +3701,43 @@ class Statistik extends React.Component {
       let til = this.refs.eDato.value;
 
       statistikkService[this.refs.statType.value](fra, til).then((res) => {
-        console.log(res);
         this.statistikk = res;
         this.forceUpdate();
       }).catch((err) => {
-        console.log(err);
       });
 
 
        switch (this.refs.statType.value) {
          case 'allMedAntVakter':
-        console.log('allMedAntVakter');
         this.allMedAntVakter();
            break;
          case 'allMedAntTimer':
-           console.log('allMedAntTimer');
            this.allMedAntTimer();
            break;
          case 'allMedAntTimerMDato':
-           console.log('allMedAntTimer');
          this.allMedAntTimerMDato();
            break;
          case 'allMedAntVaktMDato':
-         console.log('allMedAntVaktMDato');
            this.allMedAntVaktMDato();
            break;
          default:
-           console.log('switch fail!');
-         console.log(this.refs.statType.value);
        }
     };
   }
 
    allMedAntVakter() {
      statistikkService.allMedAntVakter().then((res) => {
-       console.log(res);
        this.statistikk = res;
        this.forceUpdate();
      }).catch((err) => {
-       console.log(err);
      });
 
    }
    allMedAntTimer() {
      statistikkService.allMedAntTimer().then((res) => {
-       console.log(res);
        this.statistikk = res;
        this.forceUpdate();
      }).catch((err) => {
-       console.log(err);
      });
 
    }
@@ -3984,22 +3746,18 @@ class Statistik extends React.Component {
      let fra = this.refs.sDato.value;
      let til = this.refs.eDato.value;
      statistikkService.allMedAntTimerMDato(fra, til).then((res) => {
-       console.log(res);
        this.statistikk = res;
        this.forceUpdate();
      }).catch((err) => {
-       console.log(err);
      });
    }
    allMedAntVaktMDato() {
      let fra = this.refs.sDato.value;
      let til = this.refs.eDato.value;
      statistikkService.allMedAntVaktMDato(fra, til).then((res) => {
-       console.log(res);
        this.statistikk = res;
        this.forceUpdate();
      }).catch((err) => {
-       console.log(err);
      });
    }
 

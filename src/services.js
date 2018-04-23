@@ -368,7 +368,7 @@ class ArrangementService {
   //Godta vakt ukalt fra administrator
   godtaVakt(dato,a_id,m_id){
     return new Promise((resolve, reject) =>{
-      connection.query('update vakt set bekreftelsestid = ? where a_id = ? and m_id = ?', [dato,a_id,m_id], (error, result)=>{
+      connection.query('update vakt set bekreftelsestid = ?  where a_id = ? and m_id = ?', [dato,a_id,m_id, m_id], (error, result)=>{
         if(error){
           reject(error);
           return;
@@ -378,6 +378,33 @@ class ArrangementService {
       });
     });
   }
+  //Øker vaktpoeng med 1
+  vaktpoengPluss(m_id){
+    return new Promise((resolve, reject) =>{
+      connection.query('update medlem set vaktpoeng = (vaktpoeng + 1) where id = ?', [m_id], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
+  //Senker vaktpoeng med 1
+  vaktpoengMinus(m_id){
+    return new Promise((resolve, reject) =>{
+      connection.query('update medlem set vaktpoeng = (vaktpoeng - 1) where id = ?', [m_id], (error, result)=>{
+        if(error){
+          reject(error);
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
+
   //Ikke godta vaktbytte forespørsel fra annen bruker
   ikkeGodtaVaktBytte(vaktid){
     return new Promise((resolve, reject)=>{
