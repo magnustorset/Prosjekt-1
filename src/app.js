@@ -2577,13 +2577,29 @@ class Innkalling extends React.Component {
     for(let i in this.ikkeValgte){
       let item = this.ikkeValgte[i];
       if (item.r_id === this.r) {
-        ikkeValgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn} - {(item.interesse) ? 'Ja':'Nei'} - {item.vaktpoeng} - {this.getRollName(item.registrert)} - {this.getRollName(item.opptatt)}<button className='btn btn-default' onClick={() => {this.leggTil(+i)}}>Flytt over</button></li>)
+        ikkeValgtePersoner.push(
+          <tr key={item.m_id}>
+            <td>{item.brukernavn}</td>
+            <td>{(item.interesse) ? 'Ja':'Nei'}</td>
+            <td>{item.vaktpoeng}</td>
+            <td>{this.getRollName(item.registrert)}</td>
+            <td>{this.getRollName(item.opptatt)}</td>
+            <td><button className='btn btn-default' onClick={() => {this.leggTil(+i)}}>Flytt over</button></td>
+          </tr>)
       }
     }
     for(let i in this.valgte){
       let item = this.valgte[i];
       if (item.r_id === this.r) {
-        valgtePersoner.push(<li key={item.m_id}>{item.r_id} - {item.brukernavn} - {(item.interesse) ? 'Ja':'Nei'} - {item.vaktpoeng} - {this.getRollName(item.registrert)} - {this.getRollName(item.opptatt)}<button className='btn btn-default' onClick={() => {this.taVekk(+i)}}>Flytt over</button></li>)
+        valgtePersoner.push(
+          <tr key={item.m_id}>
+            <td>{item.brukernavn}</td>
+            <td>{(item.interesse) ? 'Ja':'Nei'}</td>
+            <td>{item.vaktpoeng}</td>
+            <td>{this.getRollName(item.registrert)}</td>
+            <td>{this.getRollName(item.opptatt)}</td>
+            <td><button className='btn btn-default' onClick={() => {this.taVekk(+i)}}>Flytt over</button></td>
+          </tr>)
       }
     }
     for (let roll of this.roller) {
@@ -2599,7 +2615,8 @@ class Innkalling extends React.Component {
           <thead>
             <tr>
               <td><select ref='r'>{rolle}</select>
-              <button className='btn btn-default' ref='button'>Button</button>{this.r}</td>
+              <button className='btn btn-default' ref='button'>Velg</button>
+              <button className='btn btn-xs btn-default' id='innkallingHelpButton' ref='innkallingHelpButton'><span className="glyphicon glyphicon-info-sign"> </span></button></td>
             </tr>
           </thead>
           <tbody>
@@ -2617,9 +2634,20 @@ class Innkalling extends React.Component {
                   <tbody>
                     <tr>
                       <td>
-                        <ul>
-                          {ikkeValgtePersoner}
-                        </ul>
+                        <table className='innkallingTabell'>
+                          <thead>
+                            <tr className='iTHead'>
+                              <td>Brukernavn</td>
+                              <td>Interessert</td>
+                              <td>Vaktpoeng</td>
+                              <td>Lagret rolle</td>
+                              <td>Valgt rolle</td>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {ikkeValgtePersoner}
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -2630,9 +2658,20 @@ class Innkalling extends React.Component {
                   <tbody>
                     <tr>
                       <td>
-                        <ul>
-                          {valgtePersoner}
-                        </ul>
+                        <table className='innkallingTabell'>
+                          <thead>
+                            <tr className='iTHead'>
+                              <td>Brukernavn</td>
+                              <td>Interessert</td>
+                              <td>Vaktpoeng</td>
+                              <td>Lagret rolle</td>
+                              <td>Valgt rolle</td>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {valgtePersoner}
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -2754,6 +2793,11 @@ class Innkalling extends React.Component {
       });
 
     }
+
+    this.refs.innkallingHelpButton.onclick = () => {
+      Popup.plugins().popunder('Velg en rolle i rullegardinmenyen til venstre og klikk velg for å se tilgjengelige personer for den rollen på det arrangementet. I tabellen til venstre vises personer som er tilgjengelige for rollen. I tabellen til høyre vises alle som er eller skal bli kalt ut. Lagret rolle er rollen som er lagret i databasen. Valgt rolle er rollen de er valgt som nå.', innkallingHelpButton);
+    }
+
 
   }
 
