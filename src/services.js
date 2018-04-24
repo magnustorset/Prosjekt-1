@@ -7,9 +7,9 @@ let connection
 function connect () {
   connection = mysql.createConnection({
     host: 'mysql.stud.iie.ntnu.no',
-    user: 'g_oops_24',
-    password: 'Y3QgOxYS',
-    database: 'g_oops_24'
+    user: 'user',
+    password: 'pass',
+    database: 'user'
   })
 
   // Connect to MySQL-server
