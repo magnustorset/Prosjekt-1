@@ -29,12 +29,12 @@ function connect () {
 connect()
 //oppkobling til epostserver
 let transporter = nodemailer.createTransport({
-  host: 'mail.fastname.no',
-  port: 465,
+  host: 'host',
+  port: port,
   secure: true,
   auth: {
-    user: 'rodekorsprosjekt@2rz.no',
-    pass: '25JyrJSCfe8h'
+    user: 'user',
+    pass: 'pass'
   },
   tls: {
         // do not fail on invalid certs
